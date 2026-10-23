@@ -1,7 +1,21 @@
-# Only the packages changed since develop (falls back to main before develop exists)
-base=$(git rev-parse --verify --quiet origin/develop || git rev-parse --verify --quiet develop || git rev-parse --verify --quiet main)
+#!/bin/sh
+
+# Block direct pushes to protected branches; they only move through GitHub PRs.
+remote_name="$1"
+while read -r local_ref local_sha remote_ref remote_sha; do
+  for branch in main development; do
+    if [ "$remote_ref" = "refs/heads/$branch" ]; then
+      echo "Push to protected branch '$branch' on '$remote_name' is blocked."
+      echo "Open a pull request instead."
+      exit 1
+    fi
+  done
+done
+
+# Only the packages changed since development
+base=$(git rev-parse --verify --quiet origin/development || git rev-parse --verify --quiet development)
 if [ -n "$base" ]; then
-  pnpm turbo run type-check test --filter="...[$base]"
+  pnpm turbo run lint type-check test --filter="...[$base]" || exit 1
 else
-  pnpm turbo run type-check test
+  pnpm turbo run lint type-check test || exit 1
 fi

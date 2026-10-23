@@ -1,12 +1,22 @@
 # Contributing
 
-## Git flow
+## Branches
 
-- `main` — production. Receives release and hotfix merges only, each tagged `vX.Y.Z`.
-- `develop` — integration, always green. Base for feature branches.
-- `feature/<scope>-<short-desc>` — one change, PR into `develop`, squash merge with a conventional title.
-- `release/X.Y.Z` — cut from `develop`, version bump and changelog, PR into `main` (merge commit + tag), back-merged into `develop`.
-- `hotfix/<short-desc>` — from `main`, PR into `main`, patch tag, back-merged into `develop`.
+- `main` — production. Protected. Only receives merges from `development`, through a pull request opened and merged by the maintainer. Each merge is tagged `vX.Y.Z`.
+- `development` — integration, always green. Protected. Every work branch starts here and comes back here through a pull request.
+- Work branches: `feature/<short-name>`, `fix/<short-name>`, `chore/<short-name>`, `refactor/<short-name>`. Short and descriptive, for example `feature/discussion-list`, `fix/reply-form-focus`, `chore/ci-cache`.
+
+The husky hooks refuse commits and pushes made directly on `main` or `development`. The same rule is enforced on GitHub with branch protection.
+
+## Flow
+
+1. `git checkout development && git pull`
+2. `git checkout -b feature/short-name`
+3. Commit small, push the branch, open a PR into `development`.
+4. CI must be green. Squash merge with a conventional title.
+5. When `development` is ready for a release, the maintainer opens a PR `development → main`, merges it and tags.
+
+Dependencies are updated by hand in `chore/deps` branches. No bots open pull requests on this repository.
 
 ## Commits
 
@@ -18,7 +28,7 @@ fix(web): keep category filter when changing sort
 ```
 
 Types: `feat fix refactor chore test docs ci style perf build revert`. Scopes: `web cms docker ci docs deps repo`.
-Enforced by commitlint (husky `commit-msg`).
+Enforced by commitlint (`commit-msg` hook).
 
 ## Engineering rules
 
@@ -35,10 +45,10 @@ Enforced by commitlint (husky `commit-msg`).
 ## Local checks
 
 ```bash
-pnpm lint          # eslint
+pnpm lint          # eslint (apps + root)
 pnpm format:check  # prettier
 pnpm type-check    # tsc
 pnpm test          # vitest
 ```
 
-Hooks: `pre-commit` runs lint-staged, `commit-msg` runs commitlint, `pre-push` runs type-check and tests for packages changed since `develop`.
+Hooks: `pre-commit` checks Node, blocks protected branches and runs lint-staged; `commit-msg` runs commitlint; `pre-push` blocks protected branches and runs lint, type-check and tests for packages changed since `development`.
