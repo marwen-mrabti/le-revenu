@@ -1,1 +1,21 @@
-pnpm lint-staged
+#!/bin/sh
+
+# Node version guard
+REQUIRED_NODE=24
+CURRENT_NODE=$(node -v | cut -d'.' -f1 | tr -d 'v')
+if [ "$CURRENT_NODE" -lt "$REQUIRED_NODE" ]; then
+  echo "Node.js v$REQUIRED_NODE+ required. You're on $(node -v)"
+  exit 1
+fi
+
+# Never commit directly on protected branches
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+for b in main development; do
+  if [ "$BRANCH" = "$b" ]; then
+    echo "You're committing directly to '$BRANCH'."
+    echo "Create a work branch first: git checkout -b feature/short-name"
+    exit 1
+  fi
+done
+
+pnpm lint-staged --concurrent false
