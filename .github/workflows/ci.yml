@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: ./.github/actions/setup-node-pnpm
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-pnpm
       - run: pnpm turbo run type-check
 
@@ -48,7 +48,7 @@ jobs:
     timeout-minutes: 20
     needs: [lint, type-check]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-pnpm
       - uses: actions/cache@v4
         with:
