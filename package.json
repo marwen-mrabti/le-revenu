@@ -20,7 +20,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky",
-    "lint:root": "eslint ."
+    "lint:root": "eslint .",
+    "verify": "sh scripts/verify-ci.sh"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
@@ -32,5 +33,11 @@
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "turbo": "^2.11.10"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^19.3.0",
+      "@types/react-dom": "^19.3.0"
+    }
   }
 }

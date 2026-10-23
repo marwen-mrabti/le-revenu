@@ -13,9 +13,10 @@ The husky hooks refuse commits and pushes made directly on `main` or `developmen
 1. `git checkout development && git pull`
 2. `git checkout -b feature/short-name`
 3. Write the feature plan in `docs/plans/NN-short-name.md` from `docs/plans/TEMPLATE.md` (goal, scope, acceptance criteria, mockups, design, phased steps, tests). It is the first commit of the branch and must be reviewed before any code is written.
-4. Commit small, push the branch, open a PR into `development`.
-5. CI must be green. Squash merge with a conventional title.
-6. When `development` is ready for a release, the maintainer opens a PR `development → main`, merges it and tags.
+4. Commit small. Before pushing, run `pnpm verify`: it clones the branch into a temp folder, installs with a frozen lockfile and runs lint, format check, commitlint, type-check, build and tests exactly as CI does. Nothing red gets pushed.
+5. Push the branch, open a PR into `development`.
+6. CI must be green. Squash merge with a conventional title.
+7. When `development` is ready for a release, the maintainer opens a PR `development → main`, merges it and tags.
 
 Dependencies are updated by hand in `chore/deps` branches. No bots open pull requests on this repository.
 
@@ -40,6 +41,9 @@ Enforced by commitlint (`commit-msg` hook).
 - Components are small and self-managed: one typed DTO in, or they own their query. Minimal prop drilling: `children`, Query cache, URL state, context only for theme and current user.
 - Server Components by default; `'use client'` only at the interactive leaf.
 - Validate at every boundary with zod. No `any`.
+- Write handlers accept JSON only and reject cross-origin requests; security headers are set in `next.config.ts`.
+- Required env is validated at startup on both apps; a missing or placeholder secret fails the boot.
+- Every page defines `generateMetadata` (French title and description, Open Graph, canonical); `robots.ts` and `sitemap.ts` exist.
 - Tests live next to the code. Every PR adds or updates tests.
 - Small PRs, each green on CI.
 

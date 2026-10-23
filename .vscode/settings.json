@@ -1,0 +1,9 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": { "source.fixAll.eslint": "explicit" },
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+  "typescript.tsdk": "apps/web/node_modules/typescript/lib",
+  "tailwindCSS.experimental.configFile": "apps/web/src/app/globals.css",
+  "files.eol": "\n"
+}
