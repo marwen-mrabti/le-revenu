@@ -1,0 +1,44 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+.next/
+out/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+
+# strapi
+.strapi/
+.tmp/
+.cache/
+apps/cms/public/uploads/*
+!apps/cms/public/uploads/.gitkeep
+
+# env
+.env
+.env.*
+!.env.example
+!.env.ci
+
+# tests
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

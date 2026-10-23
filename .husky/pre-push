@@ -1,0 +1,7 @@
+# Only the packages changed since develop (falls back to main before develop exists)
+base=$(git rev-parse --verify --quiet origin/develop || git rev-parse --verify --quiet develop || git rev-parse --verify --quiet main)
+if [ -n "$base" ]; then
+  pnpm turbo run type-check test --filter="...[$base]"
+else
+  pnpm turbo run type-check test
+fi

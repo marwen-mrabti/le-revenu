@@ -1,0 +1,10 @@
+packages:
+  - apps/*
+  - packages/*
+
+onlyBuiltDependencies:
+  - sharp
+  - esbuild
+  - unrs-resolver
+  - '@swc/core'
+  - better-sqlite3

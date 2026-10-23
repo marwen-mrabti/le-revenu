@@ -1,0 +1,39 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "ui": "tui",
+  "globalEnv": ["NODE_ENV", "CI"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": ["STRAPI_URL", "AUTH_COOKIE_NAME", "REVALIDATE_SECRET", "NEXT_PUBLIC_APP_URL"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", ".strapi/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "type-check": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["coverage/**"]
+    },
+    "test:integration": {
+      "cache": false,
+      "dependsOn": ["^build"]
+    },
+    "test:e2e": {
+      "cache": false,
+      "dependsOn": ["build"]
+    },
+    "seed": {
+      "cache": false
+    }
+  }
+}

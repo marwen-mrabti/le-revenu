@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+build
+.turbo
+.strapi
+pnpm-lock.yaml
+coverage
+playwright-report
+apps/cms/types/generated
+apps/web/src/components/ui
+CHANGELOG.md
