@@ -40,6 +40,9 @@ Enforced by commitlint (`commit-msg` hook).
 - Components are small and self-managed: one typed DTO in, or they own their query. Minimal prop drilling: `children`, Query cache, URL state, context only for theme and current user.
 - Server Components by default; `'use client'` only at the interactive leaf.
 - Validate at every boundary with zod. No `any`.
+- Write handlers accept JSON only and reject cross-origin requests; security headers are set in `next.config.ts`.
+- Required env is validated at startup on both apps; a missing or placeholder secret fails the boot.
+- Every page defines `generateMetadata` (French title and description, Open Graph, canonical); `robots.ts` and `sitemap.ts` exist.
 - Tests live next to the code. Every PR adds or updates tests.
 - Small PRs, each green on CI.
 
