@@ -1,6 +1,6 @@
 # 02 — Strapi content types, permissions, seed and tests
 
-Branch: `feature/cms-content-types` · Target: `development` · Estimate: 8 h · Status: draft
+Branch: `feature/cms-content-types` · Target: `development` · Estimate: 12 h · Status: draft
 
 ## 1. Goal
 
@@ -14,12 +14,13 @@ Brief lines served: section 2.A to 2.D (features), section 3 (backend architectu
 
 - Content types `Category` (localised fr/en), `Discussion`, `Reply`, Draft & Publish off.
 - Permissions for Public and Authenticated, set in code at boot. Sign-up disabled.
-- Controllers: forced author, server-made slug, forced populate, reply count, lookup by slug.
+- Controllers: forced author, server-made slug, forced populate, reply count, lookup by slug, delete with reply cascade, output shaping so `author` is exposed as `{ id, documentId, username }` only.
 - `is-owner` policy on update and delete.
 - Demo data: 3 users, 11 categories in two languages, 12 discussions, ~25 replies.
-- Test harness (Vitest + supertest, Strapi in-process on `lerevenu_test`) and the seven tests.
+- Test harness (Vitest + supertest over HTTP against a Strapi instance started once per run on `lerevenu_test`) and the test files of section 7.
 - CI job `test-cms` with a Postgres service container.
-- `.env.ci` for CI, `database/migrations` index on `discussions.created_at`.
+- `.env.ci` for CI (copied to `.env` in the job), TypeScript migration adding an index on `discussions.created_at`.
+- README sections: demo accounts, seed, API table, how to run the integration tests, permissions matrix link.
 
 **Out**
 
@@ -36,11 +37,12 @@ Brief lines served: section 2.A to 2.D (features), section 3 (backend architectu
 5. `POST /api/discussions` with a title under 10 characters answers 400 `ValidationError` naming `title`.
 6. `POST /api/discussions` with `data.author` set to another user answers 201 and the stored author is the caller.
 7. `POST /api/replies` has the same three behaviours and answers 404 for an unknown discussion.
-8. `PUT`/`DELETE` on another member's discussion or reply answers 403; on your own, 200/204.
+8. `PUT`/`DELETE` on another member's discussion or reply answers 403; on your own, 200/204. Deleting a discussion also deletes its replies (no orphans). An owner cannot change `author` on update, nor move a reply to another discussion.
 9. `POST /api/auth/local` with a demo account answers `{ jwt, user }`; `POST /api/auth/local/register` answers 400 (sign-ups disabled).
 10. `GET /api/categories?locale=en` returns English names; without `locale`, French.
 11. A fresh database boots with the demo data; a second boot does not duplicate it.
-12. The seven brief tests pass locally and in CI; `pnpm verify` is green.
+12. Every response exposes `author` as exactly `{ id, documentId, username }`; `email` never appears.
+13. The test files of section 7 pass locally and in CI; `pnpm verify` is green.
 
 ## 4. Mockups
 
@@ -51,7 +53,7 @@ See `docs/data-model.md` for the diagram. Field-level constraints:
 | Type       | Field       | Type         | Rules                                            |
 | ---------- | ----------- | ------------ | ------------------------------------------------ |
 | Category   | name        | string       | required, unique, max 80, localised              |
-|            | slug        | uid ← name   | required, per locale (identical in v1)           |
+|            | slug        | uid ← name   | required, shared across locales (not localised)  |
 |            | description | text         | required, max 300, localised                     |
 |            | color       | string       | optional, `#rrggbb`                              |
 | Discussion | title       | string       | required, min 10, max 150                        |
@@ -166,87 +168,96 @@ sequenceDiagram
 
 ## 5. Design
 
-**Schemas** live in `src/api/<type>/content-types/<type>/schema.json`, with `"options": { "draftAndPublish": false }`. Category adds `"pluginOptions": { "i18n": { "localized": true } }` at the root and on `name` and `description`. Relations: `author` is `manyToOne` to `plugin::users-permissions.user` with no inverse; `category` is `manyToOne` with inverse `discussions`; `discussion` on Reply is `manyToOne` with inverse `replies`.
+**Schemas** live in `src/api/<type>/content-types/<type>/schema.json` with `"options": { "draftAndPublish": false }`. Category has `"pluginOptions": { "i18n": { "localized": true } }` at the root and on `name` and `description` only; `slug` and `color` are shared across locales, so an English version only carries its own name and description and the slug is identical by construction. `discussion.slug` is `uid` with `"unique": true` (a real Postgres unique index; safe because the type is neither localised nor draft-published). Relations: `author` is `manyToOne` to `plugin::users-permissions.user` with no inverse; `category` is `manyToOne` with inverse `discussions`; `discussion` on Reply is `manyToOne` with inverse `replies`. `config/api.ts` already sets `documents.strictRelations: true`, which makes `required` on relations and "the target must exist" enforceable (unknown category → 400 `ValidationError`).
 
-**Why D&P is off:** Strapi skips `required` and `minLength` on drafts and hides unpublished entries by default. Written in ADR-0008.
+**Why D&P is off:** the entity validator applies `required`, `minLength` and uniqueness only when the entry is not a draft, and unpublished entries are hidden from reads. Written in ADR-0008.
 
-**Controllers** (`createCoreController` overrides, each file under 120 lines):
+**Output shaping (author).** `sanitizeOutput` removes every relation whose target the caller cannot `find`; neither role gets `user.find`, so Strapi would strip `author` from every response. Controllers therefore sanitise the entity without its `author`/`replies` and re-attach a picked shape through `services/presenter.ts`: `pickAuthor → { id, documentId, username }`, `mapReplies → [{ id, documentId, content, createdAt, author }]`. The populate always requests `author: { fields: ['username'] }` so nothing else is ever loaded. A test asserts the `author` key set is exactly `id, documentId, username`.
 
-- `discussion.find`: force `populate` to `{ author: { fields: ['username'] }, category: { fields: ['name','slug','color'] }, replies: { count: true } }`, default `sort = ['createdAt:desc']`. Client filters and pagination pass through after `validateQuery`.
-- `discussion.findBySlug`: `findMany({ filters: { slug }, limit: 1 })` with replies populated (author username, `createdAt:asc`); 404 when empty.
-- `discussion.create`: strip `author` and `slug`, `validateInput`, `sanitizeInput`, generate the slug, `documents().create` with `author: ctx.state.user.id`, `sanitizeOutput`, 201.
-- `discussion.update`: strip `author` and `slug`, otherwise core behaviour.
-- `reply.create`: strip `author`, check the target discussion exists (404), create with forced author, 201.
-- `reply.find`: force `populate.author.fields = ['username']`.
+**Controllers** (`createCoreController` overrides, ≤ 100 lines each; constants and mappers in services):
 
-**Slug:** `src/api/discussion/services/slug.ts`: `slugify(title)` (lowercase, accents stripped, hyphens, max 80) and uniqueness by appending `-2`, `-3` when a collision exists. The content-manager UID service is not used: it is undocumented for API code and the fallback is 20 lines.
+- `discussion.find`: force `populate = { author: { fields: ['username'] }, category: { fields: ['name','slug','color'] }, replies: { count: true } }`, default `sort = ['createdAt:desc']`; client `filters`, `sort`, `pagination` pass through `validateQuery`/`sanitizeQuery` (`pageSize` is clamped to `rest.maxLimit` = 50, no error).
+- `discussion.findBySlug`: `documents().findMany({ filters: { slug }, limit: 1, populate: … replies: { populate: { author: { fields: ['username'] } }, sort: ['createdAt:asc'] } })`; 404 `NotFoundError` when empty.
+- `discussion.create`: delete `data.author` and `data.slug`, `validateInput` (otherwise 400 "Invalid key author", since the caller lacks `user.find`), `sanitizeInput`, `slug = await slugService.unique(title)`, `documents().create({ data: { …input, author: ctx.state.user.id, slug }, populate })`, shape, 201.
+- `discussion.update`: delete `data.author`, `data.slug` (URL stays stable when the title changes); core behaviour otherwise.
+- `discussion.delete`: `services/discussion.deleteWithReplies(documentId)` removes replies and the discussion in one `strapi.db.transaction`; 204.
+- `reply.create`: delete `data.author`; `documents('api::discussion.discussion').findOne({ documentId })` → 404 `NotFoundError` when missing; create with forced author; 201 with shaped author.
+- `reply.update`: delete `data.author` and `data.discussion`.
+- `reply.find`: force `populate.author.fields = ['username']`, shaped output.
 
-**Policy** `src/api/discussion/policies/is-owner.ts` and the same for reply, registered in `routes/<type>.ts` on `update` and `delete`. Throws `NotFoundError` or `PolicyError` from `@strapi/utils`.
+**Slug:** `src/api/discussion/services/slug.ts`: `slugify(title)` (lowercase, accents stripped, `[^a-z0-9]+` → `-`, trimmed, max 80), `unique(title)` queries existing slugs with `$startsWith` and appends `-2`, `-3`…; the create call catches a Postgres `23505` unique violation once and retries with the next suffix. The content-manager UID service is not used (admin-only, undocumented for API code).
 
-**Custom route** `src/api/discussion/routes/01-slug.ts`: `GET /discussions/slug/:slug` → `discussion.findBySlug`. Prefixed `01-` so it loads before the core router.
+**Policy** `src/api/discussion/policies/is-owner.ts` and `src/api/reply/policies/is-owner.ts`, registered in `routes/<type>.ts` through `createCoreRouter(uid, { config: { update: { policies: ['is-owner'] }, delete: { policies: ['is-owner'] } } })`. The policy loads the document by `policyContext.params.id` with `populate: { author: { fields: ['id'] } }`, throws `NotFoundError` (404) when missing and `PolicyError` (403) when `author.id !== policyContext.state.user.id`.
 
-**Permissions** in `src/bootstrap/ensure-permissions.ts`, idempotent: find role by `type`, create missing `plugin::users-permissions.permission` rows. Public: `category.find/findOne`, `discussion.find/findOne/findBySlug`, `reply.find/findOne`. Authenticated: same plus `discussion.create/update/delete`, `reply.create/update/delete`. Never `user.find`. Sign-up off through `strapi.store` `advanced.allow_register = false`.
+**Custom route** `src/api/discussion/routes/01-slug.ts`: `GET /discussions/slug/:slug` → `discussion.findBySlug` (no path conflict with `/discussions/:id`; the numeric prefix is the documented convention). Its permission id is `api::discussion.discussion.findBySlug`.
 
-**Seed** in `src/seed/` split by concern (`users.ts`, `categories.ts`, `discussions.ts`, `index.ts`), each under 150 lines; data from the mockup in `src/seed/data/*.ts`. Runs from `bootstrap()` when `SEED_DEMO_DATA=true` and `count(category) === 0`; also `pnpm --filter cms seed`. Users via the Users & Permissions user service (bcrypt applied by Strapi). Categories: `create({ locale: 'fr' })` then `update({ documentId, locale: 'en' })`. Discussions connect to the category by `documentId`; `createdAt` spread over 30 days so sorting is visible.
+**Permissions** `src/bootstrap/ensure-permissions.ts`, idempotent and additive: find roles by `type`, insert missing `plugin::users-permissions.permission` rows, never delete (the Users & Permissions defaults `user.me` and `auth.*` must survive). Public: `category.find/findOne`, `discussion.find/findOne/findBySlug`, `reply.find/findOne`. Authenticated: same plus `discussion.create/update/delete`, `reply.create/update/delete`. Never `user.find`. Sign-up off by merging `{ allow_register: false }` into the existing `advanced` object of `strapi.store({ type: 'plugin', name: 'users-permissions' })` (replacing the object would break login). A write without token is 403 only because Public holds at least one permission (with zero permissions Strapi answers 401); the bootstrap order guarantees it.
 
-**Config:** `rest.defaultLimit 10`, `rest.maxLimit 50` already set. `config/env/test/database.ts` targets `lerevenu_test`. `.env.ci` committed with non-secret values for CI.
+**Seed** `src/seed/` (`users.ts`, `categories.ts`, `discussions.ts`, `index.ts`, data under `src/seed/data/*.ts`), each ≤ 150 lines. Runs from `bootstrap()` when `SEED_DEMO_DATA=true` and `count(category) === 0`, inside one `strapi.db.transaction` so a failure leaves the guard at zero. Also `pnpm --filter cms seed`. Users via `strapi.plugin('users-permissions').service('user').add({ username, email, password, role: authenticated.id, confirmed: true, provider: 'local' })` (bcrypt applied by the Document Service; `role` is mandatory or every call answers 401). Categories: `create({ locale: 'fr', data })` then `update({ documentId, locale: 'en', data: { name, description } })` (the "create the locale when missing" behaviour is in Strapi's code, not its docs). Discussions connect `category` and `author` by id; `createdAt` passed explicitly and spread over 30 days (the timestamp hook only fills missing values; confirmed with one curl in Phase B). Replies created after discussions, 1–4 each.
 
-**Test harness** `tests/setup/strapi.ts`: `compileStrapi()` + `createStrapi(ctx).load()` once (Vitest `globalSetup` + a `singleFork` pool), `NODE_ENV=test`, `STRAPI_DISABLE_CRON=true`, seed on, supertest on `strapi.server.httpServer`, teardown closes the server and the DB. Fallback if the in-process harness fights Vitest: black-box tests with `fetch` against `strapi start`.
+**Config:** `config/database.ts` adds `settings: { useTypescriptMigrations: true }` (without it a `.ts` migration is never discovered). `config/env/test/database.ts` → `lerevenu_test`; `config/env/test/server.ts` → `cron: { enabled: false }`. `.env.ci` committed with non-secret values that do not match the placeholder regex in `assert-env.ts`; CI copies it to `.env` before running Strapi (Strapi only reads `.env` or `ENV_PATH`).
 
-**Index:** `database/migrations/2026.10.25T00.00.00.discussions-created-at.ts` adding an index on `discussions(created_at)`.
+**Index:** `database/migrations/2026.10.25T00.00.00.add-discussions-created-at-index.ts`, `export default { up, down }`, `knex.schema.alterTable('discussions', t => t.index(['created_at'], 'discussions_created_at_idx'))`, guarded by `hasTable`.
+
+**Test harness** `tests/global-setup.ts`: reset the `public` schema of `lerevenu_test` with `pg`, `compileStrapi()` → `createStrapi(ctx).load()` → `listen()` on port 1338, log in the three demo users, `provide('baseUrl')` and `provide('tokens')`; teardown `destroy()`. Vitest's `globalSetup` runs in the orchestrator process and test files in workers, so the instance itself is never shared; tests go over HTTP with `supertest(inject('baseUrl'))`; `fileParallelism: false`. Fallback if `compileStrapi` misbehaves under Vitest: `strapi start` in a child process with the same `provide`.
 
 ## 6. Phases and steps
 
-### Phase A — Schemas (1 h)
+### Phase A — Schemas and config (1 h)
 
-1. Untrack the generated `fr.d.json.ts` and ignore it (housekeeping carried by this branch).
-2. Write the three `schema.json` files and the empty `controllers/routes/services` files Strapi expects.
-3. Boot `strapi develop`; check the tables and the admin Content-Type Builder.
-4. `pnpm strapi ts:generate-types`, commit the generated types.
-   Exit: admin shows the three types; `pnpm type-check` green.
+1. `chore(web)`: untrack and ignore `fr.d.json.ts` (done, first commit of the branch).
+2. Three `schema.json` (D&P off, i18n on Category `name`/`description`, `unique` on `discussion.slug`) plus the minimal `controllers/routes/services` files.
+3. `config/database.ts` `useTypescriptMigrations`; `config/env/test/{database,server}.ts`; the index migration.
+4. Boot, check tables, the `strapi_migrations` row and the index; `ts:generate-types`, commit.
+   Exit: admin shows the three types; `\di discussions*` lists the index; `pnpm type-check` green.
 
-### Phase B — Permissions and seed (2 h)
+### Phase B — Permissions and seed (2.5 h)
 
-5. `ensure-permissions.ts` + sign-up off, called from `bootstrap()`.
-6. Seed data files from the mockup (11 categories fr/en, 12 discussions, replies, 3 users).
-7. Seed modules and the `seed` script; boot twice to prove idempotence.
-8. curl: list, filter, sort, pagination, `?locale=en` categories.
-   Exit: criteria 1, 2, 10, 11 pass by hand.
+5. `ensure-permissions.ts` (additive) + sign-up off (merge), wired in `bootstrap()`.
+6. Seed data files (11 categories fr/en, 12 discussions, ~25 replies, 3 users).
+7. Seed modules in a transaction, `seed` script; boot twice, counts unchanged.
+8. curl: `?locale=en` categories, list filter/sort/pagination, `pageSize=100` clamped, register → 400.
+   Exit: criteria 2, 9 (register), 10, 11 by hand.
 
-### Phase C — Controllers, policy, routes (2.5 h)
+### Phase C — Controllers, services, policies (3 h)
 
-9. Slug service with unit-style tests through the API.
-10. `discussion` controller overrides + `01-slug` route.
-11. `reply` controller overrides.
-12. `is-owner` policies and router config.
-13. curl pass for criteria 3 to 9, including the author-spoof attempt.
-    Exit: every criterion passes by hand.
+9. `services/slug.ts` and `services/presenter.ts`.
+10. `discussion` controller (find, findBySlug, create, update, delete with cascade) + `01-slug` route.
+11. `reply` controller (create with 404, update strips `discussion`, find).
+12. Two `is-owner` policies + router config.
+13. curl pass for criteria 1, 3–8, 12: author spoof, unknown category (400), unknown discussion on reply (404), delete cascade.
+    Exit: every criterion by hand; `author` present with `id, documentId, username` only.
 
-### Phase D — Tests (2 h)
+### Phase D — Tests and CI (3 h)
 
-14. Vitest config, global setup, helpers (`login(username)`, `api()`), `.env.ci`, test database config.
-15. Tests: validation, unauthenticated, spoof, list shape and pagination, reply rules, owner policy, login smoke.
-16. `test-cms` CI job with a Postgres service container.
-    Exit: `pnpm --filter cms test:integration` green locally and in CI.
+14. `vitest.config.mts`, `tests/global-setup.ts`, `tests/helpers/api.ts`, `.env.ci`.
+15. Test files from section 7.
+16. `test-cms` job in `ci.yml` (Postgres service with healthcheck, `.env.ci` copy).
+    Exit: `pnpm --filter cms test:integration` green locally and in CI twice in a row.
 
-### Phase E — Wrap up (30 min)
+### Phase E — Docs (1 h)
 
-17. ADR-0008 (Draft & Publish off, forced author in the controller). `docs/data-model.md` confirmed.
-18. `pnpm verify`, push, PR with the curl transcript as evidence.
+17. ADR-0008; README sections (demo accounts, seed, API table, tests, permissions link); `docs/data-model.md` and `docs/plans/README.md` updated.
+18. `pnpm verify`, push, PR with the curl transcript.
+
+Total 10.5 h; 12 h kept as the estimate.
 
 ## 7. Tests
 
-| #   | File                                   | Covers  |
-| --- | -------------------------------------- | ------- |
-| 1   | `tests/discussions.validation.test.ts` | 5       |
-| 2   | `tests/discussions.auth.test.ts`       | 4       |
-| 3   | `tests/discussions.author.test.ts`     | 6       |
-| 4   | `tests/discussions.list.test.ts`       | 1, 2, 3 |
-| 5   | `tests/replies.test.ts`                | 7       |
-| 6   | `tests/ownership.test.ts`              | 8       |
-| 7   | `tests/auth.test.ts`                   | 9       |
-| +   | `tests/categories.test.ts`             | 10      |
-| +   | `tests/seed.test.ts`                   | 11      |
+`apps/cms/tests/`, Vitest + supertest over HTTP, demo data seeded once per run, files run sequentially.
+
+| #   | File                             | Brief area         | Cases                                                                                                                                                                                                                                                                                                                           | Criteria    |
+| --- | -------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| 1   | `discussions.validation.test.ts` | validation         | title 9 chars → 400 `ValidationError`, `details.errors[].path` contains `title`; missing `content` → 400; `type: 'rant'` → 400; unknown `category` → 400; content > 20 000 → 400                                                                                                                                                | 5           |
+| 2   | `discussions.auth.test.ts`       | unauthenticated    | no token → 403 `ForbiddenError`; malformed token → 401 `UnauthorizedError`; `POST /api/auth/local/register` → 400                                                                                                                                                                                                               | 4, 9        |
+| 3   | `discussions.author.test.ts`     | author spoofing    | alice posts with `data.author = bob.id` → 201, `author.username === 'alice'`; alice updates her own with `data.author = bob.id` → 200, author unchanged; `data.slug` ignored                                                                                                                                                    | 6           |
+| 4   | `discussions.list.test.ts`       | display            | list item keys exactly `title, slug, type, createdAt, author{id,documentId,username}, category{name,slug,color}, replies{count}` (+ ids/timestamps); no `email` anywhere in the JSON; `sort=createdAt:asc` ordered; `pageSize=2` → 2; `pageSize=100` → 50; category filter; slug route with ordered replies; unknown slug → 404 | 1, 2, 3, 12 |
+| 5   | `replies.test.ts`                | validation + spoof | no token → 403; spoofed author → 201 with caller; unknown discussion → 404; content 1 char → 400                                                                                                                                                                                                                                | 7           |
+| 6   | `ownership.test.ts`              | permissions        | bob PUT alice's discussion → 403 `PolicyError`; bob DELETE alice's reply → 403; alice PUT own → 200; alice DELETE own discussion with 2 replies → 204 and replies gone; unknown id → 404                                                                                                                                        | 8           |
+| 7   | `auth.test.ts`                   | smoke              | alice login → 200 `{ jwt, user }`, `user` has no `password`; wrong password → 400; `GET /api/users/me` with jwt → 200, without → 403; `GET /api/users` with jwt → 403                                                                                                                                                           | 9           |
+| +   | `categories.test.ts`             |                    | `?locale=en` names in English, same `documentId` and `slug` as French; default locale French                                                                                                                                                                                                                                    | 10          |
+
+Seed idempotence (criterion 11) stays a manual check (boot twice, counts unchanged) plus a unit test of the guard function.
 
 ## 8. Manual verification
 
@@ -259,18 +270,21 @@ sequenceDiagram
 
 ## 9. Risks and open questions
 
-| Risk                                             | Mitigation                                                     |
-| ------------------------------------------------ | -------------------------------------------------------------- |
-| `populate[replies][count]` undocumented for REST | Forced server-side; test 4 asserts it; fallback computed field |
-| In-process Strapi under Vitest                   | `globalSetup` + single fork; fallback black-box tests          |
-| Users & Permissions rate limit (10/min) in tests | One login per user per run, cached token                       |
-| Category relation points at the French row       | Documented; frontend resolves by `documentId`                  |
-| `validateInput` rejects `author` with 400        | Stripped before validation; test 3 asserts 201                 |
+| Risk                                                     | Mitigation                                                                                  |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `sanitizeOutput` strips `author` (no `user.find`)        | Presenter re-attaches a picked author; test 4 asserts the key set                           |
+| `populate[replies][count]` undocumented on the REST page | Verified in Strapi's query converter and DB populate; forced server-side; test 4 asserts it |
+| TS migration not discovered                              | `useTypescriptMigrations: true`; Phase A checks the index exists                            |
+| `globalSetup` cannot share the instance with workers     | HTTP harness with `provide/inject`; fallback child-process `strapi start`                   |
+| U&P rate limit (10/min) on `/auth/local`                 | Tokens obtained once in `globalSetup`; `ratelimit.enabled: false` available for test env    |
+| Slug race                                                | DB unique index + retry on `23505`                                                          |
+| Partial seed with the count guard                        | Seed runs in one transaction                                                                |
+| Category relation points at the French row               | Documented; frontend resolves by `documentId` with locale fallback                          |
 
 ## 10. Definition of done
 
 - [ ] All acceptance criteria met
 - [ ] Tests in section 7 green locally and in CI
 - [ ] Manual checklist done
-- [ ] ADR-0008 written, `docs/plans/README.md` updated, this plan set to done
+- [ ] ADR-0008 written, README sections added, `docs/plans/README.md` updated, this plan set to done
 - [ ] PR opened against `development`
