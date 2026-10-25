@@ -4,7 +4,7 @@
 
 - `main` — production. Protected. Only receives merges from `development`, through a pull request opened and merged by the maintainer. Each merge is tagged `vX.Y.Z`.
 - `development` — integration, always green. Protected. Every work branch starts here and comes back here through a pull request.
-- Work branches: `feature/<short-name>`, `fix/<short-name>`, `chore/<short-name>`, `refactor/<short-name>`. Short and descriptive, for example `feature/discussion-list`, `fix/reply-form-focus`, `chore/ci-cache`.
+- Work branches: `feature/<short-name>`, short and descriptive, for example `feature/discussion-list`. Only features get a branch. Smaller work (cleanup, docs, config, dependency bumps) rides in the next feature branch, or is agreed with the maintainer first. `fix/<short-name>` is reserved for bugs found after a release.
 
 The husky hooks refuse commits and pushes made directly on `main` or `development`. The same rule is enforced on GitHub with branch protection.
 
