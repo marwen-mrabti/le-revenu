@@ -66,10 +66,6 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Database 
       ...connections[client],
       acquireConnectionTimeout: env.int('DATABASE_CONNECTION_TIMEOUT', 60000),
     },
-    settings: {
-      // Migrations are written in TypeScript under database/migrations and run from dist/.
-      useTypescriptMigrations: true,
-    },
   };
 };
 
