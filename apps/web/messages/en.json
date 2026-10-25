@@ -1,0 +1,61 @@
+{
+  "Common": {
+    "siteName": "Le Revenu",
+    "community": "Community",
+    "skipToContent": "Skip to content",
+    "loading": "Loading…",
+    "retry": "Retry",
+    "underConstruction": "Site under construction."
+  },
+  "Nav": {
+    "discussions": "Discussions",
+    "newDiscussion": "Post",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "search": "Search a discussion, a topic…",
+    "language": "Language",
+    "openMenu": "Open menu"
+  },
+  "Locale": {
+    "fr": "Français",
+    "en": "English"
+  },
+  "Metadata": {
+    "title": "Le Revenu Community",
+    "description": "Ask your money questions, share your experience and talk with the Le Revenu newsroom.",
+    "discussionsTitle": "Discussions",
+    "discussionsDescription": "All discussions of the Le Revenu readers' community."
+  },
+  "Discussions": {
+    "title": "The Le Revenu readers' community",
+    "intro": "Ask your money questions, share your experience and talk with the newsroom.",
+    "replyCount": "{count, plural, =0 {No replies} one {# reply} other {# replies}}",
+    "publishedOn": "Published on {date}",
+    "empty": "Nothing here yet",
+    "emptyHint": "Start the first discussion in this space."
+  },
+  "DiscussionNew": {
+    "title": "New post"
+  },
+  "Replies": {
+    "title": "Replies"
+  },
+  "Categories": {
+    "all": "All spaces"
+  },
+  "Sort": {
+    "label": "Sort",
+    "newest": "Newest",
+    "oldest": "Oldest"
+  },
+  "Auth": {
+    "signIn": "Sign in"
+  },
+  "Errors": {
+    "title": "Something went wrong",
+    "description": "Try again in a moment. If the problem persists, contact us.",
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "This page does not exist or has moved.",
+    "backHome": "Back to home"
+  }
+}

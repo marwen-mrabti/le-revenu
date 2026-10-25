@@ -1,0 +1,61 @@
+{
+  "Common": {
+    "siteName": "Le Revenu",
+    "community": "Communauté",
+    "skipToContent": "Aller au contenu",
+    "loading": "Chargement…",
+    "retry": "Réessayer",
+    "underConstruction": "Site en construction."
+  },
+  "Nav": {
+    "discussions": "Discussions",
+    "newDiscussion": "Publier",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "search": "Rechercher une discussion, un sujet…",
+    "language": "Langue",
+    "openMenu": "Ouvrir le menu"
+  },
+  "Locale": {
+    "fr": "Français",
+    "en": "English"
+  },
+  "Metadata": {
+    "title": "Communauté Le Revenu",
+    "description": "Posez vos questions d'argent, partagez vos expériences et échangez avec la rédaction du Revenu.",
+    "discussionsTitle": "Discussions",
+    "discussionsDescription": "Toutes les discussions de la communauté des lecteurs du Revenu."
+  },
+  "Discussions": {
+    "title": "La communauté des lecteurs du Revenu",
+    "intro": "Posez vos questions d'argent, partagez vos expériences et échangez avec la rédaction.",
+    "replyCount": "{count, plural, =0 {Aucune réponse} one {# réponse} other {# réponses}}",
+    "publishedOn": "Publié le {date}",
+    "empty": "Rien ici pour l'instant",
+    "emptyHint": "Lancez la première discussion de cet espace."
+  },
+  "DiscussionNew": {
+    "title": "Nouvelle publication"
+  },
+  "Replies": {
+    "title": "Réponses"
+  },
+  "Categories": {
+    "all": "Tous les espaces"
+  },
+  "Sort": {
+    "label": "Trier",
+    "newest": "Plus récentes",
+    "oldest": "Plus anciennes"
+  },
+  "Auth": {
+    "signIn": "Se connecter"
+  },
+  "Errors": {
+    "title": "Une erreur est survenue",
+    "description": "Réessayez dans un instant. Si le problème persiste, contactez-nous.",
+    "notFoundTitle": "Page introuvable",
+    "notFoundDescription": "Cette page n'existe pas ou a été déplacée.",
+    "backHome": "Retour à l'accueil"
+  }
+}
