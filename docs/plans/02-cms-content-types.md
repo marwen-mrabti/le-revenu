@@ -21,6 +21,7 @@ Brief lines served: section 2.A to 2.D (features), section 3 (backend architectu
 - CI job `test-cms` with a Postgres service container.
 - `.env.ci` for CI (copied to `.env` in the job), TypeScript migration adding an index on `discussions.created_at`.
 - README sections: demo accounts, seed, API table, how to run the integration tests, permissions matrix link.
+- **SQLite zero-setup mode** (asked by the job post: "base de données SQLite locale permettant de tester votre travail"): `DATABASE_CLIENT=sqlite` support, `better-sqlite3` dependency, `pnpm --filter cms dev:sqlite`, a pre-seeded `apps/cms/database/demo.sqlite` committed for the reviewer, copied to `.tmp/data.db` at run time so the committed file never changes. PostgreSQL stays the primary database (brief, CI, Docker, tests).
 
 **Out**
 
@@ -43,6 +44,7 @@ Brief lines served: section 2.A to 2.D (features), section 3 (backend architectu
 11. A fresh database boots with the demo data; a second boot does not duplicate it.
 12. Every response exposes `author` as exactly `{ id, documentId, username }`; `email` never appears.
 13. The test files of section 7 pass locally and in CI; `pnpm verify` is green.
+14. From a fresh clone with no Docker, `pnpm install && pnpm --filter cms dev:sqlite` boots Strapi on the committed `demo.sqlite` with the demo data present; the same command on an empty SQLite file seeds it.
 
 ## 4. Mockups
 
@@ -197,7 +199,9 @@ sequenceDiagram
 
 **Config:** `config/database.ts` adds `settings: { useTypescriptMigrations: true }` (without it a `.ts` migration is never discovered). `config/server.ts`: `cron: { enabled: false }` (source default is true, docs say false; we have no cron tasks) and the dead `webhooks.populateRelations` key removed (ignored since v5). `config/env/test/database.ts` → `lerevenu_test`; `config/env/test/plugins.ts` → `users-permissions.ratelimit.enabled: false` (documented option) so the login budget never flakes tests. `.env.ci` committed with non-secret values that do not match the placeholder regex in `assert-env.ts`, plus `STRAPI_TELEMETRY_DISABLED=true`; CI copies it to `.env` before running Strapi (Strapi only reads `.env` or `ENV_PATH`).
 
-**Index:** `database/migrations/2026.10.25T00.00.00.add-discussions-created-at-index.ts`, `export default { up }` only (Strapi documents no down migrations), `knex.schema.alterTable('discussions', t => t.index(['created_at'], 'discussions_created_at_idx'))`, guarded by `hasTable` and a `pg_indexes` check.
+**SQLite mode:** `config/database.ts` keeps the scaffold's three-client switch; `DATABASE_CLIENT=sqlite` + `DATABASE_FILENAME=.tmp/data.db`. `better-sqlite3` is added as a dependency. `scripts/sqlite-reset.ts` copies `database/demo.sqlite` to `.tmp/data.db`; `dev:sqlite` script runs it then `strapi develop`. The committed `demo.sqlite` is produced once by seeding an empty file (Phase B) and refreshed only when seed data changes. The seed and all controllers use the Document Service, so nothing is engine-specific.
+
+**Index:** `database/migrations/2026.10.25T00.00.00.add-discussions-created-at-index.ts` (portable: `knex.schema.alterTable(...).index(...)` works on PostgreSQL and SQLite), `export default { up }` only (Strapi documents no down migrations), `knex.schema.alterTable('discussions', t => t.index(['created_at'], 'discussions_created_at_idx'))`, guarded by `hasTable` and a `pg_indexes` check.
 
 **Test harness** the `test:integration` script runs `strapi ts:compile` first (in-process `compileStrapi` calls `process.exit(1)` on a type error and Vitest would show nothing), then `vitest run`. `tests/global-setup.ts`: reset the `public` schema of `lerevenu_test` with `pg`, `createStrapi({ appDir, distDir: 'dist' }).load()` → `listen()` on port 1338 (`PORT` set in env before creation), log in the three demo users, `provide('baseUrl')` and `provide('tokens')`; teardown `destroy()`. Vitest's `globalSetup` runs in the orchestrator process and test files in workers, so the instance itself is never shared; tests go over HTTP with `supertest(inject('baseUrl'))`; `fileParallelism: false`. Fallback if `compileStrapi` misbehaves under Vitest: `strapi start` in a child process with the same `provide`.
 
@@ -211,13 +215,14 @@ sequenceDiagram
 4. Boot, check tables, the `strapi_migrations` row and the index; `ts:generate-types`, commit.
    Exit: admin shows the three types; `\di discussions*` lists the index; `pnpm type-check` green.
 
-### Phase B — Permissions and seed (2.5 h)
+### Phase B — Permissions and seed (3 h)
 
 5. `ensure-permissions.ts` (additive) + sign-up off (merge), wired in `bootstrap()`.
 6. Seed data files (11 categories fr/en, 12 discussions, ~25 replies, 3 users).
 7. Seed modules in a transaction, `scripts/seed.ts` + `seed` script; boot twice, counts unchanged.
 8. curl: `?locale=en` categories, list filter/sort/pagination, `pageSize=100` clamped, register → 400.
-   Exit: criteria 2, 9 (register), 10, 11 by hand.
+9. SQLite: add `better-sqlite3`, `dev:sqlite` + `sqlite-reset` scripts, boot on an empty `.tmp/data.db`, verify the seed, copy the file to `database/demo.sqlite` and commit it; boot again from the committed copy.
+   Exit: criteria 2, 9 (register), 10, 11, 14 by hand.
 
 ### Phase C — Controllers, services, policies (3 h)
 
@@ -240,7 +245,7 @@ sequenceDiagram
 17. ADR-0008; README sections (demo accounts, seed, API table, tests, permissions link); `docs/data-model.md` and `docs/plans/README.md` updated.
 18. `pnpm verify`, push, PR with the curl transcript.
 
-Total 10.5 h; 12 h kept as the estimate.
+Total 11 h; 12 h kept as the estimate.
 
 ## 7. Tests
 
@@ -270,16 +275,18 @@ Seed idempotence (criterion 11) stays a manual check (boot twice, counts unchang
 
 ## 9. Risks and open questions
 
-| Risk                                                     | Mitigation                                                                                       |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `sanitizeOutput` strips `author` (no `user.find`)        | Presenter re-attaches a picked author; test 4 asserts the key set                                |
-| `populate[replies][count]` undocumented on the REST page | Verified in Strapi's query converter and DB populate; forced server-side; test 4 asserts it      |
-| TS migration not discovered                              | `useTypescriptMigrations: true`; Phase A checks the index exists                                 |
-| `globalSetup` cannot share the instance with workers     | HTTP harness with `provide/inject`; `ts:compile` pre-step; fallback child-process `strapi start` |
-| U&P rate limit (10/min) on `/auth/local`                 | `ratelimit.enabled: false` in the test env config; tokens still obtained once in `globalSetup`   |
-| Slug race                                                | `column.unique` index on `discussion.slug` + one retry on Postgres `23505`                       |
-| Partial seed with the count guard                        | Seed runs in one transaction                                                                     |
-| Category relation points at the French row               | Documented; frontend resolves by `documentId` with locale fallback                               |
+| Risk                                                      | Mitigation                                                                                       |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `sanitizeOutput` strips `author` (no `user.find`)         | Presenter re-attaches a picked author; test 4 asserts the key set                                |
+| `populate[replies][count]` undocumented on the REST page  | Verified in Strapi's query converter and DB populate; forced server-side; test 4 asserts it      |
+| TS migration not discovered                               | `useTypescriptMigrations: true`; Phase A checks the index exists                                 |
+| `globalSetup` cannot share the instance with workers      | HTTP harness with `provide/inject`; `ts:compile` pre-step; fallback child-process `strapi start` |
+| U&P rate limit (10/min) on `/auth/local`                  | `ratelimit.enabled: false` in the test env config; tokens still obtained once in `globalSetup`   |
+| Slug race                                                 | `column.unique` index on `discussion.slug` + one retry on Postgres `23505`                       |
+| Partial seed with the count guard                         | Seed runs in one transaction                                                                     |
+| Category relation points at the French row                | Documented; frontend resolves by `documentId` with locale fallback                               |
+| Committed `demo.sqlite` drifts from the seed data         | Regenerated by a script, refreshed in the same commit as any seed change; tests run on Postgres  |
+| SQLite behaves differently from Postgres (types, indexes) | Document Service abstracts it; the index migration is portable; CI stays on Postgres             |
 
 ## 10. Definition of done
 
