@@ -170,40 +170,109 @@ sequenceDiagram
 
 ## 5. Design
 
-**Schemas** live in `src/api/<type>/content-types/<type>/schema.json` with `"options": { "draftAndPublish": false }`. Category has `"pluginOptions": { "i18n": { "localized": true } }` at the root and on `name` and `description` only; `slug` and `color` are shared across locales, so an English version only carries its own name and description and the slug is identical by construction. `discussion.slug` is `uid` with `"column": { "unique": true }` (the documented way to get a real Postgres unique index; attribute-level `unique` is validator-only in Strapi 5, which even drops old slug unique indexes on upgrade). Safe because the type is neither localised nor draft-published. `category.name` keeps attribute-level `unique`, enforced by the validator per locale. Relations: `author` is `manyToOne` to `plugin::users-permissions.user` with no inverse; `category` is `manyToOne` with inverse `discussions`; `discussion` on Reply is `manyToOne` with inverse `replies`. An unknown relation target is always a 400 `ValidationError` in Strapi 5. `config/api.ts` sets `documents.strictRelations: true`, whose only effect is to enforce `required` on relations, which we need for `category` and `discussion`.
+Short form. Every line below was checked against the Strapi 5.59 source or docs (see `docs/plans/02-review-notes` in the PR description).
 
-**Why D&P is off:** the entity validator applies `required`, `minLength` and uniqueness only when the entry is not a draft, and unpublished entries are hidden from reads. Written in ADR-0008.
+### Schemas
 
-**Output shaping (author).** `sanitizeOutput` removes every relation whose target the caller cannot `find`; neither role gets `user.find`, so Strapi would strip `author` from every response. Controllers therefore sanitise the entity without its `author`/`replies` and re-attach a picked shape through `services/presenter.ts`: `pickAuthor → { id, documentId, username }`, `mapReplies → [{ id, documentId, content, createdAt, author }]`. The populate always requests `author: { fields: ['username'] }` so nothing else is ever loaded. A test asserts the `author` key set is exactly `id, documentId, username`.
+| Item               | Decision                                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Location           | `src/api/<type>/content-types/<type>/schema.json`                                                                         |
+| Draft & Publish    | off on all three (validator skips `required`/`minLength` on drafts; drafts hidden from reads) → ADR-0008                  |
+| Category i18n      | `pluginOptions.i18n.localized: true` on the type and on `name`, `description` only; `slug`, `color` shared across locales |
+| Discussion slug    | `uid` + `"column": { "unique": true }` = real DB unique index (attribute-level `unique` is validator-only in v5)          |
+| Relations          | `author` → user (no inverse) · `category` ↔ `discussions` · `discussion` ↔ `replies`                                      |
+| Required relations | enforced by `documents.strictRelations: true` (already set); an unknown target is a 400 regardless                        |
 
-**Controllers** (`createCoreController` overrides, ≤ 100 lines each; constants and mappers in services):
+### Controllers (≤ 100 lines each, helpers in services)
 
-- `discussion.find`: force `populate = { author: { fields: ['username'] }, category: { fields: ['name','slug','color'] }, replies: { count: true } }`, default `sort = ['createdAt:desc']`; client `filters`, `sort`, `pagination` pass through `validateQuery`/`sanitizeQuery` (`pageSize` is clamped to `rest.maxLimit` = 50, no error).
-- `discussion.findBySlug`: `documents().findMany({ filters: { slug }, limit: 1, populate: … replies: { populate: { author: { fields: ['username'] } }, sort: ['createdAt:asc'] } })`; 404 `NotFoundError` when empty.
-- `discussion.create`: delete `data.author` and `data.slug`, `validateInput` (otherwise 400 "Invalid key author", since the caller lacks `user.find`), `sanitizeInput`, `slug = await slugService.unique(title)`, `documents().create({ data: { …input, author: ctx.state.user.id, slug }, populate })`, shape, 201.
-- `discussion.update`: delete `data.author`, `data.slug` (URL stays stable when the title changes); core behaviour otherwise.
-- `discussion.delete`: `services/discussion.deleteWithReplies(documentId)` removes replies and the discussion in one `strapi.db.transaction`; 204.
-- `reply.create`: delete `data.author`; `documents('api::discussion.discussion').findOne({ documentId })` → 404 `NotFoundError` when missing; create with forced author; 201 with shaped author.
-- `reply.update`: delete `data.author` and `data.discussion`.
-- `reply.find`: force `populate.author.fields = ['username']`, shaped output.
+| Action                  | What it does                                                                                                                                                                      |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `discussion.find`       | force populate (author username · category name/slug/color · replies count), default sort `createdAt:desc`, client filters/sort/pagination pass through, `pageSize` clamped to 50 |
+| `discussion.findBySlug` | one discussion by slug with replies (author username, oldest first); 404 if none                                                                                                  |
+| `discussion.create`     | drop `author` + `slug` from body → validate → make slug → create with `author = ctx.state.user.id` → 201                                                                          |
+| `discussion.update`     | drop `author` + `slug`; core behaviour otherwise                                                                                                                                  |
+| `discussion.delete`     | replies + discussion in one transaction → 204                                                                                                                                     |
+| `reply.create`          | drop `author`; target discussion must exist (404); create with forced author → 201                                                                                                |
+| `reply.update`          | drop `author` + `discussion`                                                                                                                                                      |
+| `reply.find`            | force author populate, shaped output                                                                                                                                              |
 
-**Slug:** `src/api/discussion/services/slug.ts`: `slugify(title)` (lowercase, accents stripped, `[^a-z0-9]+` → `-`, trimmed, max 80), `unique(title)` queries existing slugs with `$startsWith` and appends `-2`, `-3`…; the create call catches a Postgres `23505` unique violation once and retries with the next suffix. The content-manager UID service is not used (admin-only, undocumented for API code).
+### Output shaping
 
-**Policy** `src/api/discussion/policies/is-owner.ts` and `src/api/reply/policies/is-owner.ts`, registered in `routes/<type>.ts` through `createCoreRouter(uid, { config: { update: { policies: ['is-owner'] }, delete: { policies: ['is-owner'] } } })`. The policy loads the document by `policyContext.params.id` with `populate: { author: { fields: ['id'] } }`, throws `NotFoundError` (404) when missing and `PolicyError` (403) when `author.id !== policyContext.state.user.id`.
+- Strapi strips any relation whose target the caller can't `find`. Readers never get `user.find` (it would expose `/api/users` and emails).
+- So controllers sanitise the entity **without** `author`/`replies`, then re-attach `{ id, documentId, username }` and the mapped replies (`services/presenter.ts`).
+- Populate always limits author to `fields: ['username']`. A test asserts the exact key set.
 
-**Custom route** `src/api/discussion/routes/01-slug.ts`: `GET /discussions/slug/:slug` → `discussion.findBySlug` (no path conflict with `/discussions/:id`; the numeric prefix is the documented convention). Its permission id is `api::discussion.discussion.findBySlug`.
+### Services
 
-**Permissions** `src/bootstrap/ensure-permissions.ts`, idempotent and additive: find roles by `type`, insert missing `plugin::users-permissions.permission` rows, never delete (the Users & Permissions defaults `user.me` and `auth.*` must survive). Public: `category.find/findOne`, `discussion.find/findOne/findBySlug`, `reply.find/findOne`. Authenticated: same plus `discussion.create/update/delete`, `reply.create/update/delete`. Never `user.find`. Sign-up off by merging `{ allow_register: false }` into the existing `advanced` object of `strapi.store({ type: 'plugin', name: 'users-permissions' })` (replacing the object would break login). A write without token is 403 only because Public holds at least one permission (with zero permissions Strapi answers 401); the bootstrap order guarantees it.
+| File                     | Role                                                                                                                |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `services/slug.ts`       | `slugify(title)` (lowercase, no accents, hyphens, max 80) + unique suffix `-2`, `-3`; one retry on Postgres `23505` |
+| `services/presenter.ts`  | `pickAuthor`, `mapReplies`, populate constants                                                                      |
+| `services/discussion.ts` | `deleteWithReplies(documentId)` in `strapi.db.transaction`                                                          |
 
-**Seed** `src/seed/` (`users.ts`, `categories.ts`, `discussions.ts`, `index.ts`, data under `src/seed/data/*.ts`), each ≤ 150 lines. Runs from `bootstrap()` when `SEED_DEMO_DATA=true` and `count(category) === 0`, inside one `strapi.db.transaction` so a failure leaves the guard at zero. Also `pnpm --filter cms seed`, backed by `scripts/seed.ts` (compiled by the existing tsconfig, runs `createStrapi().load()` → `seed(strapi)` → `destroy()`). Users via `strapi.plugin('users-permissions').service('user').add({ username, email, password, role: authenticated.id, confirmed: true, provider: 'local' })` (bcrypt applied by the Document Service; `role` is mandatory or every call answers 401). Categories: `create({ locale: 'fr', data })` then `update({ documentId, locale: 'en', data: { name, description } })` (documented on the REST locale page: an update with a locale "creates the locale version or updates it if it already exists"). Discussions connect `category` and `author` by id; `createdAt` passed explicitly and spread over 30 days (the timestamp hook only fills missing values; confirmed with one curl in Phase B). Replies created after discussions, 1–4 each.
+### Policy and routes
 
-**Config:** `config/database.ts` adds `settings: { useTypescriptMigrations: true }` (without it a `.ts` migration is never discovered). `config/server.ts`: `cron: { enabled: false }` (source default is true, docs say false; we have no cron tasks) and the dead `webhooks.populateRelations` key removed (ignored since v5). `config/env/test/database.ts` → `lerevenu_test`; `config/env/test/plugins.ts` → `users-permissions.ratelimit.enabled: false` (documented option) so the login budget never flakes tests. `.env.ci` committed with non-secret values that do not match the placeholder regex in `assert-env.ts`, plus `STRAPI_TELEMETRY_DISABLED=true`; CI copies it to `.env` before running Strapi (Strapi only reads `.env` or `ENV_PATH`).
+| Item         | Decision                                                                                                                             |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `is-owner`   | one per type; loads the document with `author.id`; 404 if missing, `PolicyError` 403 if not the owner                                |
+| Registration | `createCoreRouter(uid, { config: { update: { policies: ['is-owner'] }, delete: { policies: ['is-owner'] } } })`                      |
+| Slug route   | `routes/01-slug.ts` → `GET /discussions/slug/:slug` → `discussion.findBySlug`; permission id `api::discussion.discussion.findBySlug` |
 
-**SQLite mode:** `config/database.ts` keeps the scaffold's three-client switch; `DATABASE_CLIENT=sqlite` + `DATABASE_FILENAME=.tmp/data.db`. `better-sqlite3` is added as a dependency. `scripts/sqlite-reset.ts` copies `database/demo.sqlite` to `.tmp/data.db`; `dev:sqlite` script runs it then `strapi develop`. The committed `demo.sqlite` is produced once by seeding an empty file (Phase B) and refreshed only when seed data changes. The seed and all controllers use the Document Service, so nothing is engine-specific.
+### Permissions (bootstrap, additive, idempotent)
 
-**Index:** `database/migrations/2026.10.25T00.00.00.add-discussions-created-at-index.ts` (portable: `knex.schema.alterTable(...).index(...)` works on PostgreSQL and SQLite), `export default { up }` only (Strapi documents no down migrations), `knex.schema.alterTable('discussions', t => t.index(['created_at'], 'discussions_created_at_idx'))`, guarded by `hasTable` and a `pg_indexes` check.
+| Role          | Actions                                                                             |
+| ------------- | ----------------------------------------------------------------------------------- |
+| Public        | `category.find/findOne`, `discussion.find/findOne/findBySlug`, `reply.find/findOne` |
+| Authenticated | Public + `discussion.create/update/delete`, `reply.create/update/delete`            |
+| Never         | `user.find`                                                                         |
 
-**Test harness** the `test:integration` script runs `strapi ts:compile` first (in-process `compileStrapi` calls `process.exit(1)` on a type error and Vitest would show nothing), then `vitest run`. `tests/global-setup.ts`: reset the `public` schema of `lerevenu_test` with `pg`, `createStrapi({ appDir, distDir: 'dist' }).load()` → `listen()` on port 1338 (`PORT` set in env before creation), log in the three demo users, `provide('baseUrl')` and `provide('tokens')`; teardown `destroy()`. Vitest's `globalSetup` runs in the orchestrator process and test files in workers, so the instance itself is never shared; tests go over HTTP with `supertest(inject('baseUrl'))`; `fileParallelism: false`. Fallback if `compileStrapi` misbehaves under Vitest: `strapi start` in a child process with the same `provide`.
+- Sign-up off by **merging** `{ allow_register: false }` into the existing `advanced` store object (replacing it breaks login).
+- 403 for anonymous writes holds because Public has ≥ 1 permission (zero permissions would give 401).
+- Never delete rows: Users & Permissions defaults (`user.me`, `auth.*`) must survive.
+
+### Seed
+
+| Item        | Decision                                                                                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Files       | `src/seed/{users,categories,discussions,index}.ts`, data in `src/seed/data/*.ts`, ≤ 150 lines each                                                           |
+| Trigger     | `bootstrap()` when `SEED_DEMO_DATA=true` and `count(category) === 0`; also `pnpm --filter cms seed` (`scripts/seed.ts`)                                      |
+| Atomicity   | whole seed in one `strapi.db.transaction` (a failure leaves the guard at zero)                                                                               |
+| Users       | `users-permissions` user service `add({ username, email, password, role, confirmed: true, provider: 'local' })`; password hashed by Strapi; `role` mandatory |
+| Categories  | `create({ locale: 'fr' })` then `update({ documentId, locale: 'en', data: { name, description } })` (documented on the REST locale page)                     |
+| Discussions | connect `category` and `author` by id; `createdAt` set explicitly, spread over 30 days                                                                       |
+
+### Config
+
+| File                          | Change                                                                       |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| `config/database.ts`          | `settings.useTypescriptMigrations: true`; keeps the postgres / sqlite switch |
+| `config/server.ts`            | `cron.enabled: false`; dead `webhooks.populateRelations` removed             |
+| `config/env/test/database.ts` | `lerevenu_test`                                                              |
+| `config/env/test/plugins.ts`  | `users-permissions.ratelimit.enabled: false`                                 |
+| `.env.ci`                     | non-secret values, `STRAPI_TELEMETRY_DISABLED=true`; CI copies it to `.env`  |
+
+### SQLite zero-setup mode
+
+| Item        | Decision                                                                                                             |
+| ----------- | -------------------------------------------------------------------------------------------------------------------- |
+| Why         | job post asks for a local SQLite DB to test the work                                                                 |
+| Switch      | `DATABASE_CLIENT=sqlite`, `DATABASE_FILENAME=.tmp/data.db`, `better-sqlite3` dependency                              |
+| Scripts     | `scripts/sqlite-reset.ts` copies `database/demo.sqlite` → `.tmp/data.db`; `dev:sqlite` runs it then `strapi develop` |
+| Deliverable | `database/demo.sqlite` committed, seeded once in Phase B, refreshed only when seed data changes                      |
+
+### Index
+
+- `database/migrations/2026.10.25T00.00.00.add-discussions-created-at-index.ts`, `export default { up }` (no down migrations in Strapi), portable knex `alterTable().index()`, guarded.
+
+### Test harness
+
+| Item         | Decision                                                                                                                                             |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pre-step     | `strapi ts:compile` before `vitest run` (in-process compile would `process.exit(1)` silently)                                                        |
+| Global setup | reset `lerevenu_test` schema → `createStrapi({ appDir, distDir: 'dist' }).load()` → `listen()` on 1338 → log in 3 users → `provide(baseUrl, tokens)` |
+| Tests        | over HTTP with `supertest(inject('baseUrl'))`; `fileParallelism: false`                                                                              |
+| Why HTTP     | Vitest's global setup runs in another process; the Strapi instance can't be shared                                                                   |
+| Fallback     | `strapi start` in a child process with the same `provide`                                                                                            |
 
 ## 6. Phases and steps
 
