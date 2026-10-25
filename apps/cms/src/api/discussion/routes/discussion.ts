@@ -1,3 +1,11 @@
 import { factories } from '@strapi/strapi';
 
-export default factories.createCoreRouter('api::discussion.discussion');
+const uid = 'api::discussion.discussion';
+const owner = { policies: [{ name: 'global::is-owner', config: { uid } }] };
+
+export default factories.createCoreRouter(uid, {
+  config: {
+    update: owner,
+    delete: owner,
+  },
+});

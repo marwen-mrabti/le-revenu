@@ -7,14 +7,18 @@ const DISCUSSION_UID = 'api::discussion.discussion';
 const REPLY_UID = 'api::reply.reply';
 
 interface Refs {
-  users: Map<string, number>;
+  /** username → documentId */
+  users: Map<string, string>;
   /** slug → documentId; a documentId connects to the default-locale (French) row */
   categories: Map<string, string>;
 }
 
 const minutesAgo = (now: number, minutes: number) => new Date(now - minutes * 60_000).toISOString();
 
-/** Creates the discussions and their replies, dated over the past month so sorting is visible. */
+/**
+ * Creates the discussions and their replies, dated over the past month so sorting
+ * is visible. Relations are connected by documentId; numeric ids never appear.
+ */
 export async function seedDiscussions(strapi: Core.Strapi, refs: Refs): Promise<number> {
   const now = Date.now();
   let count = 0;
@@ -49,7 +53,7 @@ export async function seedDiscussions(strapi: Core.Strapi, refs: Refs): Promise<
         data: {
           content: reply.content,
           author: replyAuthor,
-          discussion: discussion.id,
+          discussion: discussion.documentId,
           createdAt: replyAt,
           updatedAt: replyAt,
         },
