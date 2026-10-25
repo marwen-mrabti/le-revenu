@@ -168,7 +168,7 @@ sequenceDiagram
 
 ## 5. Design
 
-**Schemas** live in `src/api/<type>/content-types/<type>/schema.json` with `"options": { "draftAndPublish": false }`. Category has `"pluginOptions": { "i18n": { "localized": true } }` at the root and on `name` and `description` only; `slug` and `color` are shared across locales, so an English version only carries its own name and description and the slug is identical by construction. `discussion.slug` is `uid` with `"unique": true` (a real Postgres unique index; safe because the type is neither localised nor draft-published). Relations: `author` is `manyToOne` to `plugin::users-permissions.user` with no inverse; `category` is `manyToOne` with inverse `discussions`; `discussion` on Reply is `manyToOne` with inverse `replies`. `config/api.ts` already sets `documents.strictRelations: true`, which makes `required` on relations and "the target must exist" enforceable (unknown category → 400 `ValidationError`).
+**Schemas** live in `src/api/<type>/content-types/<type>/schema.json` with `"options": { "draftAndPublish": false }`. Category has `"pluginOptions": { "i18n": { "localized": true } }` at the root and on `name` and `description` only; `slug` and `color` are shared across locales, so an English version only carries its own name and description and the slug is identical by construction. `discussion.slug` is `uid` with `"column": { "unique": true }` (the documented way to get a real Postgres unique index; attribute-level `unique` is validator-only in Strapi 5, which even drops old slug unique indexes on upgrade). Safe because the type is neither localised nor draft-published. `category.name` keeps attribute-level `unique`, enforced by the validator per locale. Relations: `author` is `manyToOne` to `plugin::users-permissions.user` with no inverse; `category` is `manyToOne` with inverse `discussions`; `discussion` on Reply is `manyToOne` with inverse `replies`. An unknown relation target is always a 400 `ValidationError` in Strapi 5. `config/api.ts` sets `documents.strictRelations: true`, whose only effect is to enforce `required` on relations, which we need for `category` and `discussion`.
 
 **Why D&P is off:** the entity validator applies `required`, `minLength` and uniqueness only when the entry is not a draft, and unpublished entries are hidden from reads. Written in ADR-0008.
 
@@ -193,13 +193,13 @@ sequenceDiagram
 
 **Permissions** `src/bootstrap/ensure-permissions.ts`, idempotent and additive: find roles by `type`, insert missing `plugin::users-permissions.permission` rows, never delete (the Users & Permissions defaults `user.me` and `auth.*` must survive). Public: `category.find/findOne`, `discussion.find/findOne/findBySlug`, `reply.find/findOne`. Authenticated: same plus `discussion.create/update/delete`, `reply.create/update/delete`. Never `user.find`. Sign-up off by merging `{ allow_register: false }` into the existing `advanced` object of `strapi.store({ type: 'plugin', name: 'users-permissions' })` (replacing the object would break login). A write without token is 403 only because Public holds at least one permission (with zero permissions Strapi answers 401); the bootstrap order guarantees it.
 
-**Seed** `src/seed/` (`users.ts`, `categories.ts`, `discussions.ts`, `index.ts`, data under `src/seed/data/*.ts`), each ≤ 150 lines. Runs from `bootstrap()` when `SEED_DEMO_DATA=true` and `count(category) === 0`, inside one `strapi.db.transaction` so a failure leaves the guard at zero. Also `pnpm --filter cms seed`. Users via `strapi.plugin('users-permissions').service('user').add({ username, email, password, role: authenticated.id, confirmed: true, provider: 'local' })` (bcrypt applied by the Document Service; `role` is mandatory or every call answers 401). Categories: `create({ locale: 'fr', data })` then `update({ documentId, locale: 'en', data: { name, description } })` (the "create the locale when missing" behaviour is in Strapi's code, not its docs). Discussions connect `category` and `author` by id; `createdAt` passed explicitly and spread over 30 days (the timestamp hook only fills missing values; confirmed with one curl in Phase B). Replies created after discussions, 1–4 each.
+**Seed** `src/seed/` (`users.ts`, `categories.ts`, `discussions.ts`, `index.ts`, data under `src/seed/data/*.ts`), each ≤ 150 lines. Runs from `bootstrap()` when `SEED_DEMO_DATA=true` and `count(category) === 0`, inside one `strapi.db.transaction` so a failure leaves the guard at zero. Also `pnpm --filter cms seed`, backed by `scripts/seed.ts` (compiled by the existing tsconfig, runs `createStrapi().load()` → `seed(strapi)` → `destroy()`). Users via `strapi.plugin('users-permissions').service('user').add({ username, email, password, role: authenticated.id, confirmed: true, provider: 'local' })` (bcrypt applied by the Document Service; `role` is mandatory or every call answers 401). Categories: `create({ locale: 'fr', data })` then `update({ documentId, locale: 'en', data: { name, description } })` (documented on the REST locale page: an update with a locale "creates the locale version or updates it if it already exists"). Discussions connect `category` and `author` by id; `createdAt` passed explicitly and spread over 30 days (the timestamp hook only fills missing values; confirmed with one curl in Phase B). Replies created after discussions, 1–4 each.
 
-**Config:** `config/database.ts` adds `settings: { useTypescriptMigrations: true }` (without it a `.ts` migration is never discovered). `config/env/test/database.ts` → `lerevenu_test`; `config/env/test/server.ts` → `cron: { enabled: false }`. `.env.ci` committed with non-secret values that do not match the placeholder regex in `assert-env.ts`; CI copies it to `.env` before running Strapi (Strapi only reads `.env` or `ENV_PATH`).
+**Config:** `config/database.ts` adds `settings: { useTypescriptMigrations: true }` (without it a `.ts` migration is never discovered). `config/server.ts`: `cron: { enabled: false }` (source default is true, docs say false; we have no cron tasks) and the dead `webhooks.populateRelations` key removed (ignored since v5). `config/env/test/database.ts` → `lerevenu_test`; `config/env/test/plugins.ts` → `users-permissions.ratelimit.enabled: false` (documented option) so the login budget never flakes tests. `.env.ci` committed with non-secret values that do not match the placeholder regex in `assert-env.ts`, plus `STRAPI_TELEMETRY_DISABLED=true`; CI copies it to `.env` before running Strapi (Strapi only reads `.env` or `ENV_PATH`).
 
-**Index:** `database/migrations/2026.10.25T00.00.00.add-discussions-created-at-index.ts`, `export default { up, down }`, `knex.schema.alterTable('discussions', t => t.index(['created_at'], 'discussions_created_at_idx'))`, guarded by `hasTable`.
+**Index:** `database/migrations/2026.10.25T00.00.00.add-discussions-created-at-index.ts`, `export default { up }` only (Strapi documents no down migrations), `knex.schema.alterTable('discussions', t => t.index(['created_at'], 'discussions_created_at_idx'))`, guarded by `hasTable` and a `pg_indexes` check.
 
-**Test harness** `tests/global-setup.ts`: reset the `public` schema of `lerevenu_test` with `pg`, `compileStrapi()` → `createStrapi(ctx).load()` → `listen()` on port 1338, log in the three demo users, `provide('baseUrl')` and `provide('tokens')`; teardown `destroy()`. Vitest's `globalSetup` runs in the orchestrator process and test files in workers, so the instance itself is never shared; tests go over HTTP with `supertest(inject('baseUrl'))`; `fileParallelism: false`. Fallback if `compileStrapi` misbehaves under Vitest: `strapi start` in a child process with the same `provide`.
+**Test harness** the `test:integration` script runs `strapi ts:compile` first (in-process `compileStrapi` calls `process.exit(1)` on a type error and Vitest would show nothing), then `vitest run`. `tests/global-setup.ts`: reset the `public` schema of `lerevenu_test` with `pg`, `createStrapi({ appDir, distDir: 'dist' }).load()` → `listen()` on port 1338 (`PORT` set in env before creation), log in the three demo users, `provide('baseUrl')` and `provide('tokens')`; teardown `destroy()`. Vitest's `globalSetup` runs in the orchestrator process and test files in workers, so the instance itself is never shared; tests go over HTTP with `supertest(inject('baseUrl'))`; `fileParallelism: false`. Fallback if `compileStrapi` misbehaves under Vitest: `strapi start` in a child process with the same `provide`.
 
 ## 6. Phases and steps
 
@@ -207,7 +207,7 @@ sequenceDiagram
 
 1. `chore(web)`: untrack and ignore `fr.d.json.ts` (done, first commit of the branch).
 2. Three `schema.json` (D&P off, i18n on Category `name`/`description`, `unique` on `discussion.slug`) plus the minimal `controllers/routes/services` files.
-3. `config/database.ts` `useTypescriptMigrations`; `config/env/test/{database,server}.ts`; the index migration.
+3. `config/database.ts` `useTypescriptMigrations`; `config/server.ts` cron off + dead webhook key removed; `config/env/test/{database,plugins}.ts`; the index migration (`up` only).
 4. Boot, check tables, the `strapi_migrations` row and the index; `ts:generate-types`, commit.
    Exit: admin shows the three types; `\di discussions*` lists the index; `pnpm type-check` green.
 
@@ -215,7 +215,7 @@ sequenceDiagram
 
 5. `ensure-permissions.ts` (additive) + sign-up off (merge), wired in `bootstrap()`.
 6. Seed data files (11 categories fr/en, 12 discussions, ~25 replies, 3 users).
-7. Seed modules in a transaction, `seed` script; boot twice, counts unchanged.
+7. Seed modules in a transaction, `scripts/seed.ts` + `seed` script; boot twice, counts unchanged.
 8. curl: `?locale=en` categories, list filter/sort/pagination, `pageSize=100` clamped, register → 400.
    Exit: criteria 2, 9 (register), 10, 11 by hand.
 
@@ -230,7 +230,7 @@ sequenceDiagram
 
 ### Phase D — Tests and CI (3 h)
 
-14. `vitest.config.mts`, `tests/global-setup.ts`, `tests/helpers/api.ts`, `.env.ci`.
+14. `vitest.config.mts`, `tests/global-setup.ts` (after `strapi ts:compile`), `tests/helpers/api.ts`, `.env.ci` (telemetry off).
 15. Test files from section 7.
 16. `test-cms` job in `ci.yml` (Postgres service with healthcheck, `.env.ci` copy).
     Exit: `pnpm --filter cms test:integration` green locally and in CI twice in a row.
@@ -254,7 +254,7 @@ Total 10.5 h; 12 h kept as the estimate.
 | 4   | `discussions.list.test.ts`       | display            | list item keys exactly `title, slug, type, createdAt, author{id,documentId,username}, category{name,slug,color}, replies{count}` (+ ids/timestamps); no `email` anywhere in the JSON; `sort=createdAt:asc` ordered; `pageSize=2` → 2; `pageSize=100` → 50; category filter; slug route with ordered replies; unknown slug → 404 | 1, 2, 3, 12 |
 | 5   | `replies.test.ts`                | validation + spoof | no token → 403; spoofed author → 201 with caller; unknown discussion → 404; content 1 char → 400                                                                                                                                                                                                                                | 7           |
 | 6   | `ownership.test.ts`              | permissions        | bob PUT alice's discussion → 403 `PolicyError`; bob DELETE alice's reply → 403; alice PUT own → 200; alice DELETE own discussion with 2 replies → 204 and replies gone; unknown id → 404                                                                                                                                        | 8           |
-| 7   | `auth.test.ts`                   | smoke              | alice login → 200 `{ jwt, user }`, `user` has no `password`; wrong password → 400; `GET /api/users/me` with jwt → 200, without → 403; `GET /api/users` with jwt → 403                                                                                                                                                           | 9           |
+| 7   | `auth.test.ts`                   | smoke              | alice login → 200 `{ jwt, user }`, `user` has no `password`; wrong password → 400; `GET /api/users/me` with jwt → 200, without → 403 (holds because Public has ≥ 1 permission: asserted first); `GET /api/users` with jwt → 403                                                                                                 | 9           |
 | +   | `categories.test.ts`             |                    | `?locale=en` names in English, same `documentId` and `slug` as French; default locale French                                                                                                                                                                                                                                    | 10          |
 
 Seed idempotence (criterion 11) stays a manual check (boot twice, counts unchanged) plus a unit test of the guard function.
@@ -270,16 +270,16 @@ Seed idempotence (criterion 11) stays a manual check (boot twice, counts unchang
 
 ## 9. Risks and open questions
 
-| Risk                                                     | Mitigation                                                                                  |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `sanitizeOutput` strips `author` (no `user.find`)        | Presenter re-attaches a picked author; test 4 asserts the key set                           |
-| `populate[replies][count]` undocumented on the REST page | Verified in Strapi's query converter and DB populate; forced server-side; test 4 asserts it |
-| TS migration not discovered                              | `useTypescriptMigrations: true`; Phase A checks the index exists                            |
-| `globalSetup` cannot share the instance with workers     | HTTP harness with `provide/inject`; fallback child-process `strapi start`                   |
-| U&P rate limit (10/min) on `/auth/local`                 | Tokens obtained once in `globalSetup`; `ratelimit.enabled: false` available for test env    |
-| Slug race                                                | DB unique index + retry on `23505`                                                          |
-| Partial seed with the count guard                        | Seed runs in one transaction                                                                |
-| Category relation points at the French row               | Documented; frontend resolves by `documentId` with locale fallback                          |
+| Risk                                                     | Mitigation                                                                                       |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `sanitizeOutput` strips `author` (no `user.find`)        | Presenter re-attaches a picked author; test 4 asserts the key set                                |
+| `populate[replies][count]` undocumented on the REST page | Verified in Strapi's query converter and DB populate; forced server-side; test 4 asserts it      |
+| TS migration not discovered                              | `useTypescriptMigrations: true`; Phase A checks the index exists                                 |
+| `globalSetup` cannot share the instance with workers     | HTTP harness with `provide/inject`; `ts:compile` pre-step; fallback child-process `strapi start` |
+| U&P rate limit (10/min) on `/auth/local`                 | `ratelimit.enabled: false` in the test env config; tokens still obtained once in `globalSetup`   |
+| Slug race                                                | `column.unique` index on `discussion.slug` + one retry on Postgres `23505`                       |
+| Partial seed with the count guard                        | Seed runs in one transaction                                                                     |
+| Category relation points at the French row               | Documented; frontend resolves by `documentId` with locale fallback                               |
 
 ## 10. Definition of done
 
