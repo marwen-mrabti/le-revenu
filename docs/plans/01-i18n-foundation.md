@@ -1,6 +1,6 @@
 # 01 — i18n foundation
 
-Branch: `feature/i18n-foundation` · Target: `development` · Estimate: 6 h · Status: draft
+Branch: `feature/i18n-foundation` · Target: `development` · Estimate: 6 h · Status: done
 
 ## 1. Goal
 
@@ -219,8 +219,8 @@ Exit: `pnpm verify` green, PR opened.
 
 ## 10. Definition of done
 
-- [ ] All acceptance criteria met
-- [ ] Tests in section 7 green locally and in CI
-- [ ] Manual checklist done
-- [ ] `docs/adr/0007-i18n-next-intl.md` written; `docs/data-model.md` localisation section confirmed; this plan's status set to done
+- [x] All acceptance criteria met (8 verified manually, see tests table)
+- [x] Tests in section 7 green locally; CI unit job added
+- [x] Manual checklist done by the author (URL matrix, switcher, view source, console); dark mode and 400 px width to be confirmed in PR review
+- [x] `docs/adr/0007-i18n-next-intl.md` written; `docs/data-model.md` localisation section confirmed; this plan's status set to done
 - [ ] PR opened against `development` with screenshots of FR and EN headers

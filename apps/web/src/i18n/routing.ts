@@ -9,6 +9,8 @@ export const routing = defineRouting({
   locales: ['fr', 'en'],
   defaultLocale: 'fr',
   localePrefix: 'as-needed',
+  // Deterministic URLs: `/` is always French. Readers choose English with the switcher.
+  localeDetection: false,
 });
 
 export type AppLocale = (typeof routing.locales)[number];

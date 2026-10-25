@@ -13,8 +13,9 @@ export async function SiteHeader() {
       </a>
       <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
         <Link href="/" className="flex items-baseline gap-2">
-          <span className="font-heading text-base font-black tracking-wide">
-            <span className="text-primary">LE</span> REVENU
+          <span className="inline-flex items-stretch bg-primary p-0.5 text-sm leading-none font-black tracking-tight text-white">
+            <span className="mr-0.5 bg-foreground px-1 py-0.5 dark:bg-black">LE</span>
+            <span className="px-1 py-0.5">REVENU</span>
           </span>
           <span className="border-l border-border pl-2 text-xs text-muted-foreground">
             {t('community')}

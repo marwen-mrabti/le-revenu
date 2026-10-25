@@ -31,11 +31,23 @@ export async function generateMetadata({ params }: LayoutProps<'/[locale]'>): Pr
     title: { default: t('title'), template: `%s · ${t('title')}` },
     description: t('description'),
     alternates: {
+      canonical: getPathname({ locale, href: '/' }),
       languages: Object.fromEntries([
         ...routing.locales.map((l) => [l, getPathname({ locale: l, href: '/' })]),
         ['x-default', getPathname({ locale: routing.defaultLocale, href: '/' })],
       ]),
     },
+    openGraph: {
+      type: 'website',
+      siteName: t('title'),
+      title: t('title'),
+      description: t('description'),
+      locale: locale === 'fr' ? 'fr_FR' : 'en_GB',
+      alternateLocale: routing.locales
+        .filter((l) => l !== locale)
+        .map((l) => (l === 'fr' ? 'fr_FR' : 'en_GB')),
+    },
+    robots: { index: true, follow: true },
   };
 }
 

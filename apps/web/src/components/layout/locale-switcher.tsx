@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 export function LocaleSwitcher() {
   const locale = useLocale();
   const t = useTranslations('Nav');
+  const tLocale = useTranslations('Locale');
   const pathname = usePathname();
   const router = useRouter();
 
@@ -33,6 +34,8 @@ export function LocaleSwitcher() {
             type="button"
             onClick={() => switchTo(l)}
             aria-current={l === locale ? 'true' : undefined}
+            aria-label={tLocale(l)}
+            lang={l}
             className={cn(
               'rounded px-1.5 py-0.5 uppercase',
               l === locale

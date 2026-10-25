@@ -10,3 +10,4 @@ Short records of the decisions that shape this codebase. Format: context, decisi
 | [0004](0004-monorepo-layout.md)                      | pnpm + Turborepo monorepo with config packages only      | Accepted |
 | [0005](0005-type-sharing-zod-dtos.md)                | zod DTOs as the frontend's type source                   | Accepted |
 | [0006](0006-cache-invalidation-webhook.md)           | Tag-based cache invalidation driven by a Strapi webhook  | Accepted |
+| [0007](0007-i18n-next-intl.md)                       | French and English from day one with next-intl           | Accepted |
