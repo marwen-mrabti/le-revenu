@@ -42,7 +42,7 @@ Brief lines served: section 2.A to 2.D (features), section 3 (backend architectu
 9. `POST /api/auth/local` with a demo account answers `{ jwt, user }`; `POST /api/auth/local/register` answers 400 (sign-ups disabled).
 10. `GET /api/categories?locale=en` returns English names; without `locale`, French.
 11. A fresh database boots with the demo data; a second boot does not duplicate it.
-12. Every response exposes `author` as exactly `{ id, documentId, username }`; `email` never appears.
+12. Every response exposes `author` as exactly `{ documentId, username }`; no numeric `id` and no `email` appear anywhere in list or detail responses.
 13. The test files of section 7 pass locally and in CI; `pnpm verify` is green.
 14. From a fresh clone with no Docker, `pnpm install && pnpm --filter cms dev:sqlite` boots Strapi on the committed `demo.sqlite` with the demo data present; the same command on an empty SQLite file seeds it.
 
@@ -199,15 +199,16 @@ Short form. Every line below was checked against the Strapi 5.59 source or docs 
 ### Output shaping
 
 - Strapi strips any relation whose target the caller can't `find`. Readers never get `user.find` (it would expose `/api/users` and emails).
-- So controllers sanitise the entity **without** `author`/`replies`, then re-attach `{ id, documentId, username }` and the mapped replies (`services/presenter.ts`).
-- Populate always limits author to `fields: ['username']`. A test asserts the exact key set.
+- So controllers sanitise the entity **without** `author`/`replies`, then re-attach `{ documentId, username }` and the mapped replies (`services/presenter.ts`).
+- **No numeric ids leave the API.** The presenter strips `id` from the entity, the author, the category and every reply; only `documentId` (24 random characters, non-sequential) is exposed. Clients reference relations by `documentId`.
+- Populate always limits author to `fields: ['username']`. A test asserts the exact key set and the absence of any `id` key.
 
 ### Services
 
 | File                     | Role                                                                                                                |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | `services/slug.ts`       | `slugify(title)` (lowercase, no accents, hyphens, max 80) + unique suffix `-2`, `-3`; one retry on Postgres `23505` |
-| `services/presenter.ts`  | `pickAuthor`, `mapReplies`, populate constants                                                                      |
+| `services/presenter.ts`  | `pickAuthor`, `mapReplies`, `withoutIds`, populate constants                                                        |
 | `services/discussion.ts` | `deleteWithReplies(documentId)` in `strapi.db.transaction`                                                          |
 
 ### Policy and routes
@@ -300,7 +301,7 @@ Short form. Every line below was checked against the Strapi 5.59 source or docs 
 11. `reply` controller (create with 404, update strips `discussion`, find).
 12. Two `is-owner` policies + router config.
 13. curl pass for criteria 1, 3–8, 12: author spoof, unknown category (400), unknown discussion on reply (404), delete cascade.
-    Exit: every criterion by hand; `author` present with `id, documentId, username` only.
+    Exit: every criterion by hand; `author` present with `documentId, username` only; no `id` key anywhere.
 
 ### Phase D — Tests and CI (3 h)
 
@@ -320,16 +321,16 @@ Total 11 h; 12 h kept as the estimate.
 
 `apps/cms/tests/`, Vitest + supertest over HTTP, demo data seeded once per run, files run sequentially.
 
-| #   | File                             | Brief area         | Cases                                                                                                                                                                                                                                                                                                                           | Criteria    |
-| --- | -------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| 1   | `discussions.validation.test.ts` | validation         | title 9 chars → 400 `ValidationError`, `details.errors[].path` contains `title`; missing `content` → 400; `type: 'rant'` → 400; unknown `category` → 400; content > 20 000 → 400                                                                                                                                                | 5           |
-| 2   | `discussions.auth.test.ts`       | unauthenticated    | no token → 403 `ForbiddenError`; malformed token → 401 `UnauthorizedError`; `POST /api/auth/local/register` → 400                                                                                                                                                                                                               | 4, 9        |
-| 3   | `discussions.author.test.ts`     | author spoofing    | alice posts with `data.author = bob.id` → 201, `author.username === 'alice'`; alice updates her own with `data.author = bob.id` → 200, author unchanged; `data.slug` ignored                                                                                                                                                    | 6           |
-| 4   | `discussions.list.test.ts`       | display            | list item keys exactly `title, slug, type, createdAt, author{id,documentId,username}, category{name,slug,color}, replies{count}` (+ ids/timestamps); no `email` anywhere in the JSON; `sort=createdAt:asc` ordered; `pageSize=2` → 2; `pageSize=100` → 50; category filter; slug route with ordered replies; unknown slug → 404 | 1, 2, 3, 12 |
-| 5   | `replies.test.ts`                | validation + spoof | no token → 403; spoofed author → 201 with caller; unknown discussion → 404; content 1 char → 400                                                                                                                                                                                                                                | 7           |
-| 6   | `ownership.test.ts`              | permissions        | bob PUT alice's discussion → 403 `PolicyError`; bob DELETE alice's reply → 403; alice PUT own → 200; alice DELETE own discussion with 2 replies → 204 and replies gone; unknown id → 404                                                                                                                                        | 8           |
-| 7   | `auth.test.ts`                   | smoke              | alice login → 200 `{ jwt, user }`, `user` has no `password`; wrong password → 400; `GET /api/users/me` with jwt → 200, without → 403 (holds because Public has ≥ 1 permission: asserted first); `GET /api/users` with jwt → 403                                                                                                 | 9           |
-| +   | `categories.test.ts`             |                    | `?locale=en` names in English, same `documentId` and `slug` as French; default locale French                                                                                                                                                                                                                                    | 10          |
+| #   | File                             | Brief area         | Cases                                                                                                                                                                                                                                                                                                                        | Criteria    |
+| --- | -------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| 1   | `discussions.validation.test.ts` | validation         | title 9 chars → 400 `ValidationError`, `details.errors[].path` contains `title`; missing `content` → 400; `type: 'rant'` → 400; unknown `category` → 400; content > 20 000 → 400                                                                                                                                             | 5           |
+| 2   | `discussions.auth.test.ts`       | unauthenticated    | no token → 403 `ForbiddenError`; malformed token → 401 `UnauthorizedError`; `POST /api/auth/local/register` → 400                                                                                                                                                                                                            | 4, 9        |
+| 3   | `discussions.author.test.ts`     | author spoofing    | alice posts with `data.author = bob.id` → 201, `author.username === 'alice'`; alice updates her own with `data.author = bob.id` → 200, author unchanged; `data.slug` ignored                                                                                                                                                 | 6           |
+| 4   | `discussions.list.test.ts`       | display            | list item keys exactly `title, slug, type, createdAt, author{documentId,username}, category{name,slug,color}, replies{count}` (+ ids/timestamps); no `email` anywhere in the JSON; `sort=createdAt:asc` ordered; `pageSize=2` → 2; `pageSize=100` → 50; category filter; slug route with ordered replies; unknown slug → 404 | 1, 2, 3, 12 |
+| 5   | `replies.test.ts`                | validation + spoof | no token → 403; spoofed author → 201 with caller; unknown discussion → 404; content 1 char → 400                                                                                                                                                                                                                             | 7           |
+| 6   | `ownership.test.ts`              | permissions        | bob PUT alice's discussion → 403 `PolicyError`; bob DELETE alice's reply → 403; alice PUT own → 200; alice DELETE own discussion with 2 replies → 204 and replies gone; unknown id → 404                                                                                                                                     | 8           |
+| 7   | `auth.test.ts`                   | smoke              | alice login → 200 `{ jwt, user }`, `user` has no `password`; wrong password → 400; `GET /api/users/me` with jwt → 200, without → 403 (holds because Public has ≥ 1 permission: asserted first); `GET /api/users` with jwt → 403                                                                                              | 9           |
+| +   | `categories.test.ts`             |                    | `?locale=en` names in English, same `documentId` and `slug` as French; default locale French                                                                                                                                                                                                                                 | 10          |
 
 Seed idempotence (criterion 11) stays a manual check (boot twice, counts unchanged) plus a unit test of the guard function.
 
