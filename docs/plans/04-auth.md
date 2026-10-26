@@ -20,6 +20,7 @@ Brief lines served: "Users: Users & Permissions with demo users, every discussio
 - Header: "Se connecter" + "S'inscrire" when logged out; avatar initial + username with a menu (Se déconnecter) when logged in; under a Suspense boundary with a skeleton.
 - Messages fr + en. Unit tests of section 7. First Playwright spec (login as alice, logout).
 - ADR-0009: session cookie, Google flow and its one unavoidable browser exchange.
+- Added during the branch (user request, 2026-10-26): custom 404 and 500 pages in the Le Revenu style, mockup `docs/mockups/04-auth/error-pages.html`. `[locale]/not-found.tsx` (dark hero block, search box, space chips), `[locale]/error.tsx` (same block, Réessayer, incident code = error digest), `app/global-error.tsx` (last resort, inline styles). Header kept on both so language, theme and account stay reachable.
 
 **Out**
 
