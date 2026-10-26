@@ -1,10 +1,9 @@
 import type { Core } from '@strapi/strapi';
 
-import { uniqueSlug } from '../api/discussion/services/slug';
+import { DISCUSSION_UID } from '../api/discussion/constants';
+import { uniqueSlug } from '../api/discussion/utils/slug';
+import { REPLY_UID } from '../api/reply/constants';
 import { DISCUSSIONS } from './data/discussions';
-
-const DISCUSSION_UID = 'api::discussion.discussion';
-const REPLY_UID = 'api::reply.reply';
 
 interface Refs {
   /** username → documentId */

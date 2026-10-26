@@ -1,9 +1,11 @@
+/** reply router: core routes, owner policy on update and delete. */
 import { factories } from '@strapi/strapi';
 
-const uid = 'api::reply.reply';
-const owner = { policies: [{ name: 'global::is-owner', config: { uid } }] };
+import { REPLY_UID } from '../constants';
 
-export default factories.createCoreRouter(uid, {
+const owner = { policies: [{ name: 'global::is-owner', config: { uid: REPLY_UID } }] };
+
+export default factories.createCoreRouter(REPLY_UID, {
   config: {
     update: owner,
     delete: owner,

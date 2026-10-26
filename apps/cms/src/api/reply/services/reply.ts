@@ -1,3 +1,6 @@
+/** reply service */
 import { factories } from '@strapi/strapi';
 
-export default factories.createCoreService('api::reply.reply');
+import { REPLY_UID } from '../constants';
+
+export default factories.createCoreService(REPLY_UID);

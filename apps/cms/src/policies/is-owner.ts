@@ -1,15 +1,13 @@
+/** is-owner policy: the logged-in reader must be the author of the entry. */
 import type { Core } from '@strapi/strapi';
 import { errors } from '@strapi/utils';
 
+import type { DISCUSSION_UID } from '../api/discussion/constants';
+import type { REPLY_UID } from '../api/reply/constants';
+
 interface OwnerPolicyConfig {
   /** Content type the route operates on. */
-  uid: 'api::discussion.discussion' | 'api::reply.reply';
-}
-
-/** The parts of the request a policy reads: the logged-in reader and the route param. */
-interface OwnerPolicyContext {
-  state: { user?: { documentId: string } };
-  params: { id?: string };
+  uid: typeof DISCUSSION_UID | typeof REPLY_UID;
 }
 
 interface Owned {
@@ -18,16 +16,16 @@ interface Owned {
 
 /**
  * Lets a request through only when the logged-in reader wrote the entry.
- * 404 when the entry does not exist, 403 when it belongs to someone else.
- * Registered on `update` and `delete` of discussions and replies.
+ * 401 without a user, 404 when the entry does not exist, 403 when it belongs
+ * to someone else. Registered on `update` and `delete` of discussions and replies.
  */
 export default async function isOwner(
-  policyContext: OwnerPolicyContext,
+  policyContext: Core.PolicyContext,
   config: OwnerPolicyConfig,
   { strapi }: { strapi: Core.Strapi },
 ): Promise<boolean> {
   const user = policyContext.state.user;
-  if (!user) return false;
+  if (!user) throw new errors.UnauthorizedError('Authentication required');
 
   const documentId = String(policyContext.params.id ?? '');
   const entry = (await strapi.documents(config.uid).findOne({

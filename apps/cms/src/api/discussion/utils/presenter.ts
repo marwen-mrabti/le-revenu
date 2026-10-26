@@ -1,5 +1,5 @@
 /**
- * Shapes what leaves the API. Two rules live here:
+ * discussion presenter: shapes what leaves the API. Two rules live here:
  * - no numeric `id` is ever exposed, only `documentId`;
  * - the author is reduced to `{ documentId, username }` (readers cannot list
  *   users, so Strapi would otherwise strip the relation entirely).
@@ -7,7 +7,10 @@
 
 import type { Modules } from '@strapi/strapi';
 
-type Populate<T extends 'api::discussion.discussion' | 'api::reply.reply'> =
+import type { REPLY_UID } from '../../reply/constants';
+import type { DISCUSSION_UID } from '../constants';
+
+type Populate<T extends typeof DISCUSSION_UID | typeof REPLY_UID> =
   Modules.Documents.Params.Populate.Any<T>;
 
 export const AUTHOR_POPULATE: { fields: ['username'] } = { fields: ['username'] };
@@ -16,20 +19,20 @@ export const CATEGORY_POPULATE: { fields: ['name', 'slug', 'color'] } = {
 };
 
 /** Populate for list endpoints: counts replies instead of loading them. */
-export const LIST_POPULATE: Populate<'api::discussion.discussion'> = {
+export const LIST_POPULATE: Populate<typeof DISCUSSION_UID> = {
   author: AUTHOR_POPULATE,
   category: CATEGORY_POPULATE,
   replies: { count: true },
 };
 
 /** Populate for a single discussion: replies in chronological order with their author. */
-export const DETAIL_POPULATE: Populate<'api::discussion.discussion'> = {
+export const DETAIL_POPULATE: Populate<typeof DISCUSSION_UID> = {
   author: AUTHOR_POPULATE,
   category: CATEGORY_POPULATE,
   replies: { populate: { author: AUTHOR_POPULATE }, sort: ['createdAt:asc'] },
 };
 
-export const REPLY_POPULATE: Populate<'api::reply.reply'> = { author: AUTHOR_POPULATE };
+export const REPLY_POPULATE: Populate<typeof REPLY_UID> = { author: AUTHOR_POPULATE };
 
 export interface PublicAuthor {
   documentId: string;

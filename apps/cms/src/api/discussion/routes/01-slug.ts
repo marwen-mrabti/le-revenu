@@ -1,4 +1,4 @@
-/** Public lookup by slug: the clean URL of a discussion. */
+/** discussion slug route: public lookup by slug, the clean URL of a discussion. */
 export default {
   routes: [
     {

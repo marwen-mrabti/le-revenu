@@ -1,10 +1,9 @@
 import type { Core } from '@strapi/strapi';
 
+import { CATEGORY_UID } from '../api/category/constants';
 import { seedCategories } from './categories';
 import { seedDiscussions } from './discussions';
 import { seedUsers } from './users';
-
-const CATEGORY_UID = 'api::category.category';
 
 /**
  * Loads the demo data once. Guarded by "no category exists yet" and wrapped in

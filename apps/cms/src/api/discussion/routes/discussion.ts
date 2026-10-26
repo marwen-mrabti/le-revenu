@@ -1,9 +1,11 @@
+/** discussion router: core routes, owner policy on update and delete. */
 import { factories } from '@strapi/strapi';
 
-const uid = 'api::discussion.discussion';
-const owner = { policies: [{ name: 'global::is-owner', config: { uid } }] };
+import { DISCUSSION_UID } from '../constants';
 
-export default factories.createCoreRouter(uid, {
+const owner = { policies: [{ name: 'global::is-owner', config: { uid: DISCUSSION_UID } }] };
+
+export default factories.createCoreRouter(DISCUSSION_UID, {
   config: {
     update: owner,
     delete: owner,

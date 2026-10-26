@@ -1,9 +1,10 @@
+/** discussion service */
 import { factories } from '@strapi/strapi';
 
-const DISCUSSION_UID = 'api::discussion.discussion';
-const REPLY_UID = 'api::reply.reply';
+import { REPLY_UID } from '../../reply/constants';
+import { DISCUSSION_UID } from '../constants';
 
-export default factories.createCoreService(DISCUSSION_UID, ({ strapi }) => ({
+const discussionService = factories.createCoreService(DISCUSSION_UID, ({ strapi }) => ({
   /**
    * Deletes a discussion and its replies in one transaction. Strapi alone would
    * leave the replies behind with a null discussion.
@@ -22,3 +23,8 @@ export default factories.createCoreService(DISCUSSION_UID, ({ strapi }) => ({
     });
   },
 }));
+
+export default discussionService;
+
+/** Shape of `strapi.service(DISCUSSION_UID)`: core methods plus the ones above. */
+export type DiscussionService = ReturnType<typeof discussionService>;

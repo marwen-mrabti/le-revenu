@@ -1,3 +1,6 @@
+/** category router */
 import { factories } from '@strapi/strapi';
 
-export default factories.createCoreRouter('api::category.category');
+import { CATEGORY_UID } from '../constants';
+
+export default factories.createCoreRouter(CATEGORY_UID);

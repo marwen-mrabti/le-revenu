@@ -1,6 +1,8 @@
+/** discussion slug helpers: slugify a title and make it unique. */
 import type { Core } from '@strapi/strapi';
 
-const UID = 'api::discussion.discussion';
+import { DISCUSSION_UID } from '../constants';
+
 const MAX_LENGTH = 80;
 
 /** "Faut-il ouvrir un PER à 45 ans ?" → "faut-il-ouvrir-un-per-a-45-ans" */
@@ -22,7 +24,7 @@ export function slugify(input: string): string {
  */
 export async function uniqueSlug(strapi: Core.Strapi, title: string): Promise<string> {
   const base = slugify(title) || 'discussion';
-  const taken = (await strapi.documents(UID).findMany({
+  const taken = (await strapi.documents(DISCUSSION_UID).findMany({
     filters: { slug: { $startsWith: base } },
     fields: ['slug'],
     limit: 500,

@@ -1,25 +1,29 @@
 import type { Core } from '@strapi/strapi';
 
+import { CATEGORY_UID } from '../api/category/constants';
+import { DISCUSSION_UID } from '../api/discussion/constants';
+import { REPLY_UID } from '../api/reply/constants';
+
 /** What anonymous visitors may do: read everything, write nothing. */
 const PUBLIC_ACTIONS = [
-  'api::category.category.find',
-  'api::category.category.findOne',
-  'api::discussion.discussion.find',
-  'api::discussion.discussion.findOne',
-  'api::discussion.discussion.findBySlug',
-  'api::reply.reply.find',
-  'api::reply.reply.findOne',
+  `${CATEGORY_UID}.find`,
+  `${CATEGORY_UID}.findOne`,
+  `${DISCUSSION_UID}.find`,
+  `${DISCUSSION_UID}.findOne`,
+  `${DISCUSSION_UID}.findBySlug`,
+  `${REPLY_UID}.find`,
+  `${REPLY_UID}.findOne`,
 ];
 
 /** Logged-in readers: everything Public can, plus writing. Ownership is checked by policies. */
 const AUTHENTICATED_ACTIONS = [
   ...PUBLIC_ACTIONS,
-  'api::discussion.discussion.create',
-  'api::discussion.discussion.update',
-  'api::discussion.discussion.delete',
-  'api::reply.reply.create',
-  'api::reply.reply.update',
-  'api::reply.reply.delete',
+  `${DISCUSSION_UID}.create`,
+  `${DISCUSSION_UID}.update`,
+  `${DISCUSSION_UID}.delete`,
+  `${REPLY_UID}.create`,
+  `${REPLY_UID}.update`,
+  `${REPLY_UID}.delete`,
 ];
 
 const ROLE_UID = 'plugin::users-permissions.role';

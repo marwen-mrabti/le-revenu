@@ -1,11 +1,13 @@
+/** discussion controller */
 import { factories, type Modules } from '@strapi/strapi';
 import { errors } from '@strapi/utils';
 
 import { contentApi, envelope, fromKoa, type ApiContext } from '../../../lib/content-api';
-import { DETAIL_POPULATE, LIST_POPULATE, present, withoutIds } from '../services/presenter';
-import { uniqueSlug } from '../services/slug';
+import { DISCUSSION_UID as UID } from '../constants';
+import type { DiscussionService } from '../services/discussion';
+import { DETAIL_POPULATE, LIST_POPULATE, present, withoutIds } from '../utils/presenter';
+import { uniqueSlug } from '../utils/slug';
 
-const UID = 'api::discussion.discussion';
 const DEFAULT_SORT = ['createdAt:desc'];
 
 type Row = Record<string, unknown>;
@@ -86,7 +88,8 @@ export default factories.createCoreController(UID, ({ strapi }) => {
 
     /** Owner-only (policy). Removes the replies with the discussion. */
     async delete(ctx) {
-      await strapi.service(UID).deleteWithReplies(String(ctx.params.id));
+      const service = strapi.service(UID) as DiscussionService;
+      await service.deleteWithReplies(String(ctx.params.id));
       ctx.status = 204;
     },
   };

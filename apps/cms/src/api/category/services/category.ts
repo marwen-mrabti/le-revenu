@@ -1,3 +1,6 @@
+/** category service */
 import { factories } from '@strapi/strapi';
 
-export default factories.createCoreService('api::category.category');
+import { CATEGORY_UID } from '../constants';
+
+export default factories.createCoreService(CATEGORY_UID);

@@ -1,11 +1,11 @@
+/** reply controller */
 import { factories, type Modules } from '@strapi/strapi';
 import { errors } from '@strapi/utils';
 
 import { contentApi, envelope, fromKoa, type ApiContext } from '../../../lib/content-api';
-import { REPLY_POPULATE, present } from '../../discussion/services/presenter';
-
-const UID = 'api::reply.reply';
-const DISCUSSION_UID = 'api::discussion.discussion';
+import { DISCUSSION_UID } from '../../discussion/constants';
+import { REPLY_POPULATE, present } from '../../discussion/utils/presenter';
+import { REPLY_UID as UID } from '../constants';
 
 type Row = Record<string, unknown>;
 type Input = Modules.Documents.Params.Data.Input<typeof UID>;

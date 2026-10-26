@@ -79,6 +79,9 @@ importers:
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
+      '@types/koa':
+        specifier: 2.15.2
+        version: 2.15.2
       '@types/node':
         specifier: ^24.19.2
         version: 24.19.2
