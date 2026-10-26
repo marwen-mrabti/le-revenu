@@ -2,9 +2,8 @@ import { hasLocale } from 'next-intl';
 import { getLocale } from 'next-intl/server';
 import { Suspense } from 'react';
 
-import { CategoryNav } from '@/features/categories/components/category-nav';
+import { CategoryNavLoader } from '@/features/categories/components/category-nav-loader';
 import { CategoryNavSkeleton } from '@/features/categories/components/category-nav-skeleton';
-import { getCategories } from '@/features/categories/data';
 import { routing } from '@/i18n/routing';
 
 /**
@@ -13,13 +12,13 @@ import { routing } from '@/i18n/routing';
  */
 export default async function ForumLayout({ children }: LayoutProps<'/[locale]'>) {
   const locale = await getLocale();
-  const categories = hasLocale(routing.locales, locale) ? await getCategories(locale) : [];
+  const appLocale = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
 
   return (
     <div className="mx-auto grid w-full max-w-[1260px] grid-cols-1 items-start gap-4 px-4 py-4 md:grid-cols-[200px_minmax(0,1fr)] md:gap-7 md:py-6 xl:grid-cols-[212px_minmax(0,1fr)_304px]">
       <div className="sticky top-[86px] hidden md:block">
         <Suspense fallback={<CategoryNavSkeleton />}>
-          <CategoryNav categories={categories} />
+          <CategoryNavLoader locale={appLocale} />
         </Suspense>
       </div>
       {children}

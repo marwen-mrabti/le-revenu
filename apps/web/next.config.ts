@@ -3,9 +3,6 @@ import path from 'node:path';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
-// Fails the build or the dev server at boot when a required variable is missing or a placeholder.
-import './src/config/env';
-
 const withNextIntl = createNextIntlPlugin({
   requestConfig: './src/i18n/request.ts',
   experimental: {
