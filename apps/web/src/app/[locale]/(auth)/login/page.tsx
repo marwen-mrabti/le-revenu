@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { hasLocale } from 'next-intl';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { Suspense } from 'react';
 
 import { AuthCard } from '@/features/auth/components/auth-card';
 import { GoogleButton } from '@/features/auth/components/google-button';
@@ -10,6 +11,8 @@ import { nextPathSchema } from '@/features/auth/schemas';
 import { Link, redirect } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 
+import AuthLoading from '../loading';
+
 type Props = PageProps<'/[locale]/login'>;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -17,7 +20,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t('loginTitle'), robots: { index: false } };
 }
 
-export default async function LoginPage({ searchParams }: Props) {
+/** Reads `next` and the session, so it streams inside the page's Suspense boundary. */
+async function LoginContent({ searchParams }: Pick<Props, 'searchParams'>) {
   const [t, locale, params, user] = await Promise.all([
     getTranslations('Auth'),
     getLocale(),
@@ -51,5 +55,13 @@ export default async function LoginPage({ searchParams }: Props) {
         </p>
       ) : null}
     </AuthCard>
+  );
+}
+
+export default function LoginPage({ searchParams }: Props) {
+  return (
+    <Suspense fallback={<AuthLoading />}>
+      <LoginContent searchParams={searchParams} />
+    </Suspense>
   );
 }
