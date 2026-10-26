@@ -1,20 +1,31 @@
-// import type { Core } from '@strapi/strapi';
+import type { Core } from '@strapi/strapi';
+
+import { assertEnv } from './bootstrap/assert-env';
+import { ensureIndexes } from './bootstrap/ensure-indexes';
+import { ensureLocales } from './bootstrap/ensure-locales';
+import { ensurePermissions } from './bootstrap/ensure-permissions';
+import { ensureProviders } from './bootstrap/ensure-providers';
+import { seed } from './seed';
 
 export default {
   /**
-   * An asynchronous register function that runs before
-   * your application is initialized.
-   *
-   * This gives you an opportunity to extend code.
+   * Runs before the application is initialized. No database access here.
    */
-  register(/* { strapi }: { strapi: Core.Strapi } */) {},
+  register() {
+    assertEnv();
+  },
 
   /**
-   * An asynchronous bootstrap function that runs before
-   * your application gets started.
-   *
-   * This gives you an opportunity to set up your data model,
-   * run jobs, or perform some special logic.
+   * Runs before the application starts, after plugins and the database are ready.
+   * Order matters: indexes → locales → permissions → providers → demo data.
    */
-  bootstrap(/* { strapi }: { strapi: Core.Strapi } */) {},
+  async bootstrap({ strapi }: { strapi: Core.Strapi }) {
+    await ensureIndexes(strapi);
+    await ensureLocales(strapi);
+    await ensurePermissions(strapi);
+    await ensureProviders(strapi);
+    if (process.env.SEED_DEMO_DATA === 'true') {
+      await seed(strapi);
+    }
+  },
 };

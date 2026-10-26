@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mockup 04 · Inscription</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand: #eb0f0f;
+        --brand-text: #e00b0b;
+        --brand-ink: #fff;
+        --ok: #1a8a4a;
+        --bg: #f5f5f7;
+        --surface: #fff;
+        --ink: #1d1d1f;
+        --ink-2: #48484a;
+        --ink-3: #6e6e73;
+        --line: #e5e5ea;
+        --hairline: rgba(0, 0, 0, 0.07);
+        --fill: rgba(0, 0, 0, 0.05);
+        --r: 14px;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --f-body: 'Inter', system-ui, sans-serif;
+        --f-display: 'Playfair Display', Georgia, serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --brand-text: #ff6961;
+          --ok: #30d158;
+          --bg: #161618;
+          --surface: #1c1c1e;
+          --ink: #f5f5f7;
+          --ink-2: #c7c7cc;
+          --ink-3: #8e8e93;
+          --line: #38383a;
+          --hairline: rgba(255, 255, 255, 0.08);
+          --fill: rgba(255, 255, 255, 0.07);
+          --shadow: none;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.5 var(--f-body);
+        -webkit-font-smoothing: antialiased;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      .wrap {
+        max-width: 1260px;
+        margin: 0 auto;
+        padding-inline: 16px;
+        width: 100%;
+      }
+      .hdr {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        background: color-mix(in srgb, var(--surface) 80%, transparent);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--hairline);
+      }
+      .hdr .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 56px;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .logo .mark {
+        display: inline-flex;
+        background: var(--brand);
+        padding: 2px;
+        font-size: 13px;
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: -0.02em;
+      }
+      .logo .mark .le {
+        background: var(--ink);
+        padding: 2px 4px;
+        margin-right: 2px;
+      }
+      .logo .mark .rev {
+        padding: 2px 4px;
+      }
+      .logo .sub {
+        border-left: 1px solid var(--line);
+        padding-left: 8px;
+        font-size: 12px;
+        color: var(--ink-3);
+      }
+      .ctrls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .icon-btn,
+      .menu-btn,
+      .btn {
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid var(--hairline);
+        background: var(--surface);
+        font: inherit;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--ink);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 12px;
+        cursor: pointer;
+      }
+      .icon-btn {
+        width: 36px;
+        padding: 0;
+        color: var(--ink-2);
+      }
+      .btn-primary {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: var(--brand-ink);
+      }
+      .btn-quiet {
+        border-color: transparent;
+        background: transparent;
+      }
+      .btn-block {
+        width: 100%;
+        height: 40px;
+        font-size: 14.5px;
+      }
+      .caret {
+        color: var(--ink-3);
+        font-size: 11px;
+      }
+      main {
+        flex: 1;
+        display: grid;
+        place-items: start center;
+        padding: 40px 16px 80px;
+      }
+      .card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r);
+        padding: 28px 26px;
+        box-shadow: var(--shadow);
+      }
+      .card h1 {
+        font-family: var(--f-display);
+        font-size: 26px;
+        letter-spacing: -0.01em;
+      }
+      .card .intro {
+        color: var(--ink-2);
+        margin-top: 6px;
+        font-size: 14.5px;
+      }
+      .google {
+        margin-top: 20px;
+      }
+      .google svg {
+        width: 18px;
+        height: 18px;
+      }
+      .or {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--ink-3);
+        font-size: 12.5px;
+        margin: 16px 0;
+      }
+      .or::before,
+      .or::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+      .field label {
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .field .desc {
+        font-size: 12.5px;
+        color: var(--ink-3);
+      }
+      .input {
+        height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: transparent;
+        padding: 0 12px;
+        font: inherit;
+        color: var(--ink);
+        width: 100%;
+      }
+      .input:focus {
+        outline: 2px solid var(--brand);
+        outline-offset: 1px;
+        border-color: transparent;
+      }
+      .pw {
+        position: relative;
+      }
+      .pw .eye {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: 0;
+        background: none;
+        color: var(--ink-3);
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .rule {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12.5px;
+        color: var(--ink-3);
+      }
+      .rule.ok {
+        color: var(--ok);
+      }
+      .legal {
+        font-size: 12.5px;
+        color: var(--ink-3);
+        margin: 4px 0 16px;
+      }
+      .legal a {
+        color: var(--brand-text);
+        font-weight: 600;
+      }
+      .hint {
+        text-align: center;
+        font-size: 13.5px;
+        color: var(--ink-3);
+        margin-top: 18px;
+      }
+      .hint a {
+        color: var(--brand-text);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hdr">
+      <div class="wrap">
+        <a class="logo" href="#"
+          ><span class="mark"><span class="le">LE</span><span class="rev">REVENU</span></span
+          ><span class="sub">Communauté</span></a
+        >
+        <div class="ctrls">
+          <button class="icon-btn" type="button" aria-label="Passer en thème sombre">☾</button>
+          <button class="menu-btn" type="button">
+            <span aria-hidden="true">🇫🇷</span>Français<span class="caret">▾</span>
+          </button>
+          <a class="btn btn-quiet" href="#">Se connecter</a>
+          <a class="btn btn-primary" href="#" aria-current="page">S'inscrire</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="content">
+      <section class="card" aria-labelledby="t">
+        <h1 id="t">Rejoindre la communauté</h1>
+        <p class="intro">
+          Gratuit. Posez vos questions, partagez votre expérience, échangez avec la rédaction.
+        </p>
+
+        <a class="btn btn-block google" href="#">
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <path
+              fill="#EA4335"
+              d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"
+            />
+            <path
+              fill="#4285F4"
+              d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M10.5 28.6A14.5 14.5 0 0 1 9.7 24c0-1.6.3-3.1.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6.1z"
+            />
+            <path
+              fill="#34A853"
+              d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"
+            />
+          </svg>
+          Continuer avec Google
+        </a>
+        <div class="or" role="separator">ou</div>
+
+        <form>
+          <div class="field">
+            <label for="u">Nom d'utilisateur</label>
+            <input
+              class="input"
+              id="u"
+              name="username"
+              autocomplete="username"
+              value="Claire_Nantes"
+            />
+            <span class="desc"
+              >3 à 30 caractères : lettres, chiffres, point, tiret, tiret bas. C'est le nom affiché
+              sur vos messages.</span
+            >
+          </div>
+          <div class="field">
+            <label for="e">E-mail</label>
+            <input
+              class="input"
+              id="e"
+              name="email"
+              type="email"
+              autocomplete="email"
+              value="claire@exemple.fr"
+            />
+          </div>
+          <div class="field">
+            <label for="p">Mot de passe</label>
+            <div class="pw">
+              <input
+                class="input"
+                id="p"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                value="Password123!"
+              /><button class="eye" type="button" aria-label="Afficher le mot de passe">👁</button>
+            </div>
+            <span class="rule ok">✓ Au moins 8 caractères</span>
+          </div>
+          <p class="legal">
+            En créant un compte vous acceptez la <a href="#">charte de la communauté</a>.
+          </p>
+          <button class="btn btn-primary btn-block" type="submit">Créer mon compte</button>
+        </form>
+
+        <p class="hint">Déjà inscrit ? <a href="#">Se connecter</a></p>
+      </section>
+    </main>
+  </body>
+</html>

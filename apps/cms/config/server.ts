@@ -3,11 +3,14 @@ import type { Core } from '@strapi/strapi';
 const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Server => ({
   host: env('HOST', '0.0.0.0'),
   port: env.int('PORT', 1337),
+  // Absolute public URL: third-party login providers build their redirect URI from it.
+  url: env('PUBLIC_URL', 'http://localhost:1337'),
   app: {
     keys: env.array('APP_KEYS')!,
   },
+  // No scheduled tasks in this project. Strapi's source default is `true`.
+  cron: { enabled: false },
   webhooks: {
-    populateRelations: env.bool('WEBHOOKS_POPULATE_RELATIONS', false),
     // Sent with every webhook; the Next.js /api/revalidate handler checks it.
     defaultHeaders: {
       'x-revalidate-secret': env('REVALIDATE_SECRET', ''),

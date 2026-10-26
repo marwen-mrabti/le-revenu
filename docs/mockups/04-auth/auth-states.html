@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mockup 04 · États : en-tête, erreurs, envoi, retour Google</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand: #eb0f0f;
+        --brand-text: #e00b0b;
+        --brand-ink: #fff;
+        --alert: #e00b0b;
+        --bg: #f5f5f7;
+        --surface: #fff;
+        --ink: #1d1d1f;
+        --ink-2: #48484a;
+        --ink-3: #6e6e73;
+        --line: #e5e5ea;
+        --hairline: rgba(0, 0, 0, 0.07);
+        --fill: rgba(0, 0, 0, 0.05);
+        --r: 14px;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --f-body: 'Inter', system-ui, sans-serif;
+        --f-display: 'Playfair Display', Georgia, serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --brand-text: #ff6961;
+          --alert: #ff6961;
+          --bg: #161618;
+          --surface: #1c1c1e;
+          --ink: #f5f5f7;
+          --ink-2: #c7c7cc;
+          --ink-3: #8e8e93;
+          --line: #38383a;
+          --hairline: rgba(255, 255, 255, 0.08);
+          --fill: rgba(255, 255, 255, 0.07);
+          --shadow: none;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.5 var(--f-body);
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .wrap {
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 24px 16px 80px;
+      }
+      .label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin: 28px 0 10px;
+      }
+      .label small {
+        font-weight: 400;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-left: 8px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 24px;
+        align-items: start;
+      }
+
+      /* header */
+      .hdr {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: 12px;
+      }
+      .hdr .bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 56px;
+        padding: 0 16px;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .logo .mark {
+        display: inline-flex;
+        background: var(--brand);
+        padding: 2px;
+        font-size: 13px;
+        font-weight: 900;
+        color: #fff;
+      }
+      .logo .mark .le {
+        background: var(--ink);
+        padding: 2px 4px;
+        margin-right: 2px;
+      }
+      .logo .mark .rev {
+        padding: 2px 4px;
+      }
+      .logo .sub {
+        border-left: 1px solid var(--line);
+        padding-left: 8px;
+        font-size: 12px;
+        color: var(--ink-3);
+      }
+      .ctrls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .icon-btn,
+      .menu-btn,
+      .btn {
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid var(--hairline);
+        background: var(--surface);
+        font: inherit;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--ink);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 12px;
+        cursor: pointer;
+      }
+      .icon-btn {
+        width: 36px;
+        padding: 0;
+        color: var(--ink-2);
+      }
+      .btn-primary {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: var(--brand-ink);
+      }
+      .btn-quiet {
+        border-color: transparent;
+        background: transparent;
+      }
+      .btn-block {
+        width: 100%;
+        height: 40px;
+        font-size: 14.5px;
+      }
+      .btn[disabled] {
+        opacity: 0.6;
+        cursor: default;
+      }
+      .caret {
+        color: var(--ink-3);
+        font-size: 11px;
+      }
+      .av {
+        display: inline-grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--brand-text);
+        background: color-mix(in srgb, var(--brand) 15%, transparent);
+      }
+      .menu-wrap {
+        position: relative;
+      }
+      .menu {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 6px);
+        min-width: 220px;
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: 12px;
+        padding: 6px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        z-index: 5;
+      }
+      .menu .who {
+        padding: 8px 10px;
+      }
+      .menu .who b {
+        display: block;
+        font-size: 14px;
+      }
+      .menu .who span {
+        font-size: 12.5px;
+        color: var(--ink-3);
+      }
+      .menu .sep {
+        height: 1px;
+        background: var(--line);
+        margin: 6px 4px;
+      }
+      .menu a {
+        display: flex;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--ink-2);
+      }
+      .menu a:hover {
+        background: var(--fill);
+        color: var(--ink);
+      }
+      .skel {
+        display: inline-block;
+        width: 90px;
+        height: 36px;
+        border-radius: 10px;
+        background: var(--fill);
+      }
+
+      /* cards */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r);
+        padding: 24px 22px;
+        box-shadow: var(--shadow);
+      }
+      .card h2 {
+        font-family: var(--f-display);
+        font-size: 22px;
+        letter-spacing: -0.01em;
+        margin-bottom: 14px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+      .field label {
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .input {
+        height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: transparent;
+        padding: 0 12px;
+        font: inherit;
+        color: var(--ink);
+        width: 100%;
+      }
+      .input[aria-invalid='true'] {
+        border-color: var(--alert);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--alert) 15%, transparent);
+      }
+      .err {
+        font-size: 12.5px;
+        color: var(--alert);
+        font-weight: 500;
+      }
+      .banner {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: color-mix(in srgb, var(--alert) 10%, transparent);
+        color: var(--alert);
+        font-size: 13.5px;
+        font-weight: 500;
+        margin-bottom: 14px;
+      }
+      .spin {
+        width: 16px;
+        height: 16px;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: s 1s linear infinite;
+      }
+      @keyframes s {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .spin {
+          animation: none;
+        }
+      }
+      .center {
+        text-align: center;
+        padding: 20px 0;
+      }
+      .center .spin {
+        width: 28px;
+        height: 28px;
+        margin: 0 auto 14px;
+        color: var(--brand-text);
+      }
+      .center p {
+        color: var(--ink-2);
+        font-size: 14.5px;
+      }
+      .toast {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        background: var(--ink);
+        color: var(--surface);
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 13.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1 style="font-family: var(--f-display); font-size: 22px">Authentification : états</h1>
+
+      <div class="label">
+        En-tête, déconnecté <small>deux boutons, « S'inscrire » en rouge</small>
+      </div>
+      <div class="hdr">
+        <div class="bar">
+          <a class="logo" href="#"
+            ><span class="mark"><span class="le">LE</span><span class="rev">REVENU</span></span
+            ><span class="sub">Communauté</span></a
+          >
+          <div class="ctrls">
+            <button class="icon-btn">☾</button
+            ><button class="menu-btn"><span>🇫🇷</span>Français<span class="caret">▾</span></button
+            ><a class="btn btn-quiet" href="#">Se connecter</a
+            ><a class="btn btn-primary" href="#">S'inscrire</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="label">
+        En-tête, pendant la vérification de session
+        <small>squelette à la place des boutons, le reste de la page est déjà là</small>
+      </div>
+      <div class="hdr">
+        <div class="bar">
+          <a class="logo" href="#"
+            ><span class="mark"><span class="le">LE</span><span class="rev">REVENU</span></span
+            ><span class="sub">Communauté</span></a
+          >
+          <div class="ctrls">
+            <button class="icon-btn">☾</button
+            ><button class="menu-btn"><span>🇫🇷</span>Français<span class="caret">▾</span></button
+            ><span class="skel"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="label">En-tête, connecté, menu ouvert</div>
+      <div class="hdr" style="padding-bottom: 120px">
+        <div class="bar">
+          <a class="logo" href="#"
+            ><span class="mark"><span class="le">LE</span><span class="rev">REVENU</span></span
+            ><span class="sub">Communauté</span></a
+          >
+          <div class="ctrls">
+            <button class="icon-btn">☾</button
+            ><button class="menu-btn"><span>🇫🇷</span>Français<span class="caret">▾</span></button>
+            <div class="menu-wrap">
+              <button class="menu-btn" aria-haspopup="menu" aria-expanded="true">
+                <span class="av">A</span>alice<span class="caret">▾</span>
+              </button>
+              <div class="menu" role="menu">
+                <div class="who"><b>alice</b><span>alice@demo.lerevenu.test</span></div>
+                <div class="sep"></div>
+                <a href="#" role="menuitem"
+                  >Mes discussions
+                  <span style="margin-left: auto; font-size: 11px; color: var(--ink-3)"
+                    >évolution</span
+                  ></a
+                >
+                <a href="#" role="menuitem">Se déconnecter</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="label">Formulaires</div>
+      <div class="grid">
+        <section class="card">
+          <h2>
+            Erreurs de champ
+            <small style="font: 12px var(--f-body); color: var(--ink-3)"
+              >(inscription, après envoi)</small
+            >
+          </h2>
+          <div class="field">
+            <label for="a1">Nom d'utilisateur</label
+            ><input
+              class="input"
+              id="a1"
+              value="al"
+              aria-invalid="true"
+              aria-describedby="e1"
+            /><span class="err" id="e1">3 caractères minimum.</span>
+          </div>
+          <div class="field">
+            <label for="a2">E-mail</label
+            ><input
+              class="input"
+              id="a2"
+              value="alice@demo.lerevenu.test"
+              aria-invalid="true"
+              aria-describedby="e2"
+            /><span class="err" id="e2"
+              >Cet e-mail est déjà utilisé.
+              <a href="#" style="color: var(--brand-text); font-weight: 600"
+                >Se connecter ?</a
+              ></span
+            >
+          </div>
+          <div class="field">
+            <label for="a3">Mot de passe</label
+            ><input
+              class="input"
+              id="a3"
+              type="password"
+              value="1234"
+              aria-invalid="true"
+              aria-describedby="e3"
+            /><span class="err" id="e3">8 caractères minimum.</span>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit">Créer mon compte</button>
+        </section>
+
+        <section class="card">
+          <h2>
+            Identifiants incorrects
+            <small style="font: 12px var(--f-body); color: var(--ink-3)">(connexion)</small>
+          </h2>
+          <div class="banner" role="alert">
+            ⚠ <span>Identifiant ou mot de passe incorrect.</span>
+          </div>
+          <div class="field">
+            <label for="b1">E-mail ou nom d'utilisateur</label
+            ><input class="input" id="b1" value="alice" />
+          </div>
+          <div class="field">
+            <label for="b2">Mot de passe</label
+            ><input class="input" id="b2" type="password" value="wrong" />
+          </div>
+          <button class="btn btn-primary btn-block" type="submit">Se connecter</button>
+          <p style="margin-top: 14px; font-size: 12.5px; color: var(--ink-3)">
+            Après 10 tentatives en une minute :
+            <b>« Trop de tentatives, réessayez dans une minute. »</b> (429 relayé de Strapi)
+          </p>
+        </section>
+
+        <section class="card">
+          <h2>Envoi en cours</h2>
+          <div class="field">
+            <label for="c1">E-mail ou nom d'utilisateur</label
+            ><input class="input" id="c1" value="alice" disabled />
+          </div>
+          <div class="field">
+            <label for="c2">Mot de passe</label
+            ><input class="input" id="c2" type="password" value="Password123!" disabled />
+          </div>
+          <button class="btn btn-primary btn-block" type="submit" disabled aria-busy="true">
+            <span class="spin"></span>Connexion…
+          </button>
+          <p style="margin-top: 14px; font-size: 12.5px; color: var(--ink-3)">
+            Puis redirection vers <code>next</code> ou <code>/discussions</code> et toast :
+          </p>
+          <p style="margin-top: 8px"><span class="toast">✓ Bienvenue, alice.</span></p>
+        </section>
+
+        <section class="card">
+          <h2>Retour de Google</h2>
+          <div class="center">
+            <div class="spin"></div>
+            <p>Connexion avec Google en cours…</p>
+          </div>
+          <p style="font-size: 12.5px; color: var(--ink-3); margin-bottom: 14px">
+            Page <code>/auth/google/callback</code> : termine l'échange puis redirige. En cas
+            d'échec :
+          </p>
+          <div class="banner" role="alert">
+            ⚠
+            <span
+              >Un compte existe déjà avec cet e-mail. Connectez-vous avec votre mot de passe.</span
+            >
+          </div>
+          <a class="btn btn-block" href="#">Retour à la connexion</a>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>

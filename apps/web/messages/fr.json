@@ -1,0 +1,149 @@
+{
+  "Common": {
+    "siteName": "Le Revenu",
+    "community": "Communauté",
+    "skipToContent": "Aller au contenu",
+    "loading": "Chargement…",
+    "retry": "Réessayer",
+    "underConstruction": "Site en construction."
+  },
+  "Nav": {
+    "discussions": "Discussions",
+    "newDiscussion": "Publier",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "search": "Rechercher une discussion, un sujet…",
+    "language": "Langue",
+    "openMenu": "Ouvrir le menu",
+    "register": "S'inscrire"
+  },
+  "Locale": {
+    "fr": "Français",
+    "en": "English"
+  },
+  "Metadata": {
+    "title": "Communauté Le Revenu",
+    "description": "Posez vos questions d'argent, partagez vos expériences et échangez avec la rédaction du Revenu.",
+    "discussionsTitle": "Discussions",
+    "discussionsDescription": "Toutes les discussions de la communauté des lecteurs du Revenu.",
+    "loginTitle": "Connexion",
+    "registerTitle": "Inscription"
+  },
+  "Discussions": {
+    "title": "Discussions",
+    "intro": "Posez vos questions d'argent, partagez vos expériences et échangez avec la rédaction.",
+    "replyCount": "{count, plural, =0 {Aucune réponse} one {# réponse} other {# réponses}}",
+    "publishedOn": "Publié le {date}",
+    "empty": "Rien ici pour l'instant",
+    "emptyHint": "Lancez la première discussion de cet espace.",
+    "replyCountLabel": "{count, plural, one {réponse} other {réponses}}",
+    "typeQuestion": "Question",
+    "anonymous": "Anonyme",
+    "searchLabel": "Rechercher une discussion",
+    "searchPlaceholder": "Rechercher une discussion, un sujet…",
+    "resultCount": "{count, plural, =0 {Aucune discussion} one {# discussion} other {# discussions}}",
+    "emptyFiltered": "Aucune discussion ne correspond à vos filtres.",
+    "emptyOutOfRange": "Cette page n'existe pas.",
+    "clearFilters": "Effacer les filtres",
+    "backToFirstPage": "Revenir à la page 1"
+  },
+  "DiscussionNew": {
+    "title": "Nouvelle publication"
+  },
+  "Replies": {
+    "title": "Réponses"
+  },
+  "Categories": {
+    "all": "Tous les espaces",
+    "navLabel": "Espaces",
+    "spaces": "Espaces"
+  },
+  "Sort": {
+    "label": "Trier",
+    "newest": "Plus récentes",
+    "oldest": "Plus anciennes"
+  },
+  "Auth": {
+    "signIn": "Se connecter",
+    "loginTitle": "Se connecter",
+    "loginIntro": "Retrouvez la communauté des lecteurs du Revenu.",
+    "registerTitle": "Rejoindre la communauté",
+    "registerIntro": "Gratuit. Posez vos questions, partagez votre expérience, échangez avec la rédaction.",
+    "identifier": "E-mail ou nom d'utilisateur",
+    "password": "Mot de passe",
+    "username": "Nom d'utilisateur",
+    "email": "E-mail",
+    "usernameHint": "3 à 30 caractères : lettres, chiffres, point, tiret, tiret bas. C'est le nom affiché sur vos messages.",
+    "passwordHint": "Au moins 8 caractères.",
+    "submitLogin": "Se connecter",
+    "loggingIn": "Connexion…",
+    "submitRegister": "Créer mon compte",
+    "registering": "Création…",
+    "noAccount": "Pas encore de compte ? <link>Créer un compte gratuit</link>",
+    "haveAccount": "Déjà inscrit ? <link>Se connecter</link>",
+    "google": "Continuer avec Google",
+    "or": "ou",
+    "legal": "En créant un compte vous acceptez la <link>charte de la communauté</link>.",
+    "invalidCredentials": "Identifiant ou mot de passe incorrect.",
+    "rateLimited": "Trop de tentatives, réessayez dans une minute.",
+    "blocked": "Ce compte a été bloqué.",
+    "genericError": "Une erreur est survenue, réessayez dans un instant.",
+    "welcome": "Bienvenue, {name}.",
+    "signedOut": "Vous êtes déconnecté.",
+    "signOut": "Se déconnecter",
+    "account": "Compte",
+    "googlePending": "Connexion avec Google en cours…",
+    "googleFailed": "La connexion avec Google a échoué.",
+    "googleTaken": "Un compte existe déjà avec cet e-mail. Connectez-vous avec votre mot de passe.",
+    "backToLogin": "Retour à la connexion",
+    "demoAccounts": "Comptes de démonstration : {a} et {b}, mot de passe {password}."
+  },
+  "Errors": {
+    "title": "Une erreur est survenue",
+    "description": "Réessayez dans un instant. Si le problème persiste, contactez-nous.",
+    "notFoundTitle": "Cette page n'existe pas, ou plus.",
+    "notFoundDescription": "Le lien est peut-être erroné, ou la discussion a été retirée. La communauté, elle, est toujours là.",
+    "backHome": "Retour à l'accueil",
+    "retry": "Réessayer",
+    "notFoundKicker": "Erreur 404",
+    "viewDiscussions": "Voir les discussions",
+    "searchTitle": "Chercher une discussion",
+    "searchPlaceholder": "Rechercher une discussion, un sujet…",
+    "exploreTitle": "Ou explorer un espace",
+    "allSpaces": "Tous les espaces",
+    "serverKicker": "Erreur 500",
+    "serverTitle": "Quelque chose s'est mal passé de notre côté.",
+    "serverDescription": "Ce n'est pas vous. Réessayez dans un instant ; si le problème persiste, prévenez-nous avec le code ci-dessous.",
+    "incident": "Code de l'incident :"
+  },
+  "Space": {
+    "label": "Cet espace",
+    "allTitle": "Tous les espaces",
+    "allDescription": "Onze espaces thématiques, calqués sur les grandes rubriques du Revenu. Choisissez-en un pour filtrer les discussions."
+  },
+  "Theme": {
+    "label": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système",
+    "switchToDark": "Passer en thème sombre",
+    "switchToLight": "Passer en thème clair"
+  },
+  "Pagination": {
+    "label": "Pagination",
+    "previous": "Précédente",
+    "next": "Suivante",
+    "pageOf": "Page {page, number} sur {count, number}"
+  },
+  "Form": {
+    "required": "Ce champ est obligatoire.",
+    "tooLong": "Trop long.",
+    "usernameLength": "3 à 30 caractères.",
+    "usernamePattern": "Lettres, chiffres, point, tiret et tiret bas seulement.",
+    "email": "Adresse e-mail invalide.",
+    "passwordMin": "8 caractères minimum.",
+    "alreadyTaken": "Cet e-mail ou ce nom d'utilisateur est déjà utilisé.",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe"
+  }
+}
