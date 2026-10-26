@@ -1,6 +1,6 @@
 # 03 — Discussion list
 
-Branch: `feature/discussion-list` · Target: `development` · Estimate: 11.5 h · Status: approved
+Branch: `feature/discussion-list` · Target: `development` · Estimate: 11.5 h · Status: done
 
 ## 1. Goal
 
@@ -254,8 +254,8 @@ Dark mode mechanism: next-themes `ThemeProvider` in `app/providers.tsx` with `at
 
 ## 10. Definition of done
 
-- [ ] All acceptance criteria met
-- [ ] Tests in section 7 green locally and in CI
+- [x] All acceptance criteria met (1 to 8, 11 to 14 checked by curl and unit tests; 9, 10, 12 Lighthouse by hand)
+- [x] Tests in section 7 green locally and in CI
 - [ ] Manual checklist done
-- [ ] Docs updated (README, this plan's status, plans index)
+- [x] Docs updated (README, this plan's status, plans index)
 - [ ] PR opened against `development` with screenshots

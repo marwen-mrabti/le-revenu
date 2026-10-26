@@ -65,14 +65,14 @@ Adresse e-mail de chaque compte : `<identifiant en minuscules>@demo.lerevenu.tes
 
 ## 4. Ce que fait l'application
 
-| Fonction                                                                 | État                        |
-| ------------------------------------------------------------------------ | --------------------------- |
-| Liste des discussions : filtre par espace, tri par date, pagination      | backend prêt, page à venir  |
-| Détail d'une discussion et ses réponses, URL propre par slug             | backend prêt, page à venir  |
-| Connexion, inscription                                                   | backend prêt, pages à venir |
-| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type) | backend prêt, page à venir  |
-| Réponse à une discussion                                                 | backend prêt, page à venir  |
-| Interface en français et en anglais                                      | ✔                           |
+| Fonction                                                                       | État                        |
+| ------------------------------------------------------------------------------ | --------------------------- |
+| Liste des discussions : filtre par espace, tri par date, recherche, pagination | ✔ `/discussions`            |
+| Détail d'une discussion et ses réponses, URL propre par slug                   | backend prêt, page à venir  |
+| Connexion, inscription                                                         | backend prêt, pages à venir |
+| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)       | backend prêt, page à venir  |
+| Réponse à une discussion                                                       | backend prêt, page à venir  |
+| Interface en français et en anglais, menu de langue, thème clair / sombre      | ✔                           |
 
 L'avancement détaillé est dans [`docs/plans/`](docs/plans/README.md).
 
@@ -143,6 +143,8 @@ Comment tournent les tests backend :
 
 Prérequis : PostgreSQL démarré (`docker compose up -d db` crée `lerevenu_test`), `apps/cms/.env` renseigné. Variable `DATABASE_TEST_NAME` pour changer le nom de la base de test.
 
+Tests frontend (`apps/web`, Vitest + Testing Library, colocalisés `*.test.ts(x)`, 32 tests) : le client Strapi (chaîne de requête, enveloppe d'erreur, réponse inattendue, serveur injoignable), le schéma des filtres et la correspondance URL ↔ état (valeurs par défaut, page invalide, `clearOnDefault`), la carte de discussion (cinq champs du cahier des charges, lien vers le détail, ni e-mail ni id numérique), la pagination (page courante, filtres conservés, bornes), le handler `GET /api/discussions` (422 sur un tri inconnu, locale transmise, 503 sans fuite du message Strapi), le menu de langue et le bouton de thème, la parité des clés fr / en.
+
 ## 9. Qualité et CI/CD
 
 - **Branches** : `main` (production, protégée), `development` (intégration, protégée), `feature/<nom-court>`. Chaque fonctionnalité commence par un plan revu dans `docs/plans/`.
@@ -181,7 +183,7 @@ Chaque décision structurante est consignée dans un ADR (Architecture Decision 
 
 ## 12. Évolutions
 
-Votes « Utile » et meilleure réponse, recherche plein texte PostgreSQL, profil utilisateur, génération OpenAPI typée depuis Strapi, `jwtManagement: 'refresh'`, déploiement : Next.js sur Vercel, Strapi sur Railway ou Strapi Cloud.
+Onglets de la maquette (Tendances, Pour vous, Sans réponse), vue compacte, sujets épinglés, compteurs « Utile » et vues, recherche insensible aux accents (`unaccent`), votes « Utile » et meilleure réponse, recherche plein texte PostgreSQL, profil utilisateur, génération OpenAPI typée depuis Strapi, `jwtManagement: 'refresh'`, déploiement : Next.js sur Vercel, Strapi sur Railway ou Strapi Cloud.
 
 ---
 
