@@ -25,13 +25,16 @@ Test technique Développeur Full Stack · Next.js 16 · Strapi 5 · PostgreSQL (
 
 ## 1. Démarrage en 2 minutes (SQLite, sans Docker)
 
-Prérequis : Node 24 et pnpm 10.
+Prérequis : Node 24 (fichier `.nvmrc`) et pnpm 10 (`corepack enable` suffit, la version est fixée dans `package.json`).
 
 ```bash
+git clone git@github.com:marwen-mrabti/le-revenu.git && cd le-revenu
 pnpm install
-pnpm --filter cms dev:sqlite      # Strapi sur http://localhost:1337, base SQLite pré-remplie
-pnpm --filter web dev             # Next.js sur http://localhost:3000 (second terminal)
+pnpm --filter cms dev:sqlite      # terminal 1 : Strapi sur http://localhost:1337, base SQLite pré-remplie
+pnpm --filter web dev             # terminal 2 : Next.js sur http://localhost:3000
 ```
+
+Aucun fichier `.env` à créer dans ce mode : Strapi lit `apps/cms/.env.sqlite` (livré) et Next.js a des valeurs par défaut de développement (`apps/web/src/config/env.ts`) accordées avec ce fichier. Ouvrez http://localhost:3000/discussions, connectez-vous avec un compte de la section 3.
 
 - La base `apps/cms/database/demo.sqlite` est livrée pré-remplie (catégories en français et en anglais, discussions, réponses, lecteurs de démonstration). Elle est copiée dans `.tmp/` à chaque lancement : le fichier versionné n'est jamais modifié.
 - Le panneau d'administration Strapi demande de créer un compte administrateur à la première visite de http://localhost:1337/admin.
@@ -44,7 +47,7 @@ Prérequis : Node 24, pnpm 10, Docker avec Compose v2.
 ```bash
 cp .env.example .env
 cp apps/cms/.env.example apps/cms/.env    # puis remplacer chaque "change-me" (openssl rand -base64 32)
-cp apps/web/.env.example apps/web/.env
+cp apps/web/.env.example apps/web/.env    # facultatif en développement ; REVALIDATE_SECRET doit être le même que côté cms
 # Optionnel, connexion Google : créer un client OAuth « Web » (Google Cloud) avec l'URI de redirection
 # http://localhost:1337/api/connect/google/callback, puis dans apps/cms/.env : GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
 # et dans apps/web/.env : NEXT_PUBLIC_GOOGLE_LOGIN=true. Sans ces valeurs, le bouton Google n'apparaît pas.
@@ -142,6 +145,8 @@ curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&
 | Backend, intégration | Vitest + supertest, Strapi sur PostgreSQL `lerevenu_test` | `pnpm --filter cms test:integration` |
 | Frontend, unitaire   | Vitest + Testing Library                                  | `pnpm --filter web test`             |
 | Bout en bout         | Playwright, projets `fr` et `en`                          | `pnpm --filter web test:e2e`         |
+
+Playwright a besoin d'un navigateur : `pnpm --filter web exec playwright install chromium` une fois. Par défaut il construit puis démarre l'application ; avec `E2E_BASE_URL=http://localhost:3000` il utilise le serveur de développement déjà lancé. Strapi limite les connexions à 10 par minute et par IP : ne lancez pas de connexions à la main pendant une exécution.
 
 Les quatre tests demandés par le cahier des charges (validation d'une discussion, refus d'une publication non authentifiée, protection contre l'usurpation d'auteur, affichage des discussions) sont dans `apps/cms/tests/`, avec les droits d'auteur, les réponses, la connexion et les catégories bilingues : 8 fichiers, 41 tests, environ 15 s.
 

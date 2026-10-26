@@ -4,15 +4,29 @@ import { z } from 'zod';
 const PLACEHOLDER = /change-?me|replace-?me/i;
 const notPlaceholder = (value: string) => !PLACEHOLDER.test(value);
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 /**
- * Validated once at boot (imported by next.config.ts) and on first use.
- * Server values never reach the browser bundle; only NEXT_PUBLIC_* do.
+ * Validated at server start (instrumentation.ts) and on first use. Server
+ * values never reach the browser bundle; only NEXT_PUBLIC_* do.
+ *
+ * Development runs with zero files: the defaults below match the shipped
+ * `apps/cms/.env.sqlite`, so `pnpm --filter web dev` works on a fresh clone.
+ * Production has no defaults for secrets: the build or the boot fails loudly.
  */
+const DEV_REVALIDATE_SECRET = 'demo-local-sqlite-revalidate-secret-0123456789';
+
 export const env = createEnv({
   server: {
-    STRAPI_URL: z.url(),
+    STRAPI_URL: z.url().default('http://localhost:1337'),
     AUTH_COOKIE_NAME: z.string().min(1).default('lr_session'),
-    REVALIDATE_SECRET: z.string().min(8).refine(notPlaceholder, 'still a placeholder'),
+    REVALIDATE_SECRET: isProduction
+      ? z.string().min(8).refine(notPlaceholder, 'still a placeholder')
+      : z
+          .string()
+          .min(8)
+          .refine(notPlaceholder, 'still a placeholder')
+          .default(DEV_REVALIDATE_SECRET),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.url().default('http://localhost:3000'),
