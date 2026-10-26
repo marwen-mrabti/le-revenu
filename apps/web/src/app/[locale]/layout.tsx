@@ -62,6 +62,10 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
       className={`${inter.variable} ${playfair.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        {/* Theme before first paint; an async external script is also executed on client-rendered documents (404, 500). */}
+        <script async src="/theme-init.js" />
+      </head>
       <body className="flex min-h-full flex-col">
         <Providers>
           <NextIntlClientProvider>

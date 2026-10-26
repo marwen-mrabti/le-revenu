@@ -7,7 +7,7 @@ import { renderWithIntl } from '@/test/render-with-intl';
 
 const setTheme = vi.fn();
 let resolvedTheme = 'light';
-vi.mock('next-themes', () => ({
+vi.mock('@/components/theme/theme-provider', () => ({
   useTheme: () => ({ resolvedTheme, setTheme }),
 }));
 

@@ -2,7 +2,7 @@
 
 import { MoonIcon, SunIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/theme/theme-provider';
 import { useSyncExternalStore } from 'react';
 
 import { Button } from '@/components/ui/button';
