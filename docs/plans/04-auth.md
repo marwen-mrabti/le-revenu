@@ -1,6 +1,6 @@
 # 04 — Authentication: sign-up, login, Google
 
-Branch: `feature/auth` · Target: `development` · Estimate: 9 h · Status: draft
+Branch: `feature/auth` · Target: `development` · Estimate: 9 h · Status: approved
 
 ## 1. Goal
 
