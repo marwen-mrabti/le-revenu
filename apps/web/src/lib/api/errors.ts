@@ -20,6 +20,19 @@ const PUBLIC_MESSAGES: Partial<Record<number, string>> = {
 
 const GENERIC_MESSAGE = 'Une erreur est survenue.';
 
+/** An error a handler decides itself (guards, auth mapping): already in the public shape. */
+export class BffError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+    message: string,
+    readonly fieldErrors?: Record<string, string[]>,
+  ) {
+    super(message);
+    this.name = 'BffError';
+  }
+}
+
 function messageFor(status: number): string {
   return PUBLIC_MESSAGES[status] ?? GENERIC_MESSAGE;
 }
@@ -35,6 +48,13 @@ function json(status: number, body: ApiErrorBody): Response {
 export function toErrorResponse(error: unknown): Response {
   // Next's own control-flow errors (redirects, prerender bail-outs) must keep propagating.
   unstable_rethrow(error);
+  if (error instanceof BffError) {
+    return json(error.status, {
+      code: error.code,
+      message: error.message,
+      fieldErrors: error.fieldErrors,
+    });
+  }
   if (error instanceof z.ZodError) {
     return json(422, {
       code: 'VALIDATION',

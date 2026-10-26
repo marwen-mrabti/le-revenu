@@ -1,3 +1,5 @@
+// @vitest-environment node
+// Route handlers and guards read Cookie, Origin and Sec-Fetch-Site: a browser-like Request drops those headers.
 import { NextRequest } from 'next/server';
 import type * as NextServer from 'next/server';
 import { describe, expect, it, vi } from 'vitest';

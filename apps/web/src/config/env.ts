@@ -16,12 +16,18 @@ export const env = createEnv({
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.url().default('http://localhost:3000'),
+    /** Shows the Google button; the cms side must hold the credentials. */
+    NEXT_PUBLIC_GOOGLE_LOGIN: z.stringbool().default(false),
+    /** Read by the browser for one thing only: finishing the Google flow against Strapi's session. */
+    NEXT_PUBLIC_STRAPI_URL: z.url().default('http://localhost:1337'),
   },
   runtimeEnv: {
     STRAPI_URL: process.env.STRAPI_URL,
     AUTH_COOKIE_NAME: process.env.AUTH_COOKIE_NAME,
     REVALIDATE_SECRET: process.env.REVALIDATE_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_GOOGLE_LOGIN: process.env.NEXT_PUBLIC_GOOGLE_LOGIN,
+    NEXT_PUBLIC_STRAPI_URL: process.env.NEXT_PUBLIC_STRAPI_URL,
   },
   emptyStringAsUndefined: true,
 });
