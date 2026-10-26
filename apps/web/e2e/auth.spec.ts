@@ -24,14 +24,18 @@ const L = {
   },
 } as const;
 
-/** Typing before React has hydrated leaves the form state empty: wait for the page to settle first. */
+/**
+ * Typing before React has hydrated leaves the form state empty. The theme
+ * button only renders after mount, so its presence proves hydration is done.
+ */
 async function open(page: Page, path: string) {
   await page.goto(path);
-  await page.waitForLoadState('networkidle');
+  await page.getByRole('button', { name: /thème|theme/ }).waitFor();
 }
 
 test.describe('authentication', () => {
-  test('logs alice in, shows her in the header, logs her out', async ({ page }, testInfo) => {
+  // One login per locale: Strapi allows 10 login attempts per minute per IP, the whole suite must stay under.
+  test('logs alice in, keeps the session private, logs her out', async ({ page }, testInfo) => {
     const t = L[testInfo.project.name as keyof typeof L];
     await open(page, `${t.prefix}/login`);
 
@@ -39,9 +43,18 @@ test.describe('authentication', () => {
     await page.getByLabel(t.password, { exact: true }).fill('Password123!');
     await page.getByRole('button', { name: t.submit }).click();
 
-    await expect(page).toHaveURL(new RegExp(`${t.prefix}/discussions$`));
+    // Generous: in development the target page may still be compiling on first visit.
+    await expect(page).toHaveURL(new RegExp(`${t.prefix}/discussions$`), { timeout: 15_000 });
     const account = page.getByRole('button', { name: t.account });
     await expect(account).toContainText('alice');
+
+    // The session cookie is httpOnly: scripts cannot read it.
+    expect(await page.evaluate(() => document.cookie)).not.toContain('lr_session');
+    // Already logged in: the auth pages redirect, and a foreign `next` is ignored.
+    await page.goto(`${t.prefix}/login?next=//evil.test`);
+    await expect(page).toHaveURL(new RegExp(`${t.prefix}/discussions$`));
+    await page.goto(`${t.prefix}/register?next=http://evil.test`);
+    await expect(page).toHaveURL(new RegExp(`${t.prefix}/discussions$`));
 
     await account.click();
     await page.getByRole('menuitem', { name: t.signOut }).click();
@@ -59,23 +72,5 @@ test.describe('authentication', () => {
     await page.getByRole('button', { name: t.submit }).click();
     await expect(page.getByRole('alert').filter({ hasText: t.wrong })).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`${t.prefix}/login`));
-  });
-
-  test('keeps the session out of reach of scripts and ignores a foreign next', async ({
-    page,
-  }, testInfo) => {
-    const t = L[testInfo.project.name as keyof typeof L];
-    await open(page, `${t.prefix}/login`);
-    await page.getByLabel(t.identifier).fill('alice');
-    await page.getByLabel(t.password, { exact: true }).fill('Password123!');
-    await page.getByRole('button', { name: t.submit }).click();
-    await expect(page).toHaveURL(new RegExp(`${t.prefix}/discussions$`));
-
-    expect(await page.evaluate(() => document.cookie)).not.toContain('lr_session');
-
-    await page.goto(`${t.prefix}/login?next=//evil.test`);
-    await expect(page).toHaveURL(new RegExp(`${t.prefix}/discussions$`));
-    await page.goto(`${t.prefix}/register?next=http://evil.test`);
-    await expect(page).toHaveURL(new RegExp(`${t.prefix}/discussions$`));
   });
 });
