@@ -132,3 +132,4 @@ build
 # Zero-setup SQLite mode: the demo env file and the pre-seeded demo database are committed on purpose
 !.env.sqlite
 !database/demo.sqlite
+!.env.ci

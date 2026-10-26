@@ -7,7 +7,9 @@ import { seed } from '../src/seed';
 /** `pnpm --filter cms seed`: boots Strapi without the HTTP server, seeds, exits. */
 async function main() {
   const appDir = process.cwd();
-  const app = await createStrapi({ appDir, distDir: path.join(appDir, 'dist') }).load();
+  // This file runs compiled; the folder above it is the compiled tree (`tsc --outDir`).
+  const distDir = path.resolve(__dirname, '..');
+  const app = await createStrapi({ appDir, distDir }).load();
   try {
     const result = await seed(app);
     app.log.info(`seed script: ${result}`);
