@@ -2,8 +2,8 @@
 
 import { SearchIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { debounce, useQueryStates } from 'nuqs';
-import { useId } from 'react';
+import { useQueryStates } from 'nuqs';
+import { useId, useRef, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
 import {
@@ -17,16 +17,36 @@ import {
 import { SORTS, type Sort } from '../schemas';
 import { discussionSearchParams } from '../search-params';
 
+const SEARCH_DEBOUNCE_MS = 300;
+
 /**
  * Search box and sort select, bound to the URL through nuqs. Updates are
  * shallow: the list refetches through the BFF, the shell stays in place.
- * Any change goes back to page 1.
+ * Any change goes back to page 1. The search text is committed to the URL
+ * (and so to the list query) 300 ms after the last keystroke, not on each one.
  */
 export function DiscussionFilters() {
   const t = useTranslations('Discussions');
   const tSort = useTranslations('Sort');
   const searchId = useId();
   const [{ q, sort }, setParams] = useQueryStates(discussionSearchParams, { shallow: true });
+  const [text, setText] = useState(q);
+  const [syncedQ, setSyncedQ] = useState(q);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The URL changed elsewhere (back button, "clear filters"): follow it.
+  if (q !== syncedQ) {
+    setSyncedQ(q);
+    setText(q);
+  }
+
+  function onSearchChange(value: string) {
+    setText(value);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      setSyncedQ(value);
+      void setParams({ q: value, page: null }, { history: 'replace' });
+    }, SEARCH_DEBOUNCE_MS);
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-2.5">
@@ -41,17 +61,12 @@ export function DiscussionFilters() {
         <Input
           id={searchId}
           type="search"
-          value={q}
+          value={text}
           placeholder={t('searchPlaceholder')}
           autoComplete="off"
           maxLength={80}
           className="h-9 bg-card pl-9"
-          onChange={(event) =>
-            void setParams(
-              { q: event.target.value, page: null },
-              { history: 'replace', limitUrlUpdates: debounce(300) },
-            )
-          }
+          onChange={(event) => onSearchChange(event.target.value)}
         />
       </div>
       <Select

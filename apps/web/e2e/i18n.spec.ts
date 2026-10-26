@@ -4,17 +4,13 @@ test.describe('locale routing', () => {
   test('French is the default and has no prefix', async ({ page }) => {
     await page.goto('/discussions');
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-      'La communauté des lecteurs du Revenu',
-    );
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Discussions');
   });
 
   test('English lives under /en', async ({ page }) => {
     await page.goto('/en/discussions');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-      "The Le Revenu readers' community",
-    );
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Discussions');
   });
 
   test('a superfluous /fr prefix redirects to the clean URL', async ({ page }) => {
@@ -27,10 +23,12 @@ test.describe('locale routing', () => {
     expect(response.status()).toBe(404);
   });
 
-  test('the switcher changes locale and keeps the path', async ({ page }) => {
-    await page.goto('/discussions');
-    await page.getByRole('button', { name: 'English', exact: true }).click();
-    await expect(page).toHaveURL(/\/en\/discussions$/);
+  test('the language menu changes locale and keeps the path', async ({ page }) => {
+    await page.goto('/discussions?sort=oldest');
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: 'Langue' }).click();
+    await page.getByRole('menuitemradio', { name: /English/ }).click();
+    await expect(page).toHaveURL(/\/en\/discussions\?sort=oldest$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   });
 

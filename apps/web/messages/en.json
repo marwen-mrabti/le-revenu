@@ -14,7 +14,8 @@
     "signOut": "Sign out",
     "search": "Search a discussion, a topic…",
     "language": "Language",
-    "openMenu": "Open menu"
+    "openMenu": "Open menu",
+    "register": "Sign up"
   },
   "Locale": {
     "fr": "Français",
@@ -24,7 +25,9 @@
     "title": "Le Revenu Community",
     "description": "Ask your money questions, share your experience and talk with the Le Revenu newsroom.",
     "discussionsTitle": "Discussions",
-    "discussionsDescription": "All discussions of the Le Revenu readers' community."
+    "discussionsDescription": "All discussions of the Le Revenu readers' community.",
+    "loginTitle": "Sign in",
+    "registerTitle": "Sign up"
   },
   "Discussions": {
     "title": "Discussions",
@@ -61,15 +64,57 @@
     "oldest": "Oldest"
   },
   "Auth": {
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "loginTitle": "Sign in",
+    "loginIntro": "Back to the Le Revenu readers' community.",
+    "registerTitle": "Join the community",
+    "registerIntro": "Free. Ask your questions, share your experience, talk with the newsroom.",
+    "identifier": "Email or username",
+    "password": "Password",
+    "username": "Username",
+    "email": "Email",
+    "usernameHint": "3 to 30 characters: letters, digits, dot, dash, underscore. It is the name shown on your posts.",
+    "passwordHint": "At least 8 characters.",
+    "submitLogin": "Sign in",
+    "loggingIn": "Signing in…",
+    "submitRegister": "Create my account",
+    "registering": "Creating…",
+    "noAccount": "No account yet? <link>Create a free account</link>",
+    "haveAccount": "Already registered? <link>Sign in</link>",
+    "google": "Continue with Google",
+    "or": "or",
+    "legal": "By creating an account you accept the <link>community charter</link>.",
+    "invalidCredentials": "Wrong identifier or password.",
+    "rateLimited": "Too many attempts, try again in a minute.",
+    "blocked": "This account has been blocked.",
+    "genericError": "Something went wrong, try again in a moment.",
+    "welcome": "Welcome, {name}.",
+    "signedOut": "You are signed out.",
+    "signOut": "Sign out",
+    "account": "Account",
+    "googlePending": "Signing in with Google…",
+    "googleFailed": "Google sign-in failed.",
+    "googleTaken": "An account already exists with this email. Sign in with your password.",
+    "backToLogin": "Back to sign in",
+    "demoAccounts": "Demo accounts: {a} and {b}, password {password}."
   },
   "Errors": {
     "title": "Something went wrong",
     "description": "Try again in a moment. If the problem persists, contact us.",
-    "notFoundTitle": "Page not found",
-    "notFoundDescription": "This page does not exist or has moved.",
+    "notFoundTitle": "This page does not exist, or not anymore.",
+    "notFoundDescription": "The link may be wrong, or the discussion was removed. The community is still here.",
     "backHome": "Back to home",
-    "retry": "Retry"
+    "retry": "Retry",
+    "notFoundKicker": "Error 404",
+    "viewDiscussions": "See the discussions",
+    "searchTitle": "Search a discussion",
+    "searchPlaceholder": "Search a discussion, a topic…",
+    "exploreTitle": "Or explore a space",
+    "allSpaces": "All spaces",
+    "serverKicker": "Error 500",
+    "serverTitle": "Something went wrong on our side.",
+    "serverDescription": "Not your fault. Try again in a moment; if it keeps failing, tell us with the code below.",
+    "incident": "Incident code:"
   },
   "Space": {
     "label": "This space",
@@ -89,5 +134,16 @@
     "previous": "Previous",
     "next": "Next",
     "pageOf": "Page {page, number} of {count, number}"
+  },
+  "Form": {
+    "required": "This field is required.",
+    "tooLong": "Too long.",
+    "usernameLength": "3 to 30 characters.",
+    "usernamePattern": "Letters, digits, dot, dash and underscore only.",
+    "email": "Invalid email address.",
+    "passwordMin": "8 characters minimum.",
+    "alreadyTaken": "This email or username is already taken.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   }
 }

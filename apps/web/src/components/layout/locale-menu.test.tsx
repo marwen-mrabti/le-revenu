@@ -10,7 +10,7 @@ vi.mock('@/i18n/navigation', () => ({
   usePathname: () => '/discussions',
   useRouter: () => ({ replace }),
 }));
-vi.mock('next-themes', () => ({
+vi.mock('@/components/theme/theme-provider', () => ({
   useTheme: () => ({ theme: 'system', setTheme: vi.fn() }),
 }));
 

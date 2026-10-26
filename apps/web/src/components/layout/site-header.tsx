@@ -1,10 +1,12 @@
 import { getTranslations } from 'next-intl/server';
+import { Suspense } from 'react';
 
 import { LocaleMenu } from '@/components/layout/locale-menu';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
+import { HeaderAuth, HeaderAuthSkeleton } from '@/features/auth/components/header-auth';
 import { Link } from '@/i18n/navigation';
 
-/** Header shell. Search, publish and account controls arrive with their features. */
+/** Header: logo, theme, language, and the reader's menu or the sign-in buttons. */
 export async function SiteHeader() {
   const t = await getTranslations('Common');
   return (
@@ -25,6 +27,9 @@ export async function SiteHeader() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <LocaleMenu />
+          <Suspense fallback={<HeaderAuthSkeleton />}>
+            <HeaderAuth />
+          </Suspense>
         </div>
       </div>
     </header>
