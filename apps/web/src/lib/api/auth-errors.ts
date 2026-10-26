@@ -23,7 +23,7 @@ export function toAuthErrorResponse(error: unknown): Response {
     if (error.status === 400 && /already taken/i.test(error.message)) {
       return toErrorResponse(
         new BffError(409, 'ALREADY_TAKEN', "Cet e-mail ou ce nom d'utilisateur est déjà utilisé.", {
-          email: ['already-taken'],
+          email: ['alreadyTaken'],
         }),
       );
     }

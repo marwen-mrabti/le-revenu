@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
-/** What the login form sends. The identifier is an email or a username. */
+/** What the login form sends. The identifier is an email or a username. Messages are `Form.*` keys. */
 export const loginSchema = z.object({
-  identifier: z.string().trim().min(1).max(254),
-  password: z.string().min(1).max(200),
+  identifier: z.string().trim().min(1, 'required').max(254, 'tooLong'),
+  password: z.string().min(1, 'required').max(200, 'tooLong'),
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
@@ -12,12 +12,17 @@ export const PASSWORD_MIN = 8;
 
 /** What the sign-up form sends. Strapi re-checks uniqueness and hashes the password. */
 export const registerSchema = z.object({
-  username: z.string().trim().min(3).max(30).regex(USERNAME_PATTERN),
+  username: z
+    .string()
+    .trim()
+    .min(3, 'usernameLength')
+    .max(30, 'usernameLength')
+    .regex(USERNAME_PATTERN, 'usernamePattern'),
   email: z
-    .email()
-    .max(254)
+    .email('email')
+    .max(254, 'tooLong')
     .transform((value) => value.toLowerCase()),
-  password: z.string().min(PASSWORD_MIN).max(200),
+  password: z.string().min(PASSWORD_MIN, 'passwordMin').max(200, 'tooLong'),
 });
 export type RegisterInput = z.infer<typeof registerSchema>;
 

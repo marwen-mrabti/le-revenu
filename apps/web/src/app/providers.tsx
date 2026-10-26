@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import type { ReactNode } from 'react';
 
+import { Toaster } from '@/components/ui/sonner';
 import { getQueryClient } from '@/lib/query/get-query-client';
 
 /** Client-side context, mounted once inside <body>. Keep it thin: no data, no business logic. */
@@ -14,6 +15,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <QueryClientProvider client={queryClient}>
         <NuqsAdapter>{children}</NuqsAdapter>
+        <Toaster position="bottom-center" />
       </QueryClientProvider>
     </ThemeProvider>
   );

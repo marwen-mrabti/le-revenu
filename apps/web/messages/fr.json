@@ -14,7 +14,8 @@
     "signOut": "Se déconnecter",
     "search": "Rechercher une discussion, un sujet…",
     "language": "Langue",
-    "openMenu": "Ouvrir le menu"
+    "openMenu": "Ouvrir le menu",
+    "register": "S'inscrire"
   },
   "Locale": {
     "fr": "Français",
@@ -24,7 +25,9 @@
     "title": "Communauté Le Revenu",
     "description": "Posez vos questions d'argent, partagez vos expériences et échangez avec la rédaction du Revenu.",
     "discussionsTitle": "Discussions",
-    "discussionsDescription": "Toutes les discussions de la communauté des lecteurs du Revenu."
+    "discussionsDescription": "Toutes les discussions de la communauté des lecteurs du Revenu.",
+    "loginTitle": "Connexion",
+    "registerTitle": "Inscription"
   },
   "Discussions": {
     "title": "Discussions",
@@ -61,7 +64,39 @@
     "oldest": "Plus anciennes"
   },
   "Auth": {
-    "signIn": "Se connecter"
+    "signIn": "Se connecter",
+    "loginTitle": "Se connecter",
+    "loginIntro": "Retrouvez la communauté des lecteurs du Revenu.",
+    "registerTitle": "Rejoindre la communauté",
+    "registerIntro": "Gratuit. Posez vos questions, partagez votre expérience, échangez avec la rédaction.",
+    "identifier": "E-mail ou nom d'utilisateur",
+    "password": "Mot de passe",
+    "username": "Nom d'utilisateur",
+    "email": "E-mail",
+    "usernameHint": "3 à 30 caractères : lettres, chiffres, point, tiret, tiret bas. C'est le nom affiché sur vos messages.",
+    "passwordHint": "Au moins 8 caractères.",
+    "submitLogin": "Se connecter",
+    "loggingIn": "Connexion…",
+    "submitRegister": "Créer mon compte",
+    "registering": "Création…",
+    "noAccount": "Pas encore de compte ? <link>Créer un compte gratuit</link>",
+    "haveAccount": "Déjà inscrit ? <link>Se connecter</link>",
+    "google": "Continuer avec Google",
+    "or": "ou",
+    "legal": "En créant un compte vous acceptez la <link>charte de la communauté</link>.",
+    "invalidCredentials": "Identifiant ou mot de passe incorrect.",
+    "rateLimited": "Trop de tentatives, réessayez dans une minute.",
+    "blocked": "Ce compte a été bloqué.",
+    "genericError": "Une erreur est survenue, réessayez dans un instant.",
+    "welcome": "Bienvenue, {name}.",
+    "signedOut": "Vous êtes déconnecté.",
+    "signOut": "Se déconnecter",
+    "account": "Compte",
+    "googlePending": "Connexion avec Google en cours…",
+    "googleFailed": "La connexion avec Google a échoué.",
+    "googleTaken": "Un compte existe déjà avec cet e-mail. Connectez-vous avec votre mot de passe.",
+    "backToLogin": "Retour à la connexion",
+    "demoAccounts": "Comptes de démonstration : {a} et {b}, mot de passe {password}."
   },
   "Errors": {
     "title": "Une erreur est survenue",
@@ -89,5 +124,16 @@
     "previous": "Précédente",
     "next": "Suivante",
     "pageOf": "Page {page, number} sur {count, number}"
+  },
+  "Form": {
+    "required": "Ce champ est obligatoire.",
+    "tooLong": "Trop long.",
+    "usernameLength": "3 à 30 caractères.",
+    "usernamePattern": "Lettres, chiffres, point, tiret et tiret bas seulement.",
+    "email": "Adresse e-mail invalide.",
+    "passwordMin": "8 caractères minimum.",
+    "alreadyTaken": "Cet e-mail ou ce nom d'utilisateur est déjà utilisé.",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe"
   }
 }

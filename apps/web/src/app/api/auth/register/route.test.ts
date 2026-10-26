@@ -50,7 +50,7 @@ describe('POST /api/auth/register', () => {
     expect(response.status).toBe(409);
     const body = await response.json();
     expect(body.code).toBe('ALREADY_TAKEN');
-    expect(body.fieldErrors).toEqual({ email: ['already-taken'] });
+    expect(body.fieldErrors).toEqual({ email: ['alreadyTaken'] });
   });
 
   it('refuses a weak password before calling Strapi', async () => {
