@@ -113,7 +113,7 @@ A non-localised discussion points at a category document; the frontend asks Stra
 
 The controllers force the populate so every response has a stable, minimal shape:
 
-- List item: `id, documentId, title, slug, type, createdAt, author { username }, category { name, slug, color }, replies { count }`
-- Detail: the same plus `content` and `replies[] { id, documentId, content, createdAt, author { username } }`
+- List item: `documentId, title, slug, type, createdAt, author { documentId, username }, category { documentId, name, slug, color }, replies { count }`
+- Detail: the same plus `content` and `replies[] { documentId, content, createdAt, author { documentId, username } }`
 
-`email` is never populated. A test asserts it.
+`email` is never populated and numeric `id`s are stripped: only `documentId` (24 random characters) identifies anything outside the server. A test asserts both.

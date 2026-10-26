@@ -19,7 +19,7 @@ Numbered, testable statements. Each one maps to at least one test or a manual ch
 
 ### UI features
 
-One ASCII wireframe per screen and per state (default, loading, empty, error, mobile). Link to the visual mockup if one exists.
+One HTML mockup file per screen, covering every state (default, loading, empty, error, mobile), under `docs/mockups/NN-short-name/`. Opened in the browser during review and linked here. A one-line ASCII sketch may summarise it.
 
 ```
 ┌──────────────────────────────────────────┐

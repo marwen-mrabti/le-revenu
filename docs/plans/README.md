@@ -4,10 +4,11 @@ Every work branch starts with a plan in this folder, reviewed before any code is
 
 - One file per feature: `NN-short-name.md` (same short name as the branch).
 - Use `TEMPLATE.md`. Every section is required; write "none" rather than deleting a section.
-- UI features carry mockups: an ASCII wireframe per screen state in the plan, plus a visual mockup linked from the plan when the layout is not obvious.
+- UI features carry HTML mockups in `docs/mockups/NN-short-name/` (one file per screen, all states), linked from the plan and reviewed in the browser before code.
 - Backend features carry the data model (entity table), the API contract (request and response examples with status codes) and a sequence diagram for any multi-step flow.
 - Steps are small enough to map to commits. Each phase ends with a checkable exit criterion.
 
-| #   | Plan                                     | Branch                    | Status      |
-| --- | ---------------------------------------- | ------------------------- | ----------- |
-| 01  | [i18n foundation](01-i18n-foundation.md) | `feature/i18n-foundation` | done, in PR |
+| #   | Plan                                                                      | Branch                      | Status      |
+| --- | ------------------------------------------------------------------------- | --------------------------- | ----------- |
+| 01  | [i18n foundation](01-i18n-foundation.md)                                  | `feature/i18n-foundation`   | done, in PR |
+| 02  | [Strapi content types, permissions, seed, tests](02-cms-content-types.md) | `feature/cms-content-types` | done, in PR |

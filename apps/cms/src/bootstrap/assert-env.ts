@@ -10,12 +10,16 @@ const REQUIRED = [
   'JWT_SECRET',
   'ENCRYPTION_KEY',
   'DATABASE_CLIENT',
+  'WEB_URL',
+  'REVALIDATE_SECRET',
+] as const;
+
+/** Only a network database needs credentials; SQLite needs a file path. */
+const REQUIRED_POSTGRES = [
   'DATABASE_HOST',
   'DATABASE_NAME',
   'DATABASE_USERNAME',
   'DATABASE_PASSWORD',
-  'WEB_URL',
-  'REVALIDATE_SECRET',
 ] as const;
 
 const PLACEHOLDERS = /change-?me|tobemodified|replace-?me/i;
@@ -24,7 +28,10 @@ export function assertEnv(env: NodeJS.ProcessEnv = process.env): void {
   const missing: string[] = [];
   const placeholder: string[] = [];
 
-  for (const key of REQUIRED) {
+  const keys: readonly string[] =
+    env.DATABASE_CLIENT === 'sqlite' ? REQUIRED : [...REQUIRED, ...REQUIRED_POSTGRES];
+
+  for (const key of keys) {
     const value = env[key];
     if (!value || value.trim() === '') missing.push(key);
     else if (PLACEHOLDERS.test(value)) placeholder.push(key);

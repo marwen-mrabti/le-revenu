@@ -36,8 +36,9 @@
 
     // Do not include admin files in the server compilation
     "src/admin/",
-    // Do not include test files
+    // Do not include test files (they have their own tsconfig)
     "**/*.test.*",
+    "tests/",
     // Do not include plugins in the server compilation
     "src/plugins/**"
   ]

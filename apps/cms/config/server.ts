@@ -6,8 +6,9 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Server =>
   app: {
     keys: env.array('APP_KEYS')!,
   },
+  // No scheduled tasks in this project. Strapi's source default is `true`.
+  cron: { enabled: false },
   webhooks: {
-    populateRelations: env.bool('WEBHOOKS_POPULATE_RELATIONS', false),
     // Sent with every webhook; the Next.js /api/revalidate handler checks it.
     defaultHeaders: {
       'x-revalidate-secret': env('REVALIDATE_SECRET', ''),
