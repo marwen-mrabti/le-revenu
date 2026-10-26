@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 
+import { Providers } from '@/app/providers';
 import { SiteHeader } from '@/components/layout/site-header';
 import { getPathname } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
@@ -56,12 +57,18 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   if (!hasLocale(routing.locales, locale)) notFound();
 
   return (
-    <html lang={locale} className={`${inter.variable} ${playfair.variable} h-full antialiased`}>
+    <html
+      lang={locale}
+      className={`${inter.variable} ${playfair.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <body className="flex min-h-full flex-col">
-        <NextIntlClientProvider>
-          <SiteHeader />
-          {children}
-        </NextIntlClientProvider>
+        <Providers>
+          <NextIntlClientProvider>
+            <SiteHeader />
+            {children}
+          </NextIntlClientProvider>
+        </Providers>
       </body>
     </html>
   );
