@@ -1,6 +1,6 @@
 # 03 — Discussion list
 
-Branch: `feature/discussion-list` · Target: `development` · Estimate: 11.5 h · Status: draft
+Branch: `feature/discussion-list` · Target: `development` · Estimate: 11.5 h · Status: approved
 
 ## 1. Goal
 
