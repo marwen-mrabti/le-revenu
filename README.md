@@ -1,160 +1,161 @@
-# Communauté Le Revenu
+# Le Revenu Community
 
-Espace communautaire pour les lecteurs du Revenu : poser une question d'argent, partager une expérience, répondre aux autres membres.
+🇫🇷 [Version française](README.fr.md)
 
-Test technique Développeur Full Stack · Next.js 16 · Strapi 5 · PostgreSQL (ou SQLite sans installation).
+Community space for Le Revenu readers: ask a money question, share an experience, answer other members.
+
+Full-stack developer technical test · Next.js 16 · Strapi 5 · PostgreSQL (or SQLite with nothing to install).
 
 ---
 
-## Sommaire
+## Contents
 
-1. [Démarrage en 2 minutes (SQLite, sans Docker)](#1-démarrage-en-2-minutes-sqlite-sans-docker)
-2. [Démarrage complet (Docker + PostgreSQL)](#2-démarrage-complet-docker--postgresql)
-3. [Comptes de démonstration](#3-comptes-de-démonstration)
-4. [Ce que fait l'application](#4-ce-que-fait-lapplication)
+1. [Two-minute start (SQLite, no Docker)](#1-two-minute-start-sqlite-no-docker)
+2. [Full start (Docker + PostgreSQL)](#2-full-start-docker--postgresql)
+3. [Demo accounts](#3-demo-accounts)
+4. [What the application does](#4-what-the-application-does)
 5. [Architecture](#5-architecture)
-6. [Modèle de sécurité](#6-modèle-de-sécurité)
+6. [Security model](#6-security-model)
 7. [API](#7-api)
 8. [Tests](#8-tests)
-9. [Qualité et CI/CD](#9-qualité-et-cicd)
-10. [Structure du dépôt](#10-structure-du-dépôt)
-11. [Choix d'architecture](#11-choix-darchitecture)
-12. [Problèmes fréquents](#12-problèmes-fréquents)
-13. [Évolutions](#13-évolutions)
+9. [Quality and CI/CD](#9-quality-and-cicd)
+10. [Repository layout](#10-repository-layout)
+11. [Architecture decisions](#11-architecture-decisions)
+12. [Troubleshooting](#12-troubleshooting)
+13. [Evolutions](#13-evolutions)
 
 ---
 
-## 1. Démarrage en 2 minutes (SQLite, sans Docker)
+## 1. Two-minute start (SQLite, no Docker)
 
-Prérequis : Node 24 (fichier `.nvmrc`) et pnpm 10 (`corepack enable` suffit, la version est fixée dans `package.json`). Aucun fichier `.env` à créer dans ce mode.
+Prerequisites: Node 24 (`.nvmrc`) and pnpm 10 (`corepack enable` is enough, the version is pinned in `package.json`). No `.env` file to create in this mode.
 
-1. Cloner et installer.
+1. Clone and install.
 
    ```bash
    git clone git@github.com:marwen-mrabti/le-revenu.git && cd le-revenu
    pnpm install
    ```
 
-2. Lancer Strapi sur la base SQLite livrée (terminal 1). Attendu après quelques secondes : `Strapi started successfully` et http://localhost:1337/api/categories qui répond du JSON.
+2. Start Strapi on the shipped SQLite database (terminal 1). Expected after a few seconds: `Strapi started successfully`, and http://localhost:1337/api/categories answers JSON.
 
    ```bash
    pnpm --filter cms dev:sqlite
    ```
 
-3. Lancer Next.js (terminal 2). Attendu : `Ready` puis http://localhost:3000/discussions affiche la liste des discussions.
+3. Start Next.js (terminal 2). Expected: `Ready`, then http://localhost:3000/discussions shows the discussion list.
 
    ```bash
    pnpm --filter web dev
    ```
 
-4. Se connecter avec `alice` / `Password123!` (section 3), ou créer un compte sur `/register`.
+4. Log in with `alice` / `Password123!` (section 3), or create an account on `/register`.
 
-Ce qui se passe : Strapi lit `apps/cms/.env.sqlite` (clés de démonstration, jamais pour la production) et copie `apps/cms/database/demo.sqlite` dans `.tmp/` à chaque lancement, le fichier versionné n'est jamais modifié. Next.js a des valeurs par défaut de développement (`apps/web/src/config/env.ts`) accordées avec ce fichier. Le panneau d'administration http://localhost:1337/admin demande de créer un compte administrateur à la première visite.
+What happens: Strapi reads `apps/cms/.env.sqlite` (demo keys, never for production) and copies `apps/cms/database/demo.sqlite` into `.tmp/` on every start, so the committed file is never modified. Next.js has development defaults (`apps/web/src/config/env.ts`) matching that file. The admin panel at http://localhost:1337/admin asks you to create an administrator account on first visit.
 
-## 2. Démarrage complet (Docker + PostgreSQL)
+## 2. Full start (Docker + PostgreSQL)
 
-Prérequis : Node 24, pnpm 10, Docker avec Compose v2.
+Prerequisites: Node 24, pnpm 10, Docker with Compose v2.
 
-1. Les fichiers d'environnement. Strapi refuse de démarrer si une variable obligatoire manque ou vaut encore `change-me`.
+1. Environment files. Strapi refuses to start when a required variable is missing or still reads `change-me`.
 
    ```bash
-   cp .env.example .env                       # PostgreSQL pour docker-compose
-   cp apps/cms/.env.example apps/cms/.env     # puis remplacer chaque "change-me" : openssl rand -base64 32
-   cp apps/web/.env.example apps/web/.env     # facultatif ; REVALIDATE_SECRET doit être le même que côté cms
+   cp .env.example .env                       # PostgreSQL for docker-compose
+   cp apps/cms/.env.example apps/cms/.env     # then replace every "change-me": openssl rand -base64 32
+   cp apps/web/.env.example apps/web/.env     # optional; REVALIDATE_SECRET must match the cms side
    ```
 
-2. Installer et démarrer la base. Attendu : `docker compose ps` montre `lerevenu-db` en `healthy`.
+2. Install and start the database. Expected: `docker compose ps` shows `lerevenu-db` as `healthy`.
 
    ```bash
    pnpm install
-   docker compose up -d db                    # PostgreSQL 16, bases lerevenu et lerevenu_test
+   docker compose up -d db                    # PostgreSQL 16, databases lerevenu and lerevenu_test
    ```
 
-3. Démarrer les deux applications. Attendu : Strapi sur http://localhost:1337, Next.js sur http://localhost:3000.
+3. Start both applications. Expected: Strapi on http://localhost:1337, Next.js on http://localhost:3000.
 
    ```bash
-   pnpm dev                                   # Turborepo lance cms et web
+   pnpm dev                                   # Turborepo starts cms and web
    ```
 
-Au premier démarrage, Strapi crée les tables, les deux locales (fr par défaut, en), les permissions des rôles, puis les données de démonstration si `SEED_DEMO_DATA=true`. Un second démarrage ne duplique rien.
+On first boot Strapi creates the tables, the two locales (fr by default, en), the role permissions, then the demo data when `SEED_DEMO_DATA=true`. A second boot duplicates nothing.
 
-Connexion Google, facultative : créer un client OAuth « Web » dans Google Cloud avec l'URI de redirection `http://localhost:1337/api/connect/google/callback`, mettre `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` dans `apps/cms/.env` et `NEXT_PUBLIC_GOOGLE_LOGIN=true` dans `apps/web/.env`, redémarrer. Sans ces valeurs, le bouton Google n'apparaît pas.
+Google login, optional: create a "Web" OAuth client in Google Cloud with the redirect URI `http://localhost:1337/api/connect/google/callback`, put `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `apps/cms/.env` and `NEXT_PUBLIC_GOOGLE_LOGIN=true` in `apps/web/.env`, restart. Without these values the Google button is not shown.
 
-## 3. Comptes de démonstration
+## 3. Demo accounts
 
-Tous les lecteurs de démonstration partagent le mot de passe **`Password123!`**.
+Every demo reader shares the password **`Password123!`**.
 
-| Identifiant                                             | Rôle                                   |
-| ------------------------------------------------------- | -------------------------------------- |
-| `alice`, `bob`                                          | lecteurs, utilisés par les tests       |
-| `LaRedaction`, `Vincent_ETF`, `PapyBoursier`, 15 autres | auteurs des discussions de la maquette |
+| Identifier                                            | Role                                |
+| ----------------------------------------------------- | ----------------------------------- |
+| `alice`, `bob`                                        | readers, used by the tests          |
+| `LaRedaction`, `Vincent_ETF`, `PapyBoursier`, 15 more | authors of the mockup's discussions |
 
-Adresse e-mail de chaque compte : `<identifiant en minuscules>@demo.lerevenu.test`.
+Email of each account: `<lowercase identifier>@demo.lerevenu.test`.
 
-Vous pouvez aussi créer votre propre compte sur `/register` (nom d'utilisateur, e-mail, mot de passe de 8 caractères minimum), ou passer par Google si les identifiants Google sont renseignés (voir § 2).
+You can also create your own account on `/register` (username, email, password of at least 8 characters), or use Google when the Google credentials are set (see section 2).
 
-## 4. Ce que fait l'application
+## 4. What the application does
 
-| Fonction                                                                                | État                       |
-| --------------------------------------------------------------------------------------- | -------------------------- |
-| Liste des discussions : filtre par espace, tri par date, recherche, pagination          | ✔ `/discussions`           |
-| Détail d'une discussion et ses réponses, URL propre par slug                            | backend prêt, page à venir |
-| Connexion, inscription, Google, déconnexion, menu du compte                             | ✔ `/login`, `/register`    |
-| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)                | backend prêt, page à venir |
-| Réponse à une discussion                                                                | backend prêt, page à venir |
-| Interface en français et en anglais, menu de langue, thème clair / sombre               | ✔                          |
-| Pages 404 et 500 personnalisées (en-tête conservé, recherche, espaces, code d'incident) | ✔                          |
+| Feature                                                               | Status                      |
+| --------------------------------------------------------------------- | --------------------------- |
+| Discussion list: filter by space, sort by date, search, pagination    | ✔ `/discussions`            |
+| Discussion detail with its replies, clean URL by slug                 | backend ready, page to come |
+| Login, sign-up, Google, logout, account menu                          | ✔ `/login`, `/register`     |
+| Create a discussion (title ≥ 10 characters, content, space, type)     | backend ready, page to come |
+| Reply to a discussion                                                 | backend ready, page to come |
+| French and English interface, language menu, light / dark theme       | ✔                           |
+| Custom 404 and 500 pages (header kept, search, spaces, incident code) | ✔                           |
 
-L'avancement détaillé est dans [`docs/plans/`](docs/plans/README.md).
+Detailed progress lives in [`docs/plans/`](docs/plans/README.md).
 
 ## 5. Architecture
 
 ```
-Navigateur ──(JSON + cookie httpOnly)──► Route Handlers Next.js ──(JWT Bearer)──► Strapi ──► PostgreSQL / SQLite
-    ▲                                        (BFF, validation zod)                   ▲
-    └──────── HTML (Server Components) ◄──── couche d'accès aux données ─────────────┘
+Browser ──(JSON + httpOnly cookie)──► Next.js Route Handlers ──(Bearer JWT)──► Strapi ──► PostgreSQL / SQLite
+   ▲                                     (BFF, zod validation)                    ▲
+   └──────── HTML (Server Components) ◄──── data access layer ────────────────────┘
 ```
 
-- **Strapi** est la seule source de vérité : schémas, validation, permissions, règles métier.
-- **Next.js** ne parle jamais à la base de données. Les composants serveur lisent Strapi via une couche d'accès typée ; les composants client passent par des Route Handlers (`/api/*`). Aucune Server Action.
-- Le JWT Strapi vit dans un cookie `httpOnly` posé par Next.js ; il n'atteint jamais le JavaScript du navigateur et l'URL de Strapi n'est pas exposée.
-- Diagrammes et flux : [`docs/architecture.md`](docs/architecture.md). Modèle de données : [`docs/data-model.md`](docs/data-model.md).
+- **Strapi** is the single source of truth: schemas, validation, permissions, business rules.
+- **Next.js** never talks to the database. Server Components read Strapi through a typed data access layer; Client Components go through Route Handlers (`/api/*`). No Server Actions.
+- The Strapi JWT lives in an `httpOnly` cookie set by Next.js; it never reaches browser JavaScript and the Strapi URL is not exposed (one documented exception for the Google flow, ADR-0009).
+- Diagrams and flows: [`docs/architecture.md`](docs/architecture.md). Data model: [`docs/data-model.md`](docs/data-model.md).
 
-## 6. Modèle de sécurité
+## 6. Security model
 
-| Règle du cahier des charges                 | Où elle est appliquée                                                               |
-| ------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Publication interdite sans authentification | Rôle Public sans permission `create` → **403**                                      |
-| Impossible de publier au nom d'un autre     | Le contrôleur ignore tout `author` envoyé et impose l'utilisateur de la session     |
-| Titre ≥ 10 caractères, contenu obligatoire  | `schema.json` Strapi, appliqué même en appelant l'API directement → **400**         |
-| Modification réservée à l'auteur            | Politique `is-owner` sur `update` et `delete` → **403**                             |
-| Adresse e-mail jamais exposée               | Population limitée à `username` ; aucun rôle n'a `user.find`                        |
-| Draft & Publish désactivé                   | Sinon Strapi masque les nouvelles entrées et saute la validation sur les brouillons |
+| Rule                                    | Where it is enforced                                                                                                                      |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| No posting without authentication       | Public role has no `create` permission → **403**                                                                                          |
+| No posting as someone else              | The controller drops any `author` sent and forces the session user                                                                        |
+| Title ≥ 10 characters, content required | Strapi `schema.json`, enforced even when calling the API directly → **400**                                                               |
+| Edit and delete reserved to the author  | `is-owner` policy on `update` and `delete` → **403**                                                                                      |
+| Email never exposed                     | Population limited to `username`; no role has `user.find`                                                                                 |
+| Draft & Publish off                     | Otherwise Strapi hides new entries and skips validation on drafts                                                                         |
+| Session                                 | `lr_session` cookie, httpOnly, SameSite=Lax, 7 days, written by Next.js; the Strapi JWT appears in no response                            |
+| BFF writes                              | JSON only (**415**) and same origin (`Sec-Fetch-Site` / `Origin`, **403**)                                                                |
+| Google login                            | Strapi provider, enabled only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set; final exchange verified against `/api/users/me` |
 
-| Session | Cookie `lr_session` httpOnly, SameSite=Lax, 7 jours, écrit par Next.js ; le JWT Strapi n'apparaît dans aucune réponse |
-| Écritures du BFF | JSON uniquement (**415**) et même origine (`Sec-Fetch-Site` / `Origin`, **403**) |
-| Connexion Google | Fournisseur Strapi, activé seulement si `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` sont définis ; échange final vérifié contre `/api/users/me` |
-
-Les permissions sont créées par le code au démarrage (`apps/cms/src/bootstrap/ensure-permissions.ts`), pas à la main dans l'admin : un clone du dépôt donne le même état. Détails de la session et du flux Google : [ADR-0009](docs/adr/0009-session-cookie-and-google-login.md).
+Permissions are created by code at boot (`apps/cms/src/bootstrap/ensure-permissions.ts`), not by hand in the admin: a clone of the repository gives the same state. Session and Google flow details: [ADR-0009](docs/adr/0009-session-cookie-and-google-login.md).
 
 ## 7. API
 
-Base : `http://localhost:1337/api`. Format Strapi : `{ data, meta }`, erreurs `{ data: null, error: { status, name, message, details } }`.
+Base: `http://localhost:1337/api`. Strapi format: `{ data, meta }`, errors `{ data: null, error: { status, name, message, details } }`.
 
-| Méthode et chemin                             | Auth            | Rôle                                                   |
-| --------------------------------------------- | --------------- | ------------------------------------------------------ |
-| `GET /categories?locale=fr\|en`               | public          | espaces, dans la langue demandée                       |
-| `GET /discussions?filters…&sort…&pagination…` | public          | liste paginée (10 par défaut, 50 max), tri `createdAt` |
-| `GET /discussions/slug/:slug`                 | public          | détail avec réponses                                   |
-| `POST /discussions`                           | Bearer          | création, auteur imposé par la session                 |
-| `PUT` / `DELETE /discussions/:documentId`     | Bearer + auteur | modification, suppression (avec ses réponses)          |
-| `POST /replies`                               | Bearer          | réponse, auteur imposé                                 |
-| `PUT` / `DELETE /replies/:documentId`         | Bearer + auteur |                                                        |
-| `POST /auth/local`                            | —               | connexion → `{ jwt, user }`                            |
-| `POST /auth/local/register`                   | —               | inscription                                            |
-| `GET /users/me`                               | Bearer          | profil courant                                         |
+| Method and path                               | Auth            | Role                                                     |
+| --------------------------------------------- | --------------- | -------------------------------------------------------- |
+| `GET /categories?locale=fr\|en`               | public          | spaces, in the requested language                        |
+| `GET /discussions?filters…&sort…&pagination…` | public          | paginated list (10 by default, 50 max), `createdAt` sort |
+| `GET /discussions/slug/:slug`                 | public          | detail with replies                                      |
+| `POST /discussions`                           | Bearer          | create, author forced from the session                   |
+| `PUT` / `DELETE /discussions/:documentId`     | Bearer + author | edit, delete (with its replies)                          |
+| `POST /replies`                               | Bearer          | reply, author forced                                     |
+| `PUT` / `DELETE /replies/:documentId`         | Bearer + author |                                                          |
+| `POST /auth/local`                            | —               | login → `{ jwt, user }`                                  |
+| `POST /auth/local/register`                   | —               | sign-up                                                  |
+| `GET /users/me`                               | Bearer          | current profile                                          |
 
-Exemple :
+Example:
 
 ```bash
 curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&sort=createdAt:desc&pagination[pageSize]=5'
@@ -162,102 +163,102 @@ curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&
 
 ## 8. Tests
 
-| Niveau               | Outil                                                     | Commande                             |
-| -------------------- | --------------------------------------------------------- | ------------------------------------ |
-| Backend, intégration | Vitest + supertest, Strapi sur PostgreSQL `lerevenu_test` | `pnpm --filter cms test:integration` |
-| Frontend, unitaire   | Vitest + Testing Library                                  | `pnpm --filter web test`             |
-| Bout en bout         | Playwright, projets `fr` et `en`                          | `pnpm --filter web test:e2e`         |
+| Level                | Tool                                                     | Command                              |
+| -------------------- | -------------------------------------------------------- | ------------------------------------ |
+| Backend, integration | Vitest + supertest, Strapi on PostgreSQL `lerevenu_test` | `pnpm --filter cms test:integration` |
+| Frontend, unit       | Vitest + Testing Library                                 | `pnpm --filter web test`             |
+| End to end           | Playwright, `fr` and `en` projects                       | `pnpm --filter web test:e2e`         |
 
-Playwright a besoin d'un navigateur : `pnpm --filter web exec playwright install chromium` une fois. Par défaut il construit puis démarre l'application ; avec `E2E_BASE_URL=http://localhost:3000` il utilise le serveur de développement déjà lancé. Strapi limite les connexions à 10 par minute et par IP : ne lancez pas de connexions à la main pendant une exécution.
+Playwright needs a browser: `pnpm --filter web exec playwright install chromium`, once. By default it builds then starts the application; with `E2E_BASE_URL=http://localhost:3000` it uses the development server already running. Strapi limits logins to 10 per minute per IP: do not log in by hand during a run.
 
-Les quatre tests demandés par le cahier des charges (validation d'une discussion, refus d'une publication non authentifiée, protection contre l'usurpation d'auteur, affichage des discussions) sont dans `apps/cms/tests/`, avec les droits d'auteur, les réponses, la connexion et les catégories bilingues : 8 fichiers, 41 tests, environ 15 s.
+The four tests required by the brief (discussion validation, unauthenticated post refused, author spoofing blocked, discussion listing) live in `apps/cms/tests/`, together with ownership, replies, login and bilingual categories: 8 files, 41 tests, about 15 s.
 
-Comment tournent les tests backend :
+How the backend tests run:
 
-1. `tsc` compile l'application dans `.tmp/test-dist` (jamais dans `dist/`, donc sans conflit avec un `strapi develop` en cours).
-2. Le `globalSetup` de Vitest vide le schéma de `lerevenu_test` (refus si le nom ne finit pas par `_test`), démarre **un seul Strapi** sur le port 1338 avec `NODE_ENV=test`, laisse le seed charger les données de démonstration, connecte `alice` et `bob`.
-3. Les fichiers s'exécutent l'un après l'autre et parlent à cette instance en HTTP (supertest) : mêmes réponses que celles reçues par le front.
+1. `tsc` compiles the application into `.tmp/test-dist` (never into `dist/`, so no conflict with a running `strapi develop`).
+2. Vitest's `globalSetup` empties the `lerevenu_test` schema (refused unless the name ends with `_test`), starts **one Strapi** on port 1338 with `NODE_ENV=test`, lets the seed load the demo data, logs `alice` and `bob` in.
+3. The files run one after the other and talk to that instance over HTTP (supertest): the same answers the frontend receives.
 
-Prérequis : PostgreSQL démarré (`docker compose up -d db` crée `lerevenu_test`), `apps/cms/.env` renseigné. Variable `DATABASE_TEST_NAME` pour changer le nom de la base de test.
+Prerequisites: PostgreSQL running (`docker compose up -d db` creates `lerevenu_test`), `apps/cms/.env` filled. `DATABASE_TEST_NAME` changes the test database name.
 
-Tests frontend (`apps/web`, Vitest + Testing Library, colocalisés `*.test.ts(x)`, 32 tests) : le client Strapi (chaîne de requête, enveloppe d'erreur, réponse inattendue, serveur injoignable), le schéma des filtres et la correspondance URL ↔ état (valeurs par défaut, page invalide, `clearOnDefault`), la carte de discussion (cinq champs du cahier des charges, lien vers le détail, ni e-mail ni id numérique), la pagination (page courante, filtres conservés, bornes), le handler `GET /api/discussions` (422 sur un tri inconnu, locale transmise, 503 sans fuite du message Strapi), le menu de langue et le bouton de thème, la parité des clés fr / en.
+Frontend tests (`apps/web`, Vitest + Testing Library, colocated `*.test.ts(x)`, 65 tests): the Strapi client (query string, error envelope, unexpected answer, unreachable server), the filters schema and the URL ↔ state mapping (defaults, invalid page, `clearOnDefault`), the discussion card (the brief's five fields, link to the detail, no email or numeric id), pagination (current page, filters kept, bounds), the `GET /api/discussions` handler (422 on an unknown sort, locale passed, 503 without leaking Strapi's message), the session cookie and request guards, the five auth handlers, the login and sign-up forms, the user menu, the 500 page, the language menu and theme toggle, fr / en key parity.
 
-## 9. Qualité et CI/CD
+## 9. Quality and CI/CD
 
-- **Branches** : `main` (production, protégée), `development` (intégration, protégée), `feature/<nom-court>`. Chaque fonctionnalité commence par un plan revu dans `docs/plans/`.
-- **Hooks Git** (husky) : Node 24 obligatoire, commits interdits sur les branches protégées, lint-staged, commitlint (Conventional Commits), vérifications avant push.
-- **`pnpm verify`** : clone propre, installation gelée, lint, format, commitlint, type-check, build, tests. Rien n'est poussé en rouge.
-- **GitHub Actions** : lint et format, type-check, tests unitaires, tests d'intégration Strapi sur un service PostgreSQL (`apps/cms/.env.ci`), build, sur chaque PR vers `development` et `main`.
-- Détails : [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- **Branches**: `main` (production, protected), `development` (integration, protected), `feature/<short-name>`. Every feature starts with a reviewed plan in `docs/plans/`.
+- **Git hooks** (husky): Node 24 required, no commits on protected branches, lint-staged, commitlint (Conventional Commits), checks before push.
+- **`pnpm verify`**: clean clone, frozen install, lint, format, commitlint, type-check, build, tests. Nothing red gets pushed.
+- **GitHub Actions**: lint and format, type-check, unit tests, Strapi integration tests on a PostgreSQL service (`apps/cms/.env.ci`), build, on every PR to `development` and `main`.
+- Details: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-## 10. Structure du dépôt
+## 10. Repository layout
 
 ```
 apps/cms/                       Strapi 5 (TypeScript)
-  config/                       serveur, base (postgres | sqlite), plugins, middlewares ; env/test/ pour les tests
-  src/api/<type>/               category, discussion, reply : schema.json, controller, service, routes, constants
-  src/api/discussion/utils/     slug.ts (slug côté serveur), presenter.ts (auteur réduit, aucun id numérique)
-  src/policies/is-owner.ts      404 / 403 sur update et delete si l'appelant n'est pas l'auteur
-  src/bootstrap/                vérification de l'env, index, locales, permissions, fournisseurs de connexion
-  src/seed/                     données de démonstration, chargées une fois sur base vide
-  tests/                        tests d'intégration (un Strapi sur :1338, base lerevenu_test)
-  database/demo.sqlite          base pré-remplie du mode zéro-configuration
+  config/                       server, database (postgres | sqlite), plugins, middlewares; env/test/ for tests
+  src/api/<type>/               category, discussion, reply: schema.json, controller, service, routes, constants
+  src/api/discussion/utils/     slug.ts (server-made slug), presenter.ts (reduced author, no numeric id)
+  src/policies/is-owner.ts      404 / 403 on update and delete when the caller is not the author
+  src/bootstrap/                env check, indexes, locales, permissions, login providers
+  src/seed/                     demo data, loaded once on an empty database
+  tests/                        integration tests (one Strapi on :1338, lerevenu_test database)
+  database/demo.sqlite          pre-filled database of the zero-setup mode
 
 apps/web/                       Next.js 16 (App Router, Cache Components)
-  src/app/[locale]/             pages : (forum)/discussions, (auth)/login et register, auth/google/callback,
-                                not-found.tsx, error.tsx ; loading.tsx par page
-  src/app/api/                  Route Handlers (BFF) : auth/*, discussions, categories
-  src/features/<domaine>/       discussions, categories, auth : schemas (zod), data (accès serveur),
-                                api (queries et mutations TanStack), components, hooks
-  src/components/               ui/ (shadcn), form/ (champs liés au hook de formulaire), layout/, theme/
-  src/lib/                      strapi/ (client typé, seul lecteur de STRAPI_URL), api/ (client BFF, erreurs,
-                                gardes), auth/ (cookie de session), query/ (TanStack)
-  src/i18n/                     routing, navigation, métadonnées des langues
-  messages/                     fr.json, en.json (clés identiques, vérifiées par un test)
+  src/app/[locale]/             pages: (forum)/discussions, (auth)/login and register, auth/google/callback,
+                                not-found.tsx, error.tsx; loading.tsx per page
+  src/app/api/                  Route Handlers (BFF): auth/*, discussions, categories
+  src/features/<domain>/        discussions, categories, auth: schemas (zod), data (server access),
+                                api (TanStack queries and mutations), components, hooks
+  src/components/               ui/ (shadcn), form/ (fields bound to the form hook), layout/, theme/
+  src/lib/                      strapi/ (typed client, only reader of STRAPI_URL), api/ (BFF client, errors,
+                                guards), auth/ (session cookie), query/ (TanStack)
+  src/i18n/                     routing, navigation, locale metadata
+  messages/                     fr.json, en.json (same keys, checked by a test)
   e2e/                          Playwright
 
-packages/eslint-config/         règles ESLint partagées (base, next, strapi)
-packages/typescript-config/     tsconfig partagés
-docs/                           architecture.md, data-model.md, adr/ (décisions), plans/ (un plan par branche),
-                                mockups/ (maquettes HTML revues avant le code)
-.github/workflows/ci.yml        lint, format, type-check, tests unitaires, tests Strapi sur PostgreSQL, build
+packages/eslint-config/         shared ESLint rules (base, next, strapi)
+packages/typescript-config/     shared tsconfig
+docs/                           architecture.md, data-model.md, adr/ (decisions), plans/ (one plan per branch),
+                                mockups/ (HTML mockups reviewed before code)
+.github/workflows/ci.yml        lint, format, type-check, unit tests, Strapi tests on PostgreSQL, build
 docker-compose.yml · turbo.json · pnpm-workspace.yaml
 ```
 
-## 11. Choix d'architecture
+## 11. Architecture decisions
 
-Chaque décision structurante est consignée dans un ADR (Architecture Decision Record) : [`docs/adr/`](docs/adr/README.md).
+Every structural decision is recorded as an ADR (Architecture Decision Record): [`docs/adr/`](docs/adr/README.md).
 
-| ADR  | Décision                                                                                                     |
-| ---- | ------------------------------------------------------------------------------------------------------------ |
-| 0001 | Strapi Users & Permissions comme unique fournisseur d'identité ; better-auth et Drizzle évalués puis écartés |
-| 0002 | Route Handlers (BFF) plutôt que Server Actions                                                               |
-| 0003 | Cache Components, couche d'accès aux données, TanStack Query                                                 |
-| 0004 | Monorepo pnpm + Turborepo                                                                                    |
-| 0005 | DTO zod comme source de types du frontend                                                                    |
-| 0006 | Invalidation du cache par tags et webhook Strapi                                                             |
-| 0007 | Français et anglais dès le départ avec next-intl                                                             |
-| 0008 | Règles du forum appliquées dans Strapi, identifiants documentId uniquement, tests d'intégration en HTTP      |
-| 0009 | Cookie de session posé par Next.js, connexion Google via le fournisseur Strapi                               |
+| ADR  | Decision                                                                                             |
+| ---- | ---------------------------------------------------------------------------------------------------- |
+| 0001 | Strapi Users & Permissions as the only identity provider; better-auth and Drizzle evaluated, dropped |
+| 0002 | Route Handlers (BFF) rather than Server Actions                                                      |
+| 0003 | Cache Components, data access layer, TanStack Query                                                  |
+| 0004 | pnpm + Turborepo monorepo                                                                            |
+| 0005 | zod DTOs as the frontend's type source                                                               |
+| 0006 | Tag-based cache invalidation driven by a Strapi webhook                                              |
+| 0007 | French and English from day one with next-intl                                                       |
+| 0008 | Forum rules enforced in Strapi, documentId identifiers only, integration tests over HTTP             |
+| 0009 | Session cookie set by Next.js, Google login through Strapi's provider                                |
 
-## 12. Problèmes fréquents
+## 12. Troubleshooting
 
-| Symptôme                                            | Cause et remède                                                                                           |
-| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `pnpm install` refuse la version de Node            | Node 24 requis : `nvm use` (lit `.nvmrc`) ou `mise use`                                                   |
-| `pnpm: command not found`                           | `corepack enable`, puis relancer                                                                          |
-| `EADDRINUSE 1337` ou `3000`                         | Un autre Strapi ou Next tourne déjà ; ne jamais lancer deux `strapi develop` dans le même dossier         |
-| Strapi : `Environment check failed`                 | Une variable manque ou vaut `change-me` dans `apps/cms/.env` ; la liste est dans le message               |
-| Next : `Invalid environment variables` (production) | `STRAPI_URL` et `REVALIDATE_SECRET` sont obligatoires en production                                       |
-| `connect ECONNREFUSED 5432`                         | Docker non démarré : `docker compose up -d db`, puis `docker compose ps`                                  |
-| Connexion : « Trop de tentatives »                  | Strapi limite à 10 connexions par minute et par IP ; attendre une minute                                  |
-| Google : « access blocked »                         | Application Google en mode test : ajouter votre adresse dans Google Auth Platform → Audience → Test users |
-| Tests d'intégration : `Refusing to reset`           | La base visée ne finit pas par `_test` ; vérifier `DATABASE_TEST_NAME`                                    |
+| Symptom                                            | Cause and remedy                                                                             |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `pnpm install` rejects the Node version            | Node 24 required: `nvm use` (reads `.nvmrc`) or `mise use`                                   |
+| `pnpm: command not found`                          | `corepack enable`, then retry                                                                |
+| `EADDRINUSE 1337` or `3000`                        | Another Strapi or Next is already running; never run two `strapi develop` in the same folder |
+| Strapi: `Environment check failed`                 | A variable is missing or still `change-me` in `apps/cms/.env`; the message lists them        |
+| Next: `Invalid environment variables` (production) | `STRAPI_URL` and `REVALIDATE_SECRET` are required in production                              |
+| `connect ECONNREFUSED 5432`                        | Docker not started: `docker compose up -d db`, then `docker compose ps`                      |
+| Login: "Too many attempts"                         | Strapi allows 10 logins per minute per IP; wait a minute                                     |
+| Google: "access blocked"                           | Google app in testing mode: add your address in Google Auth Platform → Audience → Test users |
+| Integration tests: `Refusing to reset`             | The target database does not end with `_test`; check `DATABASE_TEST_NAME`                    |
 
-## 13. Évolutions
+## 13. Evolutions
 
-Onglets de la maquette (Tendances, Pour vous, Sans réponse), vue compacte, sujets épinglés, compteurs « Utile » et vues, recherche insensible aux accents (`unaccent`), votes « Utile » et meilleure réponse, recherche plein texte PostgreSQL, profil utilisateur, génération OpenAPI typée depuis Strapi, `jwtManagement: 'refresh'`, déploiement : Next.js sur Vercel, Strapi sur Railway ou Strapi Cloud.
+The mockup's tabs (Trending, For you, Unanswered), compact view, pinned topics, "Useful" and view counters, accent-insensitive search (`unaccent`), "Useful" votes and best answer, PostgreSQL full-text search, user profile, typed OpenAPI generation from Strapi, `jwtManagement: 'refresh'`, deployment: Next.js on Vercel, Strapi on Railway or Strapi Cloud.
 
 ---
 
-Les outils d'assistance au développement, y compris l'IA, ont été utilisés pour la recherche et l'accélération ; chaque ligne livrée est comprise et défendable en revue.
+Development assistance tools, including AI, were used for research and speed; every line delivered is understood and defensible in review.
