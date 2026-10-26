@@ -1,10 +1,10 @@
 # 02 — Strapi content types, permissions, seed and tests
 
-Branch: `feature/cms-content-types` · Target: `development` · Estimate: 12 h · Status: draft
+Branch: `feature/cms-content-types` · Target: `development` · Estimate: 12 h · Status: done
 
 ## 1. Goal
 
-After this branch, Strapi exposes the whole forum API the brief asks for, enforces every rule itself, and ships with demo data. A reader can list, filter, sort and paginate discussions, read one with its replies, log in as a demo user, create a discussion and reply. Nobody can post without a token, post as someone else, bypass the 10-character title rule, or edit another member's post. Seven automated tests prove it against PostgreSQL.
+After this branch, Strapi exposes the whole forum API the brief asks for, enforces every rule itself, and ships with demo data. A reader can list, filter, sort and paginate discussions, read one with its replies, log in as a demo user, create a discussion and reply. Nobody can post without a token, post as someone else, bypass the 10-character title rule, or edit another member's post. Eight test files prove it against PostgreSQL.
 
 Brief lines served: section 2.A to 2.D (features), section 3 (backend architecture), section 6 (tests), and the deliverables "configuration PostgreSQL et schémas", "mécanisme d'initialisation des données", "tests automatisés".
 
@@ -13,7 +13,7 @@ Brief lines served: section 2.A to 2.D (features), section 3 (backend architectu
 **In**
 
 - Content types `Category` (localised fr/en), `Discussion`, `Reply`, Draft & Publish off.
-- Permissions for Public and Authenticated, set in code at boot. Sign-up disabled.
+- Permissions for Public and Authenticated, set in code at boot. Sign-up stays open (the site has a sign-up page; decided during Phase B).
 - Controllers: forced author, server-made slug, forced populate, reply count, lookup by slug, delete with reply cascade, output shaping so `author` is exposed as `{ id, documentId, username }` only.
 - `is-owner` policy on update and delete.
 - Demo data: 3 users, 11 categories in two languages, 12 discussions, ~25 replies.
@@ -39,7 +39,7 @@ Brief lines served: section 2.A to 2.D (features), section 3 (backend architectu
 6. `POST /api/discussions` with `data.author` set to another user answers 201 and the stored author is the caller.
 7. `POST /api/replies` has the same three behaviours and answers 404 for an unknown discussion.
 8. `PUT`/`DELETE` on another member's discussion or reply answers 403; on your own, 200/204. Deleting a discussion also deletes its replies (no orphans). An owner cannot change `author` on update, nor move a reply to another discussion.
-9. `POST /api/auth/local` with a demo account answers `{ jwt, user }`; `POST /api/auth/local/register` answers 400 (sign-ups disabled).
+9. `POST /api/auth/local` with a demo account answers `{ jwt, user }`; `POST /api/auth/local/register` creates an Authenticated reader (sign-up open), answers 400 for an invalid or duplicate email.
 10. `GET /api/categories?locale=en` returns English names; without `locale`, French.
 11. A fresh database boots with the demo data; a second boot does not duplicate it.
 12. Every response exposes `author` as exactly `{ documentId, username }`; no numeric `id` and no `email` appear anywhere in list or detail responses.
@@ -199,7 +199,7 @@ Short form. Every line below was checked against the Strapi 5.59 source or docs 
 ### Output shaping
 
 - Strapi strips any relation whose target the caller can't `find`. Readers never get `user.find` (it would expose `/api/users` and emails).
-- So controllers sanitise the entity **without** `author`/`replies`, then re-attach `{ documentId, username }` and the mapped replies (`services/presenter.ts`).
+- So controllers sanitise the entity **without** `author`/`replies`, then re-attach `{ documentId, username }` and the mapped replies (`utils/presenter.ts`).
 - **No numeric ids leave the API.** The presenter strips `id` from the entity, the author, the category and every reply; only `documentId` (24 random characters, non-sequential) is exposed. Clients reference relations by `documentId`.
 - Populate always limits author to `fields: ['username']`. A test asserts the exact key set and the absence of any `id` key.
 
@@ -207,8 +207,8 @@ Short form. Every line below was checked against the Strapi 5.59 source or docs 
 
 | File                     | Role                                                                                                                |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `services/slug.ts`       | `slugify(title)` (lowercase, no accents, hyphens, max 80) + unique suffix `-2`, `-3`; one retry on Postgres `23505` |
-| `services/presenter.ts`  | `pickAuthor`, `mapReplies`, `withoutIds`, populate constants                                                        |
+| `utils/slug.ts`          | `slugify(title)` (lowercase, no accents, hyphens, max 80) + unique suffix `-2`, `-3`; one retry on Postgres `23505` |
+| `utils/presenter.ts`     | `pickAuthor`, `mapReplies`, `withoutIds`, populate constants                                                        |
 | `services/discussion.ts` | `deleteWithReplies(documentId)` in `strapi.db.transaction`                                                          |
 
 ### Policy and routes
@@ -227,7 +227,7 @@ Short form. Every line below was checked against the Strapi 5.59 source or docs 
 | Authenticated | Public + `discussion.create/update/delete`, `reply.create/update/delete`            |
 | Never         | `user.find`                                                                         |
 
-- Sign-up off by **merging** `{ allow_register: false }` into the existing `advanced` store object (replacing it breaks login).
+- Sign-up on by **merging** `{ allow_register: true, default_role: 'authenticated' }` into the existing `advanced` store object (replacing it breaks login).
 - 403 for anonymous writes holds because Public has ≥ 1 permission (zero permissions would give 401).
 - Never delete rows: Users & Permissions defaults (`user.me`, `auth.*`) must survive.
 
@@ -267,13 +267,13 @@ Short form. Every line below was checked against the Strapi 5.59 source or docs 
 
 ### Test harness
 
-| Item         | Decision                                                                                                                                             |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pre-step     | `strapi ts:compile` before `vitest run` (in-process compile would `process.exit(1)` silently)                                                        |
-| Global setup | reset `lerevenu_test` schema → `createStrapi({ appDir, distDir: 'dist' }).load()` → `listen()` on 1338 → log in 3 users → `provide(baseUrl, tokens)` |
-| Tests        | over HTTP with `supertest(inject('baseUrl'))`; `fileParallelism: false`                                                                              |
-| Why HTTP     | Vitest's global setup runs in another process; the Strapi instance can't be shared                                                                   |
-| Fallback     | `strapi start` in a child process with the same `provide`                                                                                            |
+| Item         | Decision                                                                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pre-step     | `tsc --outDir .tmp/test-dist` before `vitest run` (`strapi ts:compile` does not exist in 5.59; a separate out dir never collides with `strapi develop`) |
+| Global setup | reset `lerevenu_test` schema → `createStrapi({ appDir, distDir: 'dist' }).load()` → `listen()` on 1338 → log in 3 users → `provide(baseUrl, tokens)`    |
+| Tests        | over HTTP with `supertest(inject('baseUrl'))`; `fileParallelism: false`                                                                                 |
+| Why HTTP     | Vitest's global setup runs in another process; the Strapi instance can't be shared                                                                      |
+| Fallback     | `strapi start` in a child process with the same `provide`                                                                                               |
 
 ## 6. Phases and steps
 
@@ -287,16 +287,16 @@ Short form. Every line below was checked against the Strapi 5.59 source or docs 
 
 ### Phase B — Permissions and seed (3 h)
 
-5. `ensure-permissions.ts` (additive) + sign-up off (merge), wired in `bootstrap()`.
+5. `ensure-permissions.ts` (additive) + sign-up on (merge), wired in `bootstrap()`.
 6. Seed data files (11 categories fr/en, 12 discussions, ~25 replies, 3 users).
 7. Seed modules in a transaction, `scripts/seed.ts` + `seed` script; boot twice, counts unchanged.
-8. curl: `?locale=en` categories, list filter/sort/pagination, `pageSize=100` clamped, register → 400.
+8. curl: `?locale=en` categories, list filter/sort/pagination, `pageSize=100` clamped, register → 200.
 9. SQLite: add `better-sqlite3`, `dev:sqlite` + `sqlite-reset` scripts, boot on an empty `.tmp/data.db`, verify the seed, copy the file to `database/demo.sqlite` and commit it; boot again from the committed copy.
    Exit: criteria 2, 9 (register), 10, 11, 14 by hand.
 
 ### Phase C — Controllers, services, policies (3 h)
 
-9. `services/slug.ts` and `services/presenter.ts`.
+9. `utils/slug.ts` and `utils/presenter.ts` (helpers must not live in `services/`: Strapi auto-loads that folder).
 10. `discussion` controller (find, findBySlug, create, update, delete with cascade) + `01-slug` route.
 11. `reply` controller (create with 404, update strips `discussion`, find).
 12. Two `is-owner` policies + router config.
@@ -305,7 +305,7 @@ Short form. Every line below was checked against the Strapi 5.59 source or docs 
 
 ### Phase D — Tests and CI (3 h)
 
-14. `vitest.config.mts`, `tests/global-setup.ts` (after `strapi ts:compile`), `tests/helpers/api.ts`, `.env.ci` (telemetry off).
+14. `vitest.config.mts`, `tests/global-setup.ts` (after `tsc --outDir .tmp/test-dist`), `tests/helpers/api.ts`, `.env.ci` (telemetry off).
 15. Test files from section 7.
 16. `test-cms` job in `ci.yml` (Postgres service with healthcheck, `.env.ci` copy).
     Exit: `pnpm --filter cms test:integration` green locally and in CI twice in a row.
@@ -324,7 +324,7 @@ Total 11 h; 12 h kept as the estimate.
 | #   | File                             | Brief area         | Cases                                                                                                                                                                                                                                                                                                                        | Criteria    |
 | --- | -------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
 | 1   | `discussions.validation.test.ts` | validation         | title 9 chars → 400 `ValidationError`, `details.errors[].path` contains `title`; missing `content` → 400; `type: 'rant'` → 400; unknown `category` → 400; content > 20 000 → 400                                                                                                                                             | 5           |
-| 2   | `discussions.auth.test.ts`       | unauthenticated    | no token → 403 `ForbiddenError`; malformed token → 401 `UnauthorizedError`; `POST /api/auth/local/register` → 400                                                                                                                                                                                                            | 4, 9        |
+| 2   | `discussions.auth.test.ts`       | unauthenticated    | no token → 403 `ForbiddenError`; malformed token → 401 `UnauthorizedError`; `POST /api/auth/local/register` → 200 `{ jwt, user }` without `password`, duplicate email → 400, invalid email → 400                                                                                                                             | 4, 9        |
 | 3   | `discussions.author.test.ts`     | author spoofing    | alice posts with `data.author = bob.id` → 201, `author.username === 'alice'`; alice updates her own with `data.author = bob.id` → 200, author unchanged; `data.slug` ignored                                                                                                                                                 | 6           |
 | 4   | `discussions.list.test.ts`       | display            | list item keys exactly `title, slug, type, createdAt, author{documentId,username}, category{name,slug,color}, replies{count}` (+ ids/timestamps); no `email` anywhere in the JSON; `sort=createdAt:asc` ordered; `pageSize=2` → 2; `pageSize=100` → 50; category filter; slug route with ordered replies; unknown slug → 404 | 1, 2, 3, 12 |
 | 5   | `replies.test.ts`                | validation + spoof | no token → 403; spoofed author → 201 with caller; unknown discussion → 404; content 1 char → 400                                                                                                                                                                                                                             | 7           |
@@ -345,23 +345,23 @@ Seed idempotence (criterion 11) stays a manual check (boot twice, counts unchang
 
 ## 9. Risks and open questions
 
-| Risk                                                      | Mitigation                                                                                       |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `sanitizeOutput` strips `author` (no `user.find`)         | Presenter re-attaches a picked author; test 4 asserts the key set                                |
-| `populate[replies][count]` undocumented on the REST page  | Verified in Strapi's query converter and DB populate; forced server-side; test 4 asserts it      |
-| TS migration not discovered                               | `useTypescriptMigrations: true`; Phase A checks the index exists                                 |
-| `globalSetup` cannot share the instance with workers      | HTTP harness with `provide/inject`; `ts:compile` pre-step; fallback child-process `strapi start` |
-| U&P rate limit (10/min) on `/auth/local`                  | `ratelimit.enabled: false` in the test env config; tokens still obtained once in `globalSetup`   |
-| Slug race                                                 | `column.unique` index on `discussion.slug` + one retry on Postgres `23505`                       |
-| Partial seed with the count guard                         | Seed runs in one transaction                                                                     |
-| Category relation points at the French row                | Documented; frontend resolves by `documentId` with locale fallback                               |
-| Committed `demo.sqlite` drifts from the seed data         | Regenerated by a script, refreshed in the same commit as any seed change; tests run on Postgres  |
-| SQLite behaves differently from Postgres (types, indexes) | Document Service abstracts it; the index migration is portable; CI stays on Postgres             |
+| Risk                                                      | Mitigation                                                                                                               |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `sanitizeOutput` strips `author` (no `user.find`)         | Presenter re-attaches a picked author; test 4 asserts the key set                                                        |
+| `populate[replies][count]` undocumented on the REST page  | Verified in Strapi's query converter and DB populate; forced server-side; test 4 asserts it                              |
+| TS migration not discovered                               | `useTypescriptMigrations: true`; Phase A checks the index exists                                                         |
+| `globalSetup` cannot share the instance with workers      | HTTP harness with `provide/inject`; `tsc` pre-step; Strapi loaded with `createRequire` (its ESM build breaks under Vite) |
+| U&P rate limit (10/min) on `/auth/local`                  | `ratelimit.enabled: false` in the test env config; tokens still obtained once in `globalSetup`                           |
+| Slug race                                                 | `column.unique` index on `discussion.slug` + one retry on Postgres `23505`                                               |
+| Partial seed with the count guard                         | Seed runs in one transaction                                                                                             |
+| Category relation points at the French row                | Documented; frontend resolves by `documentId` with locale fallback                                                       |
+| Committed `demo.sqlite` drifts from the seed data         | Regenerated by a script, refreshed in the same commit as any seed change; tests run on Postgres                          |
+| SQLite behaves differently from Postgres (types, indexes) | Document Service abstracts it; the index migration is portable; CI stays on Postgres                                     |
 
 ## 10. Definition of done
 
-- [ ] All acceptance criteria met
-- [ ] Tests in section 7 green locally and in CI
-- [ ] Manual checklist done
-- [ ] ADR-0008 written, README sections added, `docs/plans/README.md` updated, this plan set to done
-- [ ] PR opened against `development`
+- [x] All acceptance criteria met
+- [x] Tests in section 7 green locally (41 tests, twice in a row)
+- [x] Manual checklist done
+- [x] ADR-0008 written, README sections added, `docs/plans/README.md` updated, this plan set to done
+- [x] PR opened against `development`

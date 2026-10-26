@@ -133,14 +133,22 @@ curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&
 | Frontend, unitaire   | Vitest + Testing Library                                  | `pnpm --filter web test`             |
 | Bout en bout         | Playwright, projets `fr` et `en`                          | `pnpm --filter web test:e2e`         |
 
-Les quatre tests demandés par le cahier des charges (validation d'une discussion, refus d'une publication non authentifiée, protection contre l'usurpation d'auteur, affichage des discussions) sont dans `apps/cms/tests/`.
+Les quatre tests demandés par le cahier des charges (validation d'une discussion, refus d'une publication non authentifiée, protection contre l'usurpation d'auteur, affichage des discussions) sont dans `apps/cms/tests/`, avec les droits d'auteur, les réponses, la connexion et les catégories bilingues : 8 fichiers, 41 tests, environ 15 s.
+
+Comment tournent les tests backend :
+
+1. `tsc` compile l'application dans `.tmp/test-dist` (jamais dans `dist/`, donc sans conflit avec un `strapi develop` en cours).
+2. Le `globalSetup` de Vitest vide le schéma de `lerevenu_test` (refus si le nom ne finit pas par `_test`), démarre **un seul Strapi** sur le port 1338 avec `NODE_ENV=test`, laisse le seed charger les données de démonstration, connecte `alice` et `bob`.
+3. Les fichiers s'exécutent l'un après l'autre et parlent à cette instance en HTTP (supertest) : mêmes réponses que celles reçues par le front.
+
+Prérequis : PostgreSQL démarré (`docker compose up -d db` crée `lerevenu_test`), `apps/cms/.env` renseigné. Variable `DATABASE_TEST_NAME` pour changer le nom de la base de test.
 
 ## 9. Qualité et CI/CD
 
 - **Branches** : `main` (production, protégée), `development` (intégration, protégée), `feature/<nom-court>`. Chaque fonctionnalité commence par un plan revu dans `docs/plans/`.
 - **Hooks Git** (husky) : Node 24 obligatoire, commits interdits sur les branches protégées, lint-staged, commitlint (Conventional Commits), vérifications avant push.
 - **`pnpm verify`** : clone propre, installation gelée, lint, format, commitlint, type-check, build, tests. Rien n'est poussé en rouge.
-- **GitHub Actions** : lint et format, type-check, tests unitaires, build, sur chaque PR vers `development` et `main`.
+- **GitHub Actions** : lint et format, type-check, tests unitaires, tests d'intégration Strapi sur un service PostgreSQL (`apps/cms/.env.ci`), build, sur chaque PR vers `development` et `main`.
 - Détails : [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## 10. Structure du dépôt
