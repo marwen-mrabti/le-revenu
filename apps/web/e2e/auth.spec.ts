@@ -60,4 +60,22 @@ test.describe('authentication', () => {
     await expect(page.getByRole('alert').filter({ hasText: t.wrong })).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`${t.prefix}/login`));
   });
+
+  test('keeps the session out of reach of scripts and ignores a foreign next', async ({
+    page,
+  }, testInfo) => {
+    const t = L[testInfo.project.name as keyof typeof L];
+    await open(page, `${t.prefix}/login`);
+    await page.getByLabel(t.identifier).fill('alice');
+    await page.getByLabel(t.password, { exact: true }).fill('Password123!');
+    await page.getByRole('button', { name: t.submit }).click();
+    await expect(page).toHaveURL(new RegExp(`${t.prefix}/discussions$`));
+
+    expect(await page.evaluate(() => document.cookie)).not.toContain('lr_session');
+
+    await page.goto(`${t.prefix}/login?next=//evil.test`);
+    await expect(page).toHaveURL(new RegExp(`${t.prefix}/discussions$`));
+    await page.goto(`${t.prefix}/register?next=http://evil.test`);
+    await expect(page).toHaveURL(new RegExp(`${t.prefix}/discussions$`));
+  });
 });
