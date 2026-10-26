@@ -1,9 +1,15 @@
 import { NextRequest } from 'next/server';
+import type * as NextServer from 'next/server';
 import { describe, expect, it, vi } from 'vitest';
 
 import { StrapiError } from '@/lib/strapi/base';
 
 vi.mock('@/features/discussions/data', () => ({ getDiscussions: vi.fn() }));
+// `connection()` only resolves inside a Next request scope; the handler is called directly here.
+vi.mock('next/server', async (importOriginal) => ({
+  ...(await importOriginal<typeof NextServer>()),
+  connection: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock('@/config/env', () => ({ env: { STRAPI_URL: 'http://strapi.test' } }));
 
 import { getDiscussions } from '@/features/discussions/data';

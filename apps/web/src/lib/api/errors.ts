@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { unstable_rethrow } from 'next/navigation';
 import { z } from 'zod';
 
 import { StrapiError } from '@/lib/strapi/base';
@@ -32,6 +33,8 @@ function json(status: number, body: ApiErrorBody): Response {
  * Strapi messages are never echoed; the original is logged server-side.
  */
 export function toErrorResponse(error: unknown): Response {
+  // Next's own control-flow errors (redirects, prerender bail-outs) must keep propagating.
+  unstable_rethrow(error);
   if (error instanceof z.ZodError) {
     return json(422, {
       code: 'VALIDATION',
