@@ -26,6 +26,8 @@ export function RegisterForm({ next }: { next: string }) {
       setServerError(null);
       try {
         const { user } = await register.mutateAsync(value);
+        // Next keeps visited pages alive for instant back navigation: never leave a password in the form state.
+        formApi.reset();
         toast.success(t('welcome', { name: user.username }));
         router.push(next as '/discussions');
       } catch (error) {

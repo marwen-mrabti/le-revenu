@@ -36,6 +36,9 @@ describe('LoginForm', () => {
       expect(mutateAsync).toHaveBeenCalledWith({ identifier: 'alice', password: 'Password123!' }),
     );
     await waitFor(() => expect(push).toHaveBeenCalledWith('/discussions?category=bourse'));
+    // The page tree may be kept alive by the router: the credentials must not linger.
+    expect(screen.getByLabelText("E-mail ou nom d'utilisateur")).toHaveValue('');
+    expect(screen.getByLabelText('Mot de passe')).toHaveValue('');
   });
 
   it('shows the server verdict for a wrong password, without naming the field', async () => {
