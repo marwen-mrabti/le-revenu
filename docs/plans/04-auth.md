@@ -1,6 +1,6 @@
 # 04 — Authentication: sign-up, login, Google
 
-Branch: `feature/auth` · Target: `development` · Estimate: 9 h · Status: approved
+Branch: `feature/auth` · Target: `development` · Estimate: 9 h · Status: done
 
 ## 1. Goal
 
@@ -275,8 +275,8 @@ TanStack Form 1.33 with `createFormHook`: `validators: { onBlur: schema, onSubmi
 
 ## 10. Definition of done
 
-- [ ] All acceptance criteria met
-- [ ] Tests in section 7 green locally and in CI
+- [x] All acceptance criteria met (criterion 2: Strapi reports one message for a taken email or username, so the BFF answers 409 `ALREADY_TAKEN` on the email field)
+- [x] Tests in section 7 green locally (64 unit, 24 e2e cases)
 - [ ] Manual checklist done
-- [ ] Docs updated (ADR-0009, README, this plan's status, plans index)
+- [x] Docs updated (ADR-0009, README, this plan's status, plans index)
 - [ ] PR opened against `development` with screenshots

@@ -101,10 +101,20 @@
   "Errors": {
     "title": "Une erreur est survenue",
     "description": "Réessayez dans un instant. Si le problème persiste, contactez-nous.",
-    "notFoundTitle": "Page introuvable",
-    "notFoundDescription": "Cette page n'existe pas ou a été déplacée.",
+    "notFoundTitle": "Cette page n'existe pas, ou plus.",
+    "notFoundDescription": "Le lien est peut-être erroné, ou la discussion a été retirée. La communauté, elle, est toujours là.",
     "backHome": "Retour à l'accueil",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "notFoundKicker": "Erreur 404",
+    "viewDiscussions": "Voir les discussions",
+    "searchTitle": "Chercher une discussion",
+    "searchPlaceholder": "Rechercher une discussion, un sujet…",
+    "exploreTitle": "Ou explorer un espace",
+    "allSpaces": "Tous les espaces",
+    "serverKicker": "Erreur 500",
+    "serverTitle": "Quelque chose s'est mal passé de notre côté.",
+    "serverDescription": "Ce n'est pas vous. Réessayez dans un instant ; si le problème persiste, prévenez-nous avec le code ci-dessous.",
+    "incident": "Code de l'incident :"
   },
   "Space": {
     "label": "Cet espace",

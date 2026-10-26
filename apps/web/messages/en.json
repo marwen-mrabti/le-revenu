@@ -101,10 +101,20 @@
   "Errors": {
     "title": "Something went wrong",
     "description": "Try again in a moment. If the problem persists, contact us.",
-    "notFoundTitle": "Page not found",
-    "notFoundDescription": "This page does not exist or has moved.",
+    "notFoundTitle": "This page does not exist, or not anymore.",
+    "notFoundDescription": "The link may be wrong, or the discussion was removed. The community is still here.",
     "backHome": "Back to home",
-    "retry": "Retry"
+    "retry": "Retry",
+    "notFoundKicker": "Error 404",
+    "viewDiscussions": "See the discussions",
+    "searchTitle": "Search a discussion",
+    "searchPlaceholder": "Search a discussion, a topic…",
+    "exploreTitle": "Or explore a space",
+    "allSpaces": "All spaces",
+    "serverKicker": "Error 500",
+    "serverTitle": "Something went wrong on our side.",
+    "serverDescription": "Not your fault. Try again in a moment; if it keeps failing, tell us with the code below.",
+    "incident": "Incident code:"
   },
   "Space": {
     "label": "This space",

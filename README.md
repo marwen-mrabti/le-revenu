@@ -70,14 +70,15 @@ Vous pouvez aussi créer votre propre compte sur `/register` (nom d'utilisateur,
 
 ## 4. Ce que fait l'application
 
-| Fonction                                                                       | État                       |
-| ------------------------------------------------------------------------------ | -------------------------- |
-| Liste des discussions : filtre par espace, tri par date, recherche, pagination | ✔ `/discussions`           |
-| Détail d'une discussion et ses réponses, URL propre par slug                   | backend prêt, page à venir |
-| Connexion, inscription, Google, déconnexion, menu du compte                    | ✔ `/login`, `/register`    |
-| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)       | backend prêt, page à venir |
-| Réponse à une discussion                                                       | backend prêt, page à venir |
-| Interface en français et en anglais, menu de langue, thème clair / sombre      | ✔                          |
+| Fonction                                                                                | État                       |
+| --------------------------------------------------------------------------------------- | -------------------------- |
+| Liste des discussions : filtre par espace, tri par date, recherche, pagination          | ✔ `/discussions`           |
+| Détail d'une discussion et ses réponses, URL propre par slug                            | backend prêt, page à venir |
+| Connexion, inscription, Google, déconnexion, menu du compte                             | ✔ `/login`, `/register`    |
+| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)                | backend prêt, page à venir |
+| Réponse à une discussion                                                                | backend prêt, page à venir |
+| Interface en français et en anglais, menu de langue, thème clair / sombre               | ✔                          |
+| Pages 404 et 500 personnalisées (en-tête conservé, recherche, espaces, code d'incident) | ✔                          |
 
 L'avancement détaillé est dans [`docs/plans/`](docs/plans/README.md).
 
