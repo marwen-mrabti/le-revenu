@@ -1,4 +1,6 @@
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import type { Metadata } from 'next';
+import { connection } from 'next/server';
 import { hasLocale } from 'next-intl';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
@@ -6,7 +8,14 @@ import { Suspense } from 'react';
 import { CategoryChips } from '@/features/categories/components/category-chips';
 import { SpaceCard } from '@/features/categories/components/space-card';
 import { findCategory, getCategories } from '@/features/categories/data';
+import { discussionQueries } from '@/features/discussions/api/queries';
+import { DiscussionFilters } from '@/features/discussions/components/discussion-filters';
+import { DiscussionList } from '@/features/discussions/components/discussion-list';
+import { DiscussionListSkeleton } from '@/features/discussions/components/discussion-list-skeleton';
+import { getDiscussions } from '@/features/discussions/data';
+import { loadDiscussionFilters } from '@/features/discussions/search-params';
 import { routing, type AppLocale } from '@/i18n/routing';
+import { getQueryClient } from '@/lib/query/get-query-client';
 
 type Props = PageProps<'/[locale]/discussions'>;
 
@@ -15,34 +24,37 @@ async function currentLocale(): Promise<AppLocale> {
   return hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
 }
 
-function firstParam(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
-
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const [t, locale, params] = await Promise.all([
+  const [t, locale, filters] = await Promise.all([
     getTranslations('Metadata'),
     currentLocale(),
-    searchParams,
+    loadDiscussionFilters(searchParams),
   ]);
-  const slug = firstParam(params.category);
-  const category = slug ? await findCategory(locale, slug) : undefined;
+  const category = filters.category ? await findCategory(locale, filters.category) : undefined;
   const title = category ? `${category.name} · ${t('discussionsTitle')}` : t('discussionsTitle');
   return { title, description: category?.description ?? t('discussionsDescription') };
 }
 
-/** List shell: title, spaces as chips on mobile, the space card on the right. The list itself lands in Phase C. */
 export default async function DiscussionsPage({ searchParams }: Props) {
-  const [t, locale, params] = await Promise.all([
+  // The list is request-time data (search params, fresh Strapi read, cache timestamps):
+  // declare it so the prerender keeps only the shell above the Suspense boundary.
+  await connection();
+  const [t, locale, filters] = await Promise.all([
     getTranslations('Discussions'),
     currentLocale(),
-    searchParams,
+    loadDiscussionFilters(searchParams),
   ]);
-  const slug = firstParam(params.category);
   const [categories, category] = await Promise.all([
     getCategories(locale),
-    slug ? findCategory(locale, slug) : undefined,
+    filters.category ? findCategory(locale, filters.category) : undefined,
   ]);
+
+  // Server-side fetch straight from Strapi; the client gets the result through the hydrated cache.
+  const queryClient = getQueryClient();
+  void queryClient.prefetchQuery({
+    ...discussionQueries.list(filters, locale),
+    queryFn: () => getDiscussions(filters, locale),
+  });
 
   return (
     <>
@@ -53,9 +65,13 @@ export default async function DiscussionsPage({ searchParams }: Props) {
           </h1>
           <p className="mt-1.5 max-w-[62ch] text-muted-foreground">{t('intro')}</p>
         </header>
-        <Suspense fallback={null}>
-          <CategoryChips categories={categories} />
-        </Suspense>
+        <HydrationBoundary state={dehydrate(queryClient)}>
+          <Suspense fallback={<DiscussionListSkeleton />}>
+            <CategoryChips categories={categories} />
+            <DiscussionFilters />
+            <DiscussionList />
+          </Suspense>
+        </HydrationBoundary>
       </main>
       <aside className="md:col-start-2 xl:col-start-3">
         <SpaceCard category={category} />

@@ -32,7 +32,17 @@
     "replyCount": "{count, plural, =0 {No replies} one {# reply} other {# replies}}",
     "publishedOn": "Published on {date}",
     "empty": "Nothing here yet",
-    "emptyHint": "Start the first discussion in this space."
+    "emptyHint": "Start the first discussion in this space.",
+    "replyCountLabel": "{count, plural, one {reply} other {replies}}",
+    "typeQuestion": "Question",
+    "anonymous": "Anonymous",
+    "searchLabel": "Search discussions",
+    "searchPlaceholder": "Search a discussion, a topic…",
+    "resultCount": "{count, plural, =0 {No discussions} one {# discussion} other {# discussions}}",
+    "emptyFiltered": "No discussion matches your filters.",
+    "emptyOutOfRange": "This page does not exist.",
+    "clearFilters": "Clear filters",
+    "backToFirstPage": "Back to page 1"
   },
   "DiscussionNew": {
     "title": "New post"
@@ -58,7 +68,8 @@
     "description": "Try again in a moment. If the problem persists, contact us.",
     "notFoundTitle": "Page not found",
     "notFoundDescription": "This page does not exist or has moved.",
-    "backHome": "Back to home"
+    "backHome": "Back to home",
+    "retry": "Retry"
   },
   "Space": {
     "label": "This space",
@@ -72,5 +83,11 @@
     "system": "System",
     "switchToDark": "Switch to dark theme",
     "switchToLight": "Switch to light theme"
+  },
+  "Pagination": {
+    "label": "Pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page, number} of {count, number}"
   }
 }

@@ -32,7 +32,17 @@
     "replyCount": "{count, plural, =0 {Aucune réponse} one {# réponse} other {# réponses}}",
     "publishedOn": "Publié le {date}",
     "empty": "Rien ici pour l'instant",
-    "emptyHint": "Lancez la première discussion de cet espace."
+    "emptyHint": "Lancez la première discussion de cet espace.",
+    "replyCountLabel": "{count, plural, one {réponse} other {réponses}}",
+    "typeQuestion": "Question",
+    "anonymous": "Anonyme",
+    "searchLabel": "Rechercher une discussion",
+    "searchPlaceholder": "Rechercher une discussion, un sujet…",
+    "resultCount": "{count, plural, =0 {Aucune discussion} one {# discussion} other {# discussions}}",
+    "emptyFiltered": "Aucune discussion ne correspond à vos filtres.",
+    "emptyOutOfRange": "Cette page n'existe pas.",
+    "clearFilters": "Effacer les filtres",
+    "backToFirstPage": "Revenir à la page 1"
   },
   "DiscussionNew": {
     "title": "Nouvelle publication"
@@ -58,7 +68,8 @@
     "description": "Réessayez dans un instant. Si le problème persiste, contactez-nous.",
     "notFoundTitle": "Page introuvable",
     "notFoundDescription": "Cette page n'existe pas ou a été déplacée.",
-    "backHome": "Retour à l'accueil"
+    "backHome": "Retour à l'accueil",
+    "retry": "Réessayer"
   },
   "Space": {
     "label": "Cet espace",
@@ -72,5 +83,11 @@
     "system": "Système",
     "switchToDark": "Passer en thème sombre",
     "switchToLight": "Passer en thème clair"
+  },
+  "Pagination": {
+    "label": "Pagination",
+    "previous": "Précédente",
+    "next": "Suivante",
+    "pageOf": "Page {page, number} sur {count, number}"
   }
 }

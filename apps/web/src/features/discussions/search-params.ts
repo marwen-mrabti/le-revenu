@@ -16,17 +16,28 @@ export const discussionSearchParams = {
 
 const load = createLoader(discussionSearchParams);
 
-/** Parses the page's `searchParams` promise into validated filters. */
-export async function loadDiscussionFilters(
-  searchParams: Promise<Record<string, string | string[] | undefined>>,
-): Promise<DiscussionFilters> {
-  const raw = await load(searchParams);
+type RawFilters = {
+  category: string | null;
+  sort: (typeof SORTS)[number];
+  q: string;
+  page: number;
+};
+
+/** Same normalisation on the server (loader) and in the browser (`useQueryStates`), so query keys match. */
+export function toFilters(raw: RawFilters): DiscussionFilters {
   return discussionFiltersSchema.parse({
     category: raw.category ?? undefined,
     sort: raw.sort,
     q: raw.q,
     page: Math.max(1, raw.page),
   });
+}
+
+/** Parses the page's `searchParams` promise into validated filters. */
+export async function loadDiscussionFilters(
+  searchParams: Promise<Record<string, string | string[] | undefined>>,
+): Promise<DiscussionFilters> {
+  return toFilters(await load(searchParams));
 }
 
 /** Query string for a BFF call or a link, defaults omitted so URLs stay clean. */
