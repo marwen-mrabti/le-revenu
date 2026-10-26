@@ -19,44 +19,66 @@ Test technique Développeur Full Stack · Next.js 16 · Strapi 5 · PostgreSQL (
 9. [Qualité et CI/CD](#9-qualité-et-cicd)
 10. [Structure du dépôt](#10-structure-du-dépôt)
 11. [Choix d'architecture](#11-choix-darchitecture)
-12. [Évolutions](#12-évolutions)
+12. [Problèmes fréquents](#12-problèmes-fréquents)
+13. [Évolutions](#13-évolutions)
 
 ---
 
 ## 1. Démarrage en 2 minutes (SQLite, sans Docker)
 
-Prérequis : Node 24 (fichier `.nvmrc`) et pnpm 10 (`corepack enable` suffit, la version est fixée dans `package.json`).
+Prérequis : Node 24 (fichier `.nvmrc`) et pnpm 10 (`corepack enable` suffit, la version est fixée dans `package.json`). Aucun fichier `.env` à créer dans ce mode.
 
-```bash
-git clone git@github.com:marwen-mrabti/le-revenu.git && cd le-revenu
-pnpm install
-pnpm --filter cms dev:sqlite      # terminal 1 : Strapi sur http://localhost:1337, base SQLite pré-remplie
-pnpm --filter web dev             # terminal 2 : Next.js sur http://localhost:3000
-```
+1. Cloner et installer.
 
-Aucun fichier `.env` à créer dans ce mode : Strapi lit `apps/cms/.env.sqlite` (livré) et Next.js a des valeurs par défaut de développement (`apps/web/src/config/env.ts`) accordées avec ce fichier. Ouvrez http://localhost:3000/discussions, connectez-vous avec un compte de la section 3.
+   ```bash
+   git clone git@github.com:marwen-mrabti/le-revenu.git && cd le-revenu
+   pnpm install
+   ```
 
-- La base `apps/cms/database/demo.sqlite` est livrée pré-remplie (catégories en français et en anglais, discussions, réponses, lecteurs de démonstration). Elle est copiée dans `.tmp/` à chaque lancement : le fichier versionné n'est jamais modifié.
-- Le panneau d'administration Strapi demande de créer un compte administrateur à la première visite de http://localhost:1337/admin.
-- Le fichier `apps/cms/.env.sqlite` contient des clés de démonstration ; il n'est pas destiné à la production.
+2. Lancer Strapi sur la base SQLite livrée (terminal 1). Attendu après quelques secondes : `Strapi started successfully` et http://localhost:1337/api/categories qui répond du JSON.
+
+   ```bash
+   pnpm --filter cms dev:sqlite
+   ```
+
+3. Lancer Next.js (terminal 2). Attendu : `Ready` puis http://localhost:3000/discussions affiche la liste des discussions.
+
+   ```bash
+   pnpm --filter web dev
+   ```
+
+4. Se connecter avec `alice` / `Password123!` (section 3), ou créer un compte sur `/register`.
+
+Ce qui se passe : Strapi lit `apps/cms/.env.sqlite` (clés de démonstration, jamais pour la production) et copie `apps/cms/database/demo.sqlite` dans `.tmp/` à chaque lancement, le fichier versionné n'est jamais modifié. Next.js a des valeurs par défaut de développement (`apps/web/src/config/env.ts`) accordées avec ce fichier. Le panneau d'administration http://localhost:1337/admin demande de créer un compte administrateur à la première visite.
 
 ## 2. Démarrage complet (Docker + PostgreSQL)
 
 Prérequis : Node 24, pnpm 10, Docker avec Compose v2.
 
-```bash
-cp .env.example .env
-cp apps/cms/.env.example apps/cms/.env    # puis remplacer chaque "change-me" (openssl rand -base64 32)
-cp apps/web/.env.example apps/web/.env    # facultatif en développement ; REVALIDATE_SECRET doit être le même que côté cms
-# Optionnel, connexion Google : créer un client OAuth « Web » (Google Cloud) avec l'URI de redirection
-# http://localhost:1337/api/connect/google/callback, puis dans apps/cms/.env : GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
-# et dans apps/web/.env : NEXT_PUBLIC_GOOGLE_LOGIN=true. Sans ces valeurs, le bouton Google n'apparaît pas.
-pnpm install
-docker compose up -d db                   # PostgreSQL 16, bases lerevenu et lerevenu_test
-pnpm dev                                  # Strapi :1337 + Next :3000 via Turborepo
-```
+1. Les fichiers d'environnement. Strapi refuse de démarrer si une variable obligatoire manque ou vaut encore `change-me`.
 
-Au premier démarrage, Strapi crée les tables, les deux locales (fr par défaut, en), les permissions des rôles, puis les données de démonstration si `SEED_DEMO_DATA=true`. Strapi refuse de démarrer si une variable obligatoire manque ou vaut encore `change-me`.
+   ```bash
+   cp .env.example .env                       # PostgreSQL pour docker-compose
+   cp apps/cms/.env.example apps/cms/.env     # puis remplacer chaque "change-me" : openssl rand -base64 32
+   cp apps/web/.env.example apps/web/.env     # facultatif ; REVALIDATE_SECRET doit être le même que côté cms
+   ```
+
+2. Installer et démarrer la base. Attendu : `docker compose ps` montre `lerevenu-db` en `healthy`.
+
+   ```bash
+   pnpm install
+   docker compose up -d db                    # PostgreSQL 16, bases lerevenu et lerevenu_test
+   ```
+
+3. Démarrer les deux applications. Attendu : Strapi sur http://localhost:1337, Next.js sur http://localhost:3000.
+
+   ```bash
+   pnpm dev                                   # Turborepo lance cms et web
+   ```
+
+Au premier démarrage, Strapi crée les tables, les deux locales (fr par défaut, en), les permissions des rôles, puis les données de démonstration si `SEED_DEMO_DATA=true`. Un second démarrage ne duplique rien.
+
+Connexion Google, facultative : créer un client OAuth « Web » dans Google Cloud avec l'URI de redirection `http://localhost:1337/api/connect/google/callback`, mettre `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` dans `apps/cms/.env` et `NEXT_PUBLIC_GOOGLE_LOGIN=true` dans `apps/web/.env`, redémarrer. Sans ces valeurs, le bouton Google n'apparaît pas.
 
 ## 3. Comptes de démonstration
 
@@ -171,14 +193,34 @@ Tests frontend (`apps/web`, Vitest + Testing Library, colocalisés `*.test.ts(x)
 ## 10. Structure du dépôt
 
 ```
-apps/
-  cms/      Strapi 5 : config/, src/api/{category,discussion,reply}, src/bootstrap/, src/seed/, tests/
-  web/      Next.js 16 : src/app/[locale]/, src/features/, src/components/, src/lib/, messages/
-packages/
-  eslint-config/      configurations ESLint partagées
-  typescript-config/  configurations TypeScript partagées
-docs/
-  architecture.md · data-model.md · adr/ · plans/
+apps/cms/                       Strapi 5 (TypeScript)
+  config/                       serveur, base (postgres | sqlite), plugins, middlewares ; env/test/ pour les tests
+  src/api/<type>/               category, discussion, reply : schema.json, controller, service, routes, constants
+  src/api/discussion/utils/     slug.ts (slug côté serveur), presenter.ts (auteur réduit, aucun id numérique)
+  src/policies/is-owner.ts      404 / 403 sur update et delete si l'appelant n'est pas l'auteur
+  src/bootstrap/                vérification de l'env, index, locales, permissions, fournisseurs de connexion
+  src/seed/                     données de démonstration, chargées une fois sur base vide
+  tests/                        tests d'intégration (un Strapi sur :1338, base lerevenu_test)
+  database/demo.sqlite          base pré-remplie du mode zéro-configuration
+
+apps/web/                       Next.js 16 (App Router, Cache Components)
+  src/app/[locale]/             pages : (forum)/discussions, (auth)/login et register, auth/google/callback,
+                                not-found.tsx, error.tsx ; loading.tsx par page
+  src/app/api/                  Route Handlers (BFF) : auth/*, discussions, categories
+  src/features/<domaine>/       discussions, categories, auth : schemas (zod), data (accès serveur),
+                                api (queries et mutations TanStack), components, hooks
+  src/components/               ui/ (shadcn), form/ (champs liés au hook de formulaire), layout/, theme/
+  src/lib/                      strapi/ (client typé, seul lecteur de STRAPI_URL), api/ (client BFF, erreurs,
+                                gardes), auth/ (cookie de session), query/ (TanStack)
+  src/i18n/                     routing, navigation, métadonnées des langues
+  messages/                     fr.json, en.json (clés identiques, vérifiées par un test)
+  e2e/                          Playwright
+
+packages/eslint-config/         règles ESLint partagées (base, next, strapi)
+packages/typescript-config/     tsconfig partagés
+docs/                           architecture.md, data-model.md, adr/ (décisions), plans/ (un plan par branche),
+                                mockups/ (maquettes HTML revues avant le code)
+.github/workflows/ci.yml        lint, format, type-check, tests unitaires, tests Strapi sur PostgreSQL, build
 docker-compose.yml · turbo.json · pnpm-workspace.yaml
 ```
 
@@ -195,8 +237,24 @@ Chaque décision structurante est consignée dans un ADR (Architecture Decision 
 | 0005 | DTO zod comme source de types du frontend                                                                    |
 | 0006 | Invalidation du cache par tags et webhook Strapi                                                             |
 | 0007 | Français et anglais dès le départ avec next-intl                                                             |
+| 0008 | Règles du forum appliquées dans Strapi, identifiants documentId uniquement, tests d'intégration en HTTP      |
+| 0009 | Cookie de session posé par Next.js, connexion Google via le fournisseur Strapi                               |
 
-## 12. Évolutions
+## 12. Problèmes fréquents
+
+| Symptôme                                            | Cause et remède                                                                                           |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `pnpm install` refuse la version de Node            | Node 24 requis : `nvm use` (lit `.nvmrc`) ou `mise use`                                                   |
+| `pnpm: command not found`                           | `corepack enable`, puis relancer                                                                          |
+| `EADDRINUSE 1337` ou `3000`                         | Un autre Strapi ou Next tourne déjà ; ne jamais lancer deux `strapi develop` dans le même dossier         |
+| Strapi : `Environment check failed`                 | Une variable manque ou vaut `change-me` dans `apps/cms/.env` ; la liste est dans le message               |
+| Next : `Invalid environment variables` (production) | `STRAPI_URL` et `REVALIDATE_SECRET` sont obligatoires en production                                       |
+| `connect ECONNREFUSED 5432`                         | Docker non démarré : `docker compose up -d db`, puis `docker compose ps`                                  |
+| Connexion : « Trop de tentatives »                  | Strapi limite à 10 connexions par minute et par IP ; attendre une minute                                  |
+| Google : « access blocked »                         | Application Google en mode test : ajouter votre adresse dans Google Auth Platform → Audience → Test users |
+| Tests d'intégration : `Refusing to reset`           | La base visée ne finit pas par `_test` ; vérifier `DATABASE_TEST_NAME`                                    |
+
+## 13. Évolutions
 
 Onglets de la maquette (Tendances, Pour vous, Sans réponse), vue compacte, sujets épinglés, compteurs « Utile » et vues, recherche insensible aux accents (`unaccent`), votes « Utile » et meilleure réponse, recherche plein texte PostgreSQL, profil utilisateur, génération OpenAPI typée depuis Strapi, `jwtManagement: 'refresh'`, déploiement : Next.js sur Vercel, Strapi sur Railway ou Strapi Cloud.
 
