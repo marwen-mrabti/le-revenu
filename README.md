@@ -45,6 +45,9 @@ Prérequis : Node 24, pnpm 10, Docker avec Compose v2.
 cp .env.example .env
 cp apps/cms/.env.example apps/cms/.env    # puis remplacer chaque "change-me" (openssl rand -base64 32)
 cp apps/web/.env.example apps/web/.env
+# Optionnel, connexion Google : créer un client OAuth « Web » (Google Cloud) avec l'URI de redirection
+# http://localhost:1337/api/connect/google/callback, puis dans apps/cms/.env : GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+# et dans apps/web/.env : NEXT_PUBLIC_GOOGLE_LOGIN=true. Sans ces valeurs, le bouton Google n'apparaît pas.
 pnpm install
 docker compose up -d db                   # PostgreSQL 16, bases lerevenu et lerevenu_test
 pnpm dev                                  # Strapi :1337 + Next :3000 via Turborepo
@@ -63,16 +66,18 @@ Tous les lecteurs de démonstration partagent le mot de passe **`Password123!`**
 
 Adresse e-mail de chaque compte : `<identifiant en minuscules>@demo.lerevenu.test`.
 
+Vous pouvez aussi créer votre propre compte sur `/register` (nom d'utilisateur, e-mail, mot de passe de 8 caractères minimum), ou passer par Google si les identifiants Google sont renseignés (voir § 2).
+
 ## 4. Ce que fait l'application
 
-| Fonction                                                                       | État                        |
-| ------------------------------------------------------------------------------ | --------------------------- |
-| Liste des discussions : filtre par espace, tri par date, recherche, pagination | ✔ `/discussions`            |
-| Détail d'une discussion et ses réponses, URL propre par slug                   | backend prêt, page à venir  |
-| Connexion, inscription                                                         | backend prêt, pages à venir |
-| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)       | backend prêt, page à venir  |
-| Réponse à une discussion                                                       | backend prêt, page à venir  |
-| Interface en français et en anglais, menu de langue, thème clair / sombre      | ✔                           |
+| Fonction                                                                       | État                       |
+| ------------------------------------------------------------------------------ | -------------------------- |
+| Liste des discussions : filtre par espace, tri par date, recherche, pagination | ✔ `/discussions`           |
+| Détail d'une discussion et ses réponses, URL propre par slug                   | backend prêt, page à venir |
+| Connexion, inscription, Google, déconnexion, menu du compte                    | ✔ `/login`, `/register`    |
+| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)       | backend prêt, page à venir |
+| Réponse à une discussion                                                       | backend prêt, page à venir |
+| Interface en français et en anglais, menu de langue, thème clair / sombre      | ✔                          |
 
 L'avancement détaillé est dans [`docs/plans/`](docs/plans/README.md).
 
@@ -100,7 +105,11 @@ Navigateur ──(JSON + cookie httpOnly)──► Route Handlers Next.js ──
 | Adresse e-mail jamais exposée               | Population limitée à `username` ; aucun rôle n'a `user.find`                        |
 | Draft & Publish désactivé                   | Sinon Strapi masque les nouvelles entrées et saute la validation sur les brouillons |
 
-Les permissions sont créées par le code au démarrage (`apps/cms/src/bootstrap/ensure-permissions.ts`), pas à la main dans l'admin : un clone du dépôt donne le même état.
+| Session | Cookie `lr_session` httpOnly, SameSite=Lax, 7 jours, écrit par Next.js ; le JWT Strapi n'apparaît dans aucune réponse |
+| Écritures du BFF | JSON uniquement (**415**) et même origine (`Sec-Fetch-Site` / `Origin`, **403**) |
+| Connexion Google | Fournisseur Strapi, activé seulement si `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` sont définis ; échange final vérifié contre `/api/users/me` |
+
+Les permissions sont créées par le code au démarrage (`apps/cms/src/bootstrap/ensure-permissions.ts`), pas à la main dans l'admin : un clone du dépôt donne le même état. Détails de la session et du flux Google : [ADR-0009](docs/adr/0009-session-cookie-and-google-login.md).
 
 ## 7. API
 
