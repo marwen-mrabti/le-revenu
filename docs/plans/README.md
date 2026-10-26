@@ -12,3 +12,4 @@ Every work branch starts with a plan in this folder, reviewed before any code is
 | --- | ------------------------------------------------------------------------- | --------------------------- | ----------- |
 | 01  | [i18n foundation](01-i18n-foundation.md)                                  | `feature/i18n-foundation`   | done, in PR |
 | 02  | [Strapi content types, permissions, seed, tests](02-cms-content-types.md) | `feature/cms-content-types` | done, in PR |
+| 03  | [Discussion list](03-discussion-list.md)                                  | `feature/discussion-list`   | done, in PR |

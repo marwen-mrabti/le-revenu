@@ -1,15 +1,22 @@
 import { Skeleton } from '@/components/ui/skeleton';
+import { DiscussionListSkeleton } from '@/features/discussions/components/discussion-list-skeleton';
 
+/** Same grid cells as the page so nothing jumps when the data arrives. */
 export default function DiscussionsLoading() {
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-10" aria-busy="true">
-      <Skeleton className="h-9 w-2/3" />
-      <Skeleton className="mt-3 h-5 w-1/2" />
-      <div className="mt-8 space-y-2">
-        <Skeleton className="h-4 w-48" />
-        <Skeleton className="h-4 w-32" />
-        <Skeleton className="h-4 w-40" />
-      </div>
-    </main>
+    <>
+      <main className="flex min-w-0 flex-col gap-4" aria-busy="true">
+        <Skeleton className="h-9 w-2/3" />
+        <Skeleton className="h-5 w-1/2" />
+        <div className="flex gap-2.5">
+          <Skeleton className="h-9 flex-1" />
+          <Skeleton className="h-9 w-40" />
+        </div>
+        <DiscussionListSkeleton />
+      </main>
+      <aside className="md:col-start-2 xl:col-start-3">
+        <Skeleton className="h-40 w-full rounded-xl" />
+      </aside>
+    </>
   );
 }
