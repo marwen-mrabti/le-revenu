@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mockup 05 · Mot de passe oublié et réinitialisation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand: #eb0f0f;
+        --brand-text: #e00b0b;
+        --brand-ink: #fff;
+        --ok: #1a8a4a;
+        --ok-soft: #e4f6ea;
+        --alert: #e00b0b;
+        --bg: #f5f5f7;
+        --surface: #fff;
+        --ink: #1d1d1f;
+        --ink-2: #48484a;
+        --ink-3: #6e6e73;
+        --line: #e5e5ea;
+        --hairline: rgba(0, 0, 0, 0.07);
+        --fill: rgba(0, 0, 0, 0.05);
+        --r: 14px;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --f-body: 'Inter', system-ui, sans-serif;
+        --f-display: 'Playfair Display', Georgia, serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --brand-text: #ff6961;
+          --ok: #30d158;
+          --ok-soft: #173a22;
+          --alert: #ff6961;
+          --bg: #161618;
+          --surface: #1c1c1e;
+          --ink: #f5f5f7;
+          --ink-2: #c7c7cc;
+          --ink-3: #8e8e93;
+          --line: #38383a;
+          --hairline: rgba(255, 255, 255, 0.08);
+          --fill: rgba(255, 255, 255, 0.07);
+          --shadow: none;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.5 var(--f-body);
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .wrap {
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 24px 16px 80px;
+      }
+      .label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin: 28px 0 10px;
+      }
+      .label small {
+        font-weight: 400;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-left: 8px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 24px;
+        align-items: start;
+      }
+      .card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r);
+        padding: 26px 24px;
+        box-shadow: var(--shadow);
+      }
+      .card h1 {
+        font-family: var(--f-display);
+        font-size: 24px;
+        letter-spacing: -0.01em;
+      }
+      .card .intro {
+        color: var(--ink-2);
+        margin-top: 6px;
+        font-size: 14.5px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin: 16px 0 14px;
+      }
+      .field label {
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .field .desc {
+        font-size: 12.5px;
+        color: var(--ink-3);
+      }
+      .input {
+        height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: transparent;
+        padding: 0 12px;
+        font: inherit;
+        color: var(--ink);
+        width: 100%;
+      }
+      .input[aria-invalid='true'] {
+        border-color: var(--alert);
+      }
+      .err {
+        font-size: 12.5px;
+        color: var(--alert);
+        font-weight: 500;
+      }
+      .btn {
+        height: 40px;
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        font: inherit;
+        font-size: 14.5px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: var(--brand);
+        color: var(--brand-ink);
+      }
+      .btn-quiet {
+        background: var(--fill);
+        color: var(--ink);
+      }
+      .hint {
+        text-align: center;
+        font-size: 13.5px;
+        color: var(--ink-3);
+        margin-top: 18px;
+      }
+      .hint a {
+        color: var(--brand-text);
+        font-weight: 600;
+      }
+      .banner {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 500;
+        margin-top: 16px;
+      }
+      .banner.ok {
+        background: var(--ok-soft);
+        color: var(--ok);
+      }
+      .banner.err {
+        background: color-mix(in srgb, var(--alert) 10%, transparent);
+        color: var(--alert);
+      }
+      .ico {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--ok-soft);
+        color: var(--ok);
+        display: inline-grid;
+        place-items: center;
+        font-size: 20px;
+        margin-bottom: 12px;
+      }
+      .mail {
+        margin-top: 14px;
+        border: 1px dashed var(--line);
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .mail b {
+        display: block;
+        color: var(--ink);
+        margin-bottom: 4px;
+      }
+      .mail code {
+        font:
+          12px ui-monospace,
+          monospace;
+        color: var(--brand-text);
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1 style="font-family: var(--f-display); font-size: 22px">
+        Mot de passe oublié et réinitialisation
+      </h1>
+      <p style="color: var(--ink-3); margin-top: 4px">
+        Même carte que la connexion. Lien « Mot de passe oublié ? » sous le champ mot de passe de la
+        page de connexion.
+      </p>
+
+      <div class="label">1 · /forgot-password <small>saisie de l'e-mail</small></div>
+      <div class="grid">
+        <section class="card">
+          <h1>Mot de passe oublié</h1>
+          <p class="intro">
+            Indiquez votre e-mail, nous vous envoyons un lien pour choisir un nouveau mot de passe.
+          </p>
+          <form>
+            <div class="field">
+              <label for="e">E-mail</label
+              ><input
+                class="input"
+                id="e"
+                type="email"
+                autocomplete="email"
+                value="alice@demo.lerevenu.test"
+              />
+            </div>
+            <button class="btn btn-primary" type="submit">Envoyer le lien</button>
+          </form>
+          <p class="hint"><a href="#">Retour à la connexion</a></p>
+        </section>
+
+        <section class="card">
+          <div class="ico" aria-hidden="true">✉</div>
+          <h1>Vérifiez votre boîte mail</h1>
+          <p class="intro">
+            Si un compte existe pour <b>alice@demo.lerevenu.test</b>, un lien vient de partir. Il
+            est valable une heure. Pensez aux courriers indésirables.
+          </p>
+          <p class="hint" style="margin-top: 22px">
+            Rien reçu ? <a href="#">Renvoyer le lien</a> · <a href="#">Retour à la connexion</a>
+          </p>
+          <div class="mail">
+            <b>Le mail (Mailpit en dev, http://localhost:8025)</b>Objet : Réinitialisez votre mot de
+            passe<br />Bonjour alice, cliquez sur ce lien pour choisir un nouveau mot de passe :<br /><code
+              >http://localhost:3000/reset-password?code=3f9c2a…</code
+            ><br /><span style="color: var(--ink-3)"
+              >Si vous n'êtes pas à l'origine de cette demande, ignorez ce message. · If you did not
+              ask for this, ignore this email.</span
+            >
+          </div>
+        </section>
+      </div>
+
+      <div class="label">2 · /reset-password?code=… <small>nouveau mot de passe</small></div>
+      <div class="grid">
+        <section class="card">
+          <h1>Nouveau mot de passe</h1>
+          <p class="intro">Pour le compte <b>alice</b>. Au moins 8 caractères.</p>
+          <form>
+            <div class="field">
+              <label for="p1">Nouveau mot de passe</label
+              ><input
+                class="input"
+                id="p1"
+                type="password"
+                autocomplete="new-password"
+                value="NouveauMdp2026!"
+              /><span class="desc">Au moins 8 caractères.</span>
+            </div>
+            <div class="field">
+              <label for="p2">Confirmer le mot de passe</label
+              ><input
+                class="input"
+                id="p2"
+                type="password"
+                autocomplete="new-password"
+                value="NouveauMdp2026"
+                aria-invalid="true"
+              /><span class="err">Les deux mots de passe ne correspondent pas.</span>
+            </div>
+            <button class="btn btn-primary" type="submit">Enregistrer et me connecter</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <h1>Lien expiré ou invalide</h1>
+          <p class="intro">
+            Ce lien a déjà servi ou n'est plus valable. Demandez-en un nouveau, c'est gratuit et
+            rapide.
+          </p>
+          <div class="banner err" role="alert">
+            ⚠ <span>Code de réinitialisation inconnu.</span>
+          </div>
+          <a class="btn btn-quiet" href="#" style="margin-top: 16px">Demander un nouveau lien</a>
+          <p class="hint"><a href="#">Retour à la connexion</a></p>
+        </section>
+      </div>
+
+      <div class="label">3 · Succès <small>redirection vers /discussions, toast</small></div>
+      <section class="card" style="max-width: 420px">
+        <div class="banner ok" style="margin-top: 0">
+          ✓ <span>Mot de passe enregistré. Bienvenue, alice.</span>
+        </div>
+        <p style="font-size: 13px; color: var(--ink-3); margin-top: 10px">
+          Strapi renvoie une session après la réinitialisation : la personne est connectée sans
+          repasser par la page de connexion.
+        </p>
+      </section>
+    </div>
+  </body>
+</html>
