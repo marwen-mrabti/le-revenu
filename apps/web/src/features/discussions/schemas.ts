@@ -72,3 +72,16 @@ export type DiscussionFilters = z.infer<typeof discussionFiltersSchema>;
 export const discussionQuerySchema = discussionFiltersSchema.extend({
   locale: z.enum(routing.locales).default(routing.defaultLocale),
 });
+
+export const TITLE_MIN = 10;
+export const TITLE_MAX = 150;
+export const CONTENT_MAX = 20000;
+
+/** What the author may change from the detail page; category and type come with the full form. */
+export const discussionEditSchema = z.object({
+  title: z.string().trim().min(TITLE_MIN, 'titleMin').max(TITLE_MAX, 'titleMax'),
+  content: z.string().trim().min(1, 'required').max(CONTENT_MAX, 'contentMax'),
+});
+export type DiscussionEditInput = z.infer<typeof discussionEditSchema>;
+
+export const discussionEnvelopeSchema = z.object({ discussion: discussionListItemSchema });

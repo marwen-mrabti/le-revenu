@@ -1,17 +1,26 @@
 import { getTranslations } from 'next-intl/server';
 
-import { ContentParagraphs } from '@/components/shared/content-paragraphs';
 import { RelativeTime } from '@/components/shared/relative-time';
 import { readerName, UserAvatar } from '@/components/shared/user-avatar';
 import { Badge } from '@/components/ui/badge';
 
 import type { DiscussionDetail } from '../schemas';
+import { DiscussionBody } from './discussion-body';
 
-/** The discussion itself: category, type, title, author line, content. */
-export async function DiscussionArticle({ discussion }: { discussion: DiscussionDetail }) {
+/** The discussion itself: category, type, title, author line, content; edit and delete for its author. */
+export async function DiscussionArticle({
+  discussion,
+  currentUserId,
+}: {
+  discussion: DiscussionDetail;
+  currentUserId: string | null;
+}) {
   const t = await getTranslations('Discussions');
   const author = discussion.author ? readerName(discussion.author) : t('anonymous');
   const color = discussion.category?.color ?? undefined;
+  const isOwner = Boolean(
+    discussion.author && currentUserId && discussion.author.documentId === currentUserId,
+  );
 
   return (
     <article
@@ -35,12 +44,15 @@ export async function DiscussionArticle({ discussion }: { discussion: Discussion
           </Badge>
         ) : null}
       </div>
-      <h1
-        id="discussion-title"
-        className="mt-2 font-heading text-[26px] leading-[1.2] font-bold tracking-tight sm:text-[29px]"
-      >
-        {discussion.title}
-      </h1>
+      <DiscussionBody
+        discussion={{
+          documentId: discussion.documentId,
+          title: discussion.title,
+          content: discussion.content,
+          replyCount: discussion.replies.length,
+        }}
+        isOwner={isOwner}
+      />
       <div className="mt-3.5 flex items-center gap-2.5">
         <UserAvatar
           avatarUrl={discussion.author?.avatarUrl}
@@ -54,7 +66,6 @@ export async function DiscussionArticle({ discussion }: { discussion: Discussion
           </p>
         </div>
       </div>
-      <ContentParagraphs text={discussion.content} className="mt-4 text-secondary-foreground" />
     </article>
   );
 }

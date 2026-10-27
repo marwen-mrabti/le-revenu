@@ -9,9 +9,11 @@ import { ReplyItem } from './reply-item';
 export function ReplyList({
   discussion,
   authorName,
+  currentUserId,
 }: {
   discussion: DiscussionDetail;
   authorName: string;
+  currentUserId: string | null;
 }) {
   const t = useTranslations('Replies');
   const count = discussion.replies.length;
@@ -25,7 +27,9 @@ export function ReplyList({
         <ReplyItem
           key={reply.documentId}
           reply={reply}
+          discussionId={discussion.documentId}
           discussionAuthorId={discussion.author?.documentId ?? null}
+          currentUserId={currentUserId}
         />
       ))}
     </section>

@@ -217,7 +217,11 @@
     "displayNameLength": "2 to 60 characters.",
     "usernameMismatch": "The username does not match.",
     "replyMin": "2 characters minimum.",
-    "replyMax": "5,000 characters maximum."
+    "replyMax": "5,000 characters maximum.",
+    "titleMin": "10 characters minimum.",
+    "titleMax": "150 characters maximum.",
+    "contentMax": "20,000 characters maximum.",
+    "invalid": "Content refused by the server."
   },
   "Account": {
     "title": "My account",
@@ -251,6 +255,29 @@
     "factsTitle": "This discussion",
     "factsReplies": "Replies",
     "factsPublished": "Published on",
-    "spaceDiscussions": "See this space's discussions"
+    "spaceDiscussions": "See this space's discussions",
+    "editTitle": "Title",
+    "editTitleHint": "10 to 150 characters.",
+    "editContent": "Content"
+  },
+  "Owner": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "deleting": "Deleting…",
+    "editLabel": "Edit: {subject}",
+    "deleteLabel": "Delete: {subject}",
+    "editingReply": "Editing your reply",
+    "editingDiscussion": "Editing the discussion",
+    "deleteReplyTitle": "Delete this reply?",
+    "deleteReplyText": "It will be removed from the discussion. This cannot be undone.",
+    "replyDeleted": "Reply deleted.",
+    "replySaved": "Reply saved.",
+    "deleteDiscussionTitle": "Delete this discussion?",
+    "deleteDiscussionText": "{count, plural, =0 {It will be removed from the community.} one {It will be removed with its reply.} other {It will be removed with its # replies.}} This cannot be undone.",
+    "discussionDeleted": "Discussion deleted.",
+    "discussionSaved": "Discussion saved."
   }
 }

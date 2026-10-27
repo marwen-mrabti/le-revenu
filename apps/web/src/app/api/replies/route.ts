@@ -7,9 +7,9 @@ import { BffError, toErrorResponse } from '@/lib/api/errors';
 import { assertJson, assertSameOrigin } from '@/lib/api/guards';
 import { readSessionFrom } from '@/lib/auth/session';
 import { entryTag } from '@/lib/cache/tags';
-import { StrapiError } from '@/lib/strapi/base';
 import { strapiAuth } from '@/lib/strapi/private';
 import { strapiOne } from '@/lib/strapi/schemas';
+import { mapWriteError } from '@/lib/api/write-errors';
 
 /**
  * Posts a reply for the session's reader. Strapi forces the author and checks
@@ -37,16 +37,10 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
 }
 
-/** Strapi's verdicts on a write, as stable codes the form can act on. */
+/** A 403 on a create means the token is stale (nobody else is involved): the form asks to log in again. */
 export function mapReplyError(error: unknown): unknown {
-  if (!(error instanceof StrapiError)) return error;
-  if (error.status === 403 || error.status === 401) {
-    return new BffError(401, 'UNAUTHENTICATED', 'Votre session a expiré.');
-  }
-  if (error.status === 404)
-    return new BffError(404, 'NOT_FOUND', "Cette discussion n'existe plus.");
-  if (error.status === 400) {
-    return new BffError(422, 'VALIDATION', 'Réponse invalide.', { content: ['replyMin'] });
-  }
-  return error;
+  const mapped = mapWriteError(error, 'content');
+  return mapped instanceof BffError && mapped.code === 'FORBIDDEN'
+    ? new BffError(401, 'UNAUTHENTICATED', 'Votre session a expiré.')
+    : mapped;
 }

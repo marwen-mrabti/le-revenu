@@ -217,7 +217,11 @@
     "displayNameLength": "2 à 60 caractères.",
     "usernameMismatch": "Le nom d'utilisateur ne correspond pas.",
     "replyMin": "2 caractères minimum.",
-    "replyMax": "5 000 caractères maximum."
+    "replyMax": "5 000 caractères maximum.",
+    "titleMin": "10 caractères minimum.",
+    "titleMax": "150 caractères maximum.",
+    "contentMax": "20 000 caractères maximum.",
+    "invalid": "Contenu refusé par le serveur."
   },
   "Account": {
     "title": "Mon compte",
@@ -251,6 +255,29 @@
     "factsTitle": "Cette discussion",
     "factsReplies": "Réponses",
     "factsPublished": "Publiée le",
-    "spaceDiscussions": "Voir les discussions de cet espace"
+    "spaceDiscussions": "Voir les discussions de cet espace",
+    "editTitle": "Titre",
+    "editTitleHint": "10 à 150 caractères.",
+    "editContent": "Contenu"
+  },
+  "Owner": {
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "deleting": "Suppression…",
+    "editLabel": "Modifier : {subject}",
+    "deleteLabel": "Supprimer : {subject}",
+    "editingReply": "Modification de votre réponse",
+    "editingDiscussion": "Modification de la discussion",
+    "deleteReplyTitle": "Supprimer cette réponse ?",
+    "deleteReplyText": "Elle sera retirée de la discussion. Cette action est irréversible.",
+    "replyDeleted": "Réponse supprimée.",
+    "replySaved": "Réponse enregistrée.",
+    "deleteDiscussionTitle": "Supprimer cette discussion ?",
+    "deleteDiscussionText": "{count, plural, =0 {Elle sera retirée de la communauté.} one {Elle sera retirée avec sa réponse.} other {Elle sera retirée avec ses # réponses.}} Cette action est irréversible.",
+    "discussionDeleted": "Discussion supprimée.",
+    "discussionSaved": "Discussion enregistrée."
   }
 }

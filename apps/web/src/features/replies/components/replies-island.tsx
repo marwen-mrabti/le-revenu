@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 
 import { IslandError } from '@/components/shared/island-error';
 import { readerName } from '@/components/shared/user-avatar';
+import { getCurrentUser } from '@/features/auth/data';
 import { getDiscussion } from '@/features/discussions/data';
 import type { AppLocale } from '@/i18n/routing';
 import { errorCodeOfStrapi } from '@/lib/api/error-codes';
@@ -17,15 +18,24 @@ export async function RepliesIsland({
   locale: AppLocale;
 }) {
   const t = await getTranslations('Discussions');
-  const result = await getDiscussion(await slug, locale).then(
-    (discussion) => ({ discussion, error: null }),
-    (error: unknown) => ({ discussion: undefined, error }),
-  );
+  const [result, user] = await Promise.all([
+    getDiscussion(await slug, locale).then(
+      (discussion) => ({ discussion, error: null }),
+      (error: unknown) => ({ discussion: undefined, error }),
+    ),
+    getCurrentUser(),
+  ]);
   if (result.discussion === undefined)
     return <IslandError error={errorCodeOfStrapi(result.error)} />;
   if (result.discussion === null) return null;
   const authorName = result.discussion.author
     ? readerName(result.discussion.author)
     : t('anonymous');
-  return <ReplyList discussion={result.discussion} authorName={authorName} />;
+  return (
+    <ReplyList
+      discussion={result.discussion}
+      authorName={authorName}
+      currentUserId={user?.documentId ?? null}
+    />
+  );
 }

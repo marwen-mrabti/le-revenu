@@ -14,3 +14,7 @@ export type ReplyInput = z.infer<typeof replyInputSchema>;
 
 /** `POST /api/replies` answers the created reply, as the detail populate shapes it. */
 export const replyEnvelopeSchema = z.object({ reply: replyItemSchema });
+
+/** Editing keeps the same content rules; the discussion id names the cache entry to expire. */
+export const replyEditSchema = replyInputSchema;
+export type ReplyEditInput = z.infer<typeof replyEditSchema>;
