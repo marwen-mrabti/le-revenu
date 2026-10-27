@@ -1,6 +1,6 @@
 # ADR-0006 — Tag-based cache invalidation driven by a Strapi webhook
 
-**Status:** Accepted · 2026-10-23
+**Status:** Accepted · implemented in branch 06 (2026-10-27): `apps/web/src/app/api/revalidate/route.ts`, `apps/cms/src/bootstrap/ensure-webhook.ts` · 2026-10-23
 
 ## Context
 

@@ -1,6 +1,6 @@
 # 06 — Discussion detail and replies
 
-Branch: `feature/discussion-detail` · Target: `development` · Estimate: 11.5 h · Status: approved
+Branch: `feature/discussion-detail` · Target: `development` · Estimate: 11.5 h · Status: done (2026-10-27)
 
 ## 1. Goal
 

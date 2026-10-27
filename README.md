@@ -117,14 +117,14 @@ You can also create your own account on `/register` (username, email, password o
 | Feature                                                               | Status                      |
 | --------------------------------------------------------------------- | --------------------------- |
 | Discussion list: filter by space, sort by date, search, pagination    | ✔ `/discussions`            |
-| Discussion detail with its replies, clean URL by slug                 | backend ready, page to come |
+| Discussion detail with its replies, clean URL by slug                 | ✔ `/discussions/<slug>`     |
 | Login, sign-up with email confirmation, Google, logout, account menu  | ✔ `/login`, `/register`     |
 | Forgot / reset password by mail                                       | ✔ `/forgot-password`        |
 | Account page: display name, username, password, delete account        | ✔ `/account`                |
 | First password for a Google account, set from the account page        | ✔ `/account`                |
 | Google name and picture; Google login linked to a password account    | ✔                           |
 | Create a discussion (title ≥ 10 characters, content, space, type)     | backend ready, page to come |
-| Reply to a discussion                                                 | backend ready, page to come |
+| Reply to a discussion, edit and delete own replies and discussions    | ✔ from the detail page      |
 | French and English interface, language menu, light / dark theme       | ✔                           |
 | Custom 404 and 500 pages (header kept, search, spaces, incident code) | ✔                           |
 
@@ -140,6 +140,7 @@ Browser ──(JSON + httpOnly cookie)──► Next.js Route Handlers ──(Be
 
 - **Strapi** is the single source of truth: schemas, validation, permissions, business rules.
 - **Next.js** never talks to the database. Server Components read Strapi through a typed data access layer; Client Components go through Route Handlers (`/api/*`). No Server Actions.
+- The discussion page is cached (`'use cache'`, hours) and tagged per collection and per entry; the reply and edit handlers expire the entry at once, and a Strapi webhook (`POST /api/revalidate`, registered at boot) expires it after an edit in the admin (ADR-0006).
 - The Strapi JWT lives in an `httpOnly` cookie set by Next.js; it never reaches browser JavaScript and the Strapi URL is not exposed (one documented exception for the Google flow, ADR-0009).
 - Diagrams and flows: [`docs/architecture.md`](docs/architecture.md). Data model: [`docs/data-model.md`](docs/data-model.md).
 
@@ -202,7 +203,7 @@ curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&
 
 Playwright needs a browser: `pnpm --filter web exec playwright install chromium`, once. By default it builds then starts the application; with `E2E_BASE_URL=http://localhost:3000` it uses the development server already running. Strapi limits logins to 10 per minute per IP: do not log in by hand during a run.
 
-The four tests required by the brief (discussion validation, unauthenticated post refused, author spoofing blocked, discussion listing) live in `apps/cms/tests/`, together with ownership, replies, login, bilingual categories, email confirmation, password reset, the own-account rules, the first password of a Google account and the stored mail templates: 13 files, 55 tests, about 20 s.
+The four tests required by the brief (discussion validation, unauthenticated post refused, author spoofing blocked, discussion listing) live in `apps/cms/tests/`, together with ownership, replies, login, bilingual categories, email confirmation, password reset, the own-account rules, the first password of a Google account, the stored mail templates and the revalidation webhook: 14 files, 56 tests, about 20 s.
 
 How the backend tests run:
 
@@ -212,9 +213,9 @@ How the backend tests run:
 
 Prerequisites: PostgreSQL running (`docker compose up -d db` creates `lerevenu_test`), `apps/cms/.env` filled. `DATABASE_TEST_NAME` changes the test database name.
 
-Frontend tests (`apps/web`, Vitest + Testing Library, colocated `*.test.ts(x)`, 110 tests): the Strapi client (query string, error envelope, unexpected answer, unreachable server), the filters schema and the URL ↔ state mapping (defaults, invalid page, `clearOnDefault`), the discussion card (the brief's five fields, link to the detail, no email or numeric id), pagination (current page, filters kept, bounds), the `GET /api/discussions` handler (422 on an unknown sort, locale passed, 503 without leaking Strapi's message), the session cookie and request guards, the thirteen auth and account handlers, the two mail-link landings (reader language), the login, sign-up, forgot, reset, profile, password, first-password and delete forms, the verify-email page, the user menu, the islands (error → fallback → retry), the 500 page, the language menu and theme toggle, fr / en key parity.
+Frontend tests (`apps/web`, Vitest + Testing Library, colocated `*.test.ts(x)`, 133 tests): the Strapi client (query string, error envelope, unexpected answer, unreachable server), the filters schema and the URL ↔ state mapping (defaults, invalid page, `clearOnDefault`), the discussion card (the brief's five fields, link to the detail, no email or numeric id), pagination (current page, filters kept, bounds), the `GET /api/discussions` handler (422 on an unknown sort, locale passed, 503 without leaking Strapi's message), the session cookie and request guards, the auth, account, reply, discussion and revalidate handlers, the two mail-link landings (reader language), the login, sign-up, forgot, reset, profile, password, first-password and delete forms, the reply form and list, the owner actions, the cache tags, the verify-email page, the user menu, the islands (error → fallback → retry), the 500 page, the language menu and theme toggle, fr / en key parity.
 
-End to end (`apps/web/e2e`, Playwright): login and session privacy, i18n, 404 / 500 pages, resilience (a 503 on the list leaves the page intact), and the account lifecycle through Mailpit's API (sign-up → mail → confirm → login → profile → forgot → reset → delete). The account spec skips itself when Mailpit is not reachable, and needs Strapi to send through Mailpit (`SMTP_HOST=localhost`): with a real relay such as Resend's free tier, the test addresses are refused and the sign-up step fails.
+End to end (`apps/web/e2e`, Playwright): login and session privacy, i18n, 404 / 500 pages, resilience (a 503 on the list leaves the page intact), the discussion detail (from the list, visitor call to action, alice replies, edits and deletes, 404), and the account lifecycle through Mailpit's API (sign-up → mail → confirm → login → profile → forgot → reset → delete). The account spec skips itself when Mailpit is not reachable, and needs Strapi to send through Mailpit (`SMTP_HOST=localhost`): with a real relay such as Resend's free tier, the test addresses are refused and the sign-up step fails.
 
 ## 9. Quality and CI/CD
 
@@ -233,17 +234,17 @@ apps/cms/                       Strapi 5 (TypeScript)
   src/api/discussion/utils/     slug.ts (server-made slug), presenter.ts (reduced author, no numeric id)
   src/policies/                 is-owner.ts (404 / 403 when the caller is not the author), is-self.ts (own user record only)
   src/extensions/users-permissions/  user fields displayName and avatarUrl, Google linking, is-self on the user routes
-  src/bootstrap/                env check, indexes, locales, permissions, login providers, Google profile, mail settings
+  src/bootstrap/                env check, indexes, locales, permissions, login providers, Google profile, mail settings, webhook
   src/emails/                   React Email templates (layout, confirmation, reset) rendered at boot
   src/seed/                     demo data, loaded once on an empty database
   tests/                        integration tests (one Strapi on :1338, lerevenu_test database)
   database/demo.sqlite          pre-filled database of the zero-setup mode
 
 apps/web/                       Next.js 16 (App Router, Cache Components)
-  src/app/[locale]/             pages: (forum)/discussions, (auth)/login, register, forgot-password, reset-password,
+  src/app/[locale]/             pages: (forum)/discussions and discussions/[slug], (auth)/login, register, forgot-password, reset-password,
                                 verify-email, account, auth/google/callback, not-found.tsx, error.tsx; loading.tsx per page
-  src/app/api/                  Route Handlers (BFF): auth/*, account, discussions, categories
-  src/features/<domain>/        discussions, categories, auth: schemas (zod), data (server access),
+  src/app/api/                  Route Handlers (BFF): auth/*, account, discussions, replies, categories, revalidate (webhook)
+  src/features/<domain>/        discussions, replies, categories, auth: schemas (zod), data (server access),
                                 api (TanStack queries and mutations), components, hooks
   src/components/               ui/ (shadcn), form/ (fields bound to the form hook), shared/ (islands, avatar), layout/, theme/
   src/lib/                      strapi/ (typed client, only reader of STRAPI_URL), api/ (BFF client, errors,
