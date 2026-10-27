@@ -10,7 +10,14 @@ const mutate = vi.fn();
 vi.mock('@/lib/toast', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock('../api/mutations', () => ({ useLogout: () => ({ mutate, isPending: false }) }));
 
-const user = { documentId: 'u1', username: 'alice', email: 'alice@demo.lerevenu.test' };
+const user = {
+  documentId: 'u1',
+  username: 'alice',
+  email: 'alice@demo.lerevenu.test',
+  displayName: null,
+  avatarUrl: null,
+  provider: 'local',
+};
 
 describe('UserMenu', () => {
   it('shows the username and signs out from the menu', async () => {
