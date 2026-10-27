@@ -80,7 +80,20 @@ Prerequisites: Node 24, pnpm 10, Docker with Compose v2.
 
 On first boot Strapi creates the tables, the two locales (fr by default, en), the role permissions, the mail settings, then the demo data when `SEED_DEMO_DATA=true`. A second boot duplicates nothing.
 
-Mails (confirmation at sign-up, password reset) go to Mailpit: open http://localhost:8025 to read them. Their links land on the web app in the reader's language. `apps/cms/.env.example` already points `SMTP_HOST` at it. With `SMTP_HOST` empty, mails are discarded, sign-up needs no confirmation, and Strapi logs one warning at boot. In production, set `SMTP_*` to any relay (Resend, Brevo, Postmark).
+Mails (confirmation at sign-up, password reset) go to Mailpit: open http://localhost:8025 to read them. Their links land on the web app in the reader's language. `apps/cms/.env.example` already points `SMTP_HOST` at it. With `SMTP_HOST` empty, mails are discarded, sign-up needs no confirmation, and Strapi logs one warning at boot.
+
+Real inboxes, with Resend (free, no code change): create an API key at https://resend.com/api-keys, then in `apps/cms/.env`:
+
+```bash
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=resend
+SMTP_PASS=re_…                                         # the API key
+EMAIL_FROM="Communauté Le Revenu <onboarding@resend.dev>"
+```
+
+Until a domain is verified in Resend, it only delivers to the address of the Resend account and the sender must stay `onboarding@resend.dev`; other recipients are refused (the forgot-password handler then answers 502). For production, verify a domain and put an address of that domain in `EMAIL_FROM`. Any other SMTP relay (Brevo, Postmark, Gmail with an app password) works the same way.
 
 Google login, optional: create a "Web" OAuth client in Google Cloud with the redirect URI `http://localhost:1337/api/connect/google/callback`, put `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `apps/cms/.env` and `NEXT_PUBLIC_GOOGLE_LOGIN=true` in `apps/web/.env`, restart. Without these values the Google button is not shown.
 
@@ -260,19 +273,20 @@ Every structural decision is recorded as an ADR (Architecture Decision Record): 
 
 ## 12. Troubleshooting
 
-| Symptom                                            | Cause and remedy                                                                                               |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `pnpm install` rejects the Node version            | Node 24 required: `nvm use` (reads `.nvmrc`) or `mise use`                                                     |
-| `pnpm: command not found`                          | `corepack enable`, then retry                                                                                  |
-| `EADDRINUSE 1337` or `3000`                        | Another Strapi or Next is already running; never run two `strapi develop` in the same folder                   |
-| Strapi: `Environment check failed`                 | A variable is missing or still `change-me` in `apps/cms/.env`; the message lists them                          |
-| Next: `Invalid environment variables` (production) | `STRAPI_URL` and `REVALIDATE_SECRET` are required in production                                                |
-| `connect ECONNREFUSED 5432`                        | Docker not started: `docker compose up -d db`, then `docker compose ps`                                        |
-| Login: "Too many attempts"                         | Strapi allows 10 logins per minute per IP; wait a minute                                                       |
-| Google: "access blocked"                           | Google app in testing mode: add your address in Google Auth Platform → Audience → Test users                   |
-| No confirmation or reset mail arrives              | Mailpit not started (`docker compose up -d mailpit`) or `SMTP_HOST` empty; read mails at http://localhost:8025 |
-| Login: "address not confirmed yet"                 | Click the link in the confirmation mail, or use "resend the link"; only the newest mail is valid               |
-| Integration tests: `Refusing to reset`             | The target database does not end with `_test`; check `DATABASE_TEST_NAME`                                      |
+| Symptom                                            | Cause and remedy                                                                                                                                                                        |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm install` rejects the Node version            | Node 24 required: `nvm use` (reads `.nvmrc`) or `mise use`                                                                                                                              |
+| `pnpm: command not found`                          | `corepack enable`, then retry                                                                                                                                                           |
+| `EADDRINUSE 1337` or `3000`                        | Another Strapi or Next is already running; never run two `strapi develop` in the same folder                                                                                            |
+| Strapi: `Environment check failed`                 | A variable is missing or still `change-me` in `apps/cms/.env`; the message lists them                                                                                                   |
+| Next: `Invalid environment variables` (production) | `STRAPI_URL` and `REVALIDATE_SECRET` are required in production                                                                                                                         |
+| `connect ECONNREFUSED 5432`                        | Docker not started: `docker compose up -d db`, then `docker compose ps`                                                                                                                 |
+| Login: "Too many attempts"                         | Strapi allows 10 logins per minute per IP; wait a minute                                                                                                                                |
+| Google: "access blocked"                           | Google app in testing mode: add your address in Google Auth Platform → Audience → Test users                                                                                            |
+| No confirmation or reset mail arrives              | Mailpit not started (`docker compose up -d mailpit`) or `SMTP_HOST` empty; read mails at http://localhost:8025. Mailpit never delivers to a real inbox: use Resend for that (section 2) |
+| Resend: `550 You can only send testing emails…`    | Free tier without a verified domain: only the Resend account's own address receives mail                                                                                                |
+| Login: "address not confirmed yet"                 | Click the link in the confirmation mail, or use "resend the link"; only the newest mail is valid                                                                                        |
+| Integration tests: `Refusing to reset`             | The target database does not end with `_test`; check `DATABASE_TEST_NAME`                                                                                                               |
 
 ## 13. Evolutions
 

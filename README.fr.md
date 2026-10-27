@@ -80,7 +80,20 @@ Prérequis : Node 24, pnpm 10, Docker avec Compose v2.
 
 Au premier démarrage, Strapi crée les tables, les deux locales (fr par défaut, en), les permissions des rôles, les réglages de messagerie, puis les données de démonstration si `SEED_DEMO_DATA=true`. Un second démarrage ne duplique rien.
 
-Les mails (confirmation à l'inscription, réinitialisation du mot de passe) arrivent dans Mailpit : ouvrir http://localhost:8025 pour les lire. Leurs liens arrivent sur le site dans la langue du lecteur. `apps/cms/.env.example` pointe déjà `SMTP_HOST` dessus. Avec `SMTP_HOST` vide, les mails sont jetés, l'inscription ne demande pas de confirmation et Strapi affiche un avertissement au démarrage. En production, renseigner `SMTP_*` avec n'importe quel relais (Resend, Brevo, Postmark).
+Les mails (confirmation à l'inscription, réinitialisation du mot de passe) arrivent dans Mailpit : ouvrir http://localhost:8025 pour les lire. Leurs liens arrivent sur le site dans la langue du lecteur. `apps/cms/.env.example` pointe déjà `SMTP_HOST` dessus. Avec `SMTP_HOST` vide, les mails sont jetés, l'inscription ne demande pas de confirmation et Strapi affiche un avertissement au démarrage.
+
+Vraies boîtes mail, avec Resend (gratuit, sans changement de code) : créer une clé API sur https://resend.com/api-keys, puis dans `apps/cms/.env` :
+
+```bash
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=resend
+SMTP_PASS=re_…                                         # la clé API
+EMAIL_FROM="Communauté Le Revenu <onboarding@resend.dev>"
+```
+
+Tant qu'aucun domaine n'est vérifié dans Resend, seule l'adresse du compte Resend reçoit les mails et l'expéditeur doit rester `onboarding@resend.dev` ; les autres destinataires sont refusés (le handler mot de passe oublié répond alors 502). En production, vérifier un domaine et mettre une adresse de ce domaine dans `EMAIL_FROM`. Tout autre relais SMTP (Brevo, Postmark, Gmail avec un mot de passe d'application) fonctionne de la même façon.
 
 Connexion Google, facultative : créer un client OAuth « Web » dans Google Cloud avec l'URI de redirection `http://localhost:1337/api/connect/google/callback`, mettre `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` dans `apps/cms/.env` et `NEXT_PUBLIC_GOOGLE_LOGIN=true` dans `apps/web/.env`, redémarrer. Sans ces valeurs, le bouton Google n'apparaît pas.
 
@@ -260,19 +273,20 @@ Chaque décision structurante est consignée dans un ADR (Architecture Decision 
 
 ## 12. Problèmes fréquents
 
-| Symptôme                                            | Cause et remède                                                                                                   |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `pnpm install` refuse la version de Node            | Node 24 requis : `nvm use` (lit `.nvmrc`) ou `mise use`                                                           |
-| `pnpm: command not found`                           | `corepack enable`, puis relancer                                                                                  |
-| `EADDRINUSE 1337` ou `3000`                         | Un autre Strapi ou Next tourne déjà ; ne jamais lancer deux `strapi develop` dans le même dossier                 |
-| Strapi : `Environment check failed`                 | Une variable manque ou vaut `change-me` dans `apps/cms/.env` ; la liste est dans le message                       |
-| Next : `Invalid environment variables` (production) | `STRAPI_URL` et `REVALIDATE_SECRET` sont obligatoires en production                                               |
-| `connect ECONNREFUSED 5432`                         | Docker non démarré : `docker compose up -d db`, puis `docker compose ps`                                          |
-| Connexion : « Trop de tentatives »                  | Strapi limite à 10 connexions par minute et par IP ; attendre une minute                                          |
-| Google : « access blocked »                         | Application Google en mode test : ajouter votre adresse dans Google Auth Platform → Audience → Test users         |
-| Aucun mail de confirmation ou de réinitialisation   | Mailpit non lancé (`docker compose up -d mailpit`) ou `SMTP_HOST` vide ; lire les mails sur http://localhost:8025 |
-| Connexion : « adresse pas encore confirmée »        | Cliquer le lien du mail de confirmation, ou « Renvoyer le lien » ; seul le mail le plus récent est valable        |
-| Tests d'intégration : `Refusing to reset`           | La base visée ne finit pas par `_test` ; vérifier `DATABASE_TEST_NAME`                                            |
+| Symptôme                                            | Cause et remède                                                                                                                                                                              |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm install` refuse la version de Node            | Node 24 requis : `nvm use` (lit `.nvmrc`) ou `mise use`                                                                                                                                      |
+| `pnpm: command not found`                           | `corepack enable`, puis relancer                                                                                                                                                             |
+| `EADDRINUSE 1337` ou `3000`                         | Un autre Strapi ou Next tourne déjà ; ne jamais lancer deux `strapi develop` dans le même dossier                                                                                            |
+| Strapi : `Environment check failed`                 | Une variable manque ou vaut `change-me` dans `apps/cms/.env` ; la liste est dans le message                                                                                                  |
+| Next : `Invalid environment variables` (production) | `STRAPI_URL` et `REVALIDATE_SECRET` sont obligatoires en production                                                                                                                          |
+| `connect ECONNREFUSED 5432`                         | Docker non démarré : `docker compose up -d db`, puis `docker compose ps`                                                                                                                     |
+| Connexion : « Trop de tentatives »                  | Strapi limite à 10 connexions par minute et par IP ; attendre une minute                                                                                                                     |
+| Google : « access blocked »                         | Application Google en mode test : ajouter votre adresse dans Google Auth Platform → Audience → Test users                                                                                    |
+| Aucun mail de confirmation ou de réinitialisation   | Mailpit non lancé (`docker compose up -d mailpit`) ou `SMTP_HOST` vide ; lire les mails sur http://localhost:8025. Mailpit ne livre jamais une vraie boîte : utiliser Resend pour cela (§ 2) |
+| Resend : `550 You can only send testing emails…`    | Offre gratuite sans domaine vérifié : seule l'adresse du compte Resend reçoit les mails                                                                                                      |
+| Connexion : « adresse pas encore confirmée »        | Cliquer le lien du mail de confirmation, ou « Renvoyer le lien » ; seul le mail le plus récent est valable                                                                                   |
+| Tests d'intégration : `Refusing to reset`           | La base visée ne finit pas par `_test` ; vérifier `DATABASE_TEST_NAME`                                                                                                                       |
 
 ## 13. Évolutions
 
