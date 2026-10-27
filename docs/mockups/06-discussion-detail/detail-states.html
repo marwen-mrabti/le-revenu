@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mockup 06 · États du détail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand: #eb0f0f;
+        --brand-text: #e00b0b;
+        --ok: #1a8a4a;
+        --ok-soft: #e4f6ea;
+        --alert: #e00b0b;
+        --bg: #f5f5f7;
+        --surface: #fff;
+        --ink: #1d1d1f;
+        --ink-2: #48484a;
+        --ink-3: #6e6e73;
+        --line: #e5e5ea;
+        --hairline: rgba(0, 0, 0, 0.07);
+        --fill: rgba(0, 0, 0, 0.05);
+        --r: 14px;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --f-body: 'Inter', system-ui, sans-serif;
+        --f-display: 'Playfair Display', Georgia, serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --brand-text: #ff6961;
+          --ok: #30d158;
+          --ok-soft: #173a22;
+          --alert: #ff6961;
+          --bg: #161618;
+          --surface: #1c1c1e;
+          --ink: #f5f5f7;
+          --ink-2: #c7c7cc;
+          --ink-3: #8e8e93;
+          --line: #38383a;
+          --hairline: rgba(255, 255, 255, 0.08);
+          --fill: rgba(255, 255, 255, 0.07);
+          --shadow: none;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.5 var(--f-body);
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .wrap {
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 24px 16px 80px;
+      }
+      .label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin: 28px 0 10px;
+      }
+      .label small {
+        font-weight: 400;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-left: 8px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 24px;
+        align-items: start;
+      }
+      .post {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r);
+        padding: 20px 22px;
+        box-shadow: var(--shadow);
+      }
+      .post h1 {
+        font: 700 24px/1.2 var(--f-display);
+        margin: 8px 0 12px;
+      }
+      .post h3 {
+        font: 700 17px var(--f-display);
+      }
+      .muted {
+        color: var(--ink-3);
+        font-size: 14px;
+        margin-top: 6px;
+      }
+      .author {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .av {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(235, 15, 15, 0.15);
+        color: var(--brand-text);
+        font: 700 11px/28px var(--f-body);
+        text-align: center;
+        flex: none;
+      }
+      .author-sub {
+        color: var(--ink-3);
+        font-size: 12.5px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 110px;
+        margin-top: 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px;
+        font: inherit;
+        color: var(--ink);
+        background: transparent;
+      }
+      textarea[aria-invalid='true'] {
+        border-color: var(--alert);
+      }
+      .err {
+        font-size: 12.5px;
+        color: var(--alert);
+        font-weight: 500;
+        margin-top: 6px;
+      }
+      .reply-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+      }
+      .counter {
+        font-size: 12.5px;
+        color: var(--ink-3);
+      }
+      .counter.over {
+        color: var(--alert);
+        font-weight: 600;
+      }
+      .btn {
+        height: 40px;
+        padding: 0 18px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        font: 600 14.5px var(--f-body);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: var(--brand);
+        color: #fff;
+      }
+      .btn-secondary {
+        background: var(--fill);
+        color: var(--ink);
+      }
+      .btn[disabled] {
+        opacity: 0.55;
+      }
+      .banner {
+        display: flex;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 500;
+        margin-top: 12px;
+      }
+      .banner.err {
+        background: color-mix(in srgb, var(--alert) 10%, transparent);
+        color: var(--alert);
+      }
+      .sk {
+        background: var(--fill);
+        border-radius: 6px;
+        height: 14px;
+        margin-top: 10px;
+      }
+      .sk.title {
+        height: 26px;
+        width: 70%;
+      }
+      .sk.w40 {
+        width: 40%;
+      }
+      .sk.w90 {
+        width: 90%;
+      }
+      .sk.w60 {
+        width: 60%;
+      }
+      .island-err {
+        border-style: dashed;
+        text-align: center;
+      }
+      .island-err b {
+        display: block;
+        font-size: 15px;
+        margin-bottom: 4px;
+      }
+      .chip {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--brand-text);
+        background: rgba(235, 15, 15, 0.1);
+        border-radius: 999px;
+        padding: 2px 8px;
+        margin-left: 6px;
+        vertical-align: middle;
+      }
+      .hero {
+        text-align: center;
+        padding: 40px 20px;
+      }
+      .hero .code {
+        font: 700 56px/1 var(--f-display);
+        color: var(--brand-text);
+      }
+      .hero h1 {
+        font: 700 26px var(--f-display);
+        margin-top: 10px;
+      }
+      .new {
+        border-color: var(--ok);
+        box-shadow:
+          0 0 0 1px var(--ok),
+          var(--shadow);
+      }
+      .note {
+        font-size: 12.5px;
+        color: var(--ink-3);
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1 style="font: 700 22px var(--f-display)">États de la page détail</h1>
+      <p style="color: var(--ink-3); margin-top: 4px">
+        Chaque bloc est un îlot : il charge et échoue seul, le reste de la page reste en place.
+      </p>
+
+      <div class="label">1 · Visiteur non connecté <small>à la place du formulaire</small></div>
+      <div class="grid">
+        <section class="post">
+          <h3>Vous avez un avis ou une expérience à partager ?</h3>
+          <p class="muted">Connectez-vous pour répondre à alice. Vous reviendrez ici ensuite.</p>
+          <p style="margin-top: 14px">
+            <a class="btn btn-primary">Se connecter pour répondre</a>
+            <a class="btn btn-secondary" style="margin-left: 8px">Créer un compte</a>
+          </p>
+          <p class="note">
+            Lien : <code>/login?next=/discussions/pea-ou-cto-pour-un-premier-etf-monde</code>
+          </p>
+        </section>
+        <section class="post">
+          <h2 style="font: 700 17px var(--f-body)">Aucune réponse pour l'instant</h2>
+          <p class="muted">
+            Soyez la première personne à aider alice : votre expérience compte, même partielle.
+          </p>
+          <p class="note">
+            Zéro réponse : le titre de section remplace « N réponses » et le formulaire (ou l'appel
+            à connexion) suit directement.
+          </p>
+        </section>
+      </div>
+
+      <div class="label">2 · Formulaire, erreurs <small>au blur ou à la soumission</small></div>
+      <div class="grid">
+        <form class="post">
+          <div class="author">
+            <span class="av">A</span>
+            <div class="author-sub">
+              Répondre en tant que <b style="color: var(--ink)">alice</b>
+            </div>
+          </div>
+          <textarea aria-invalid="true">M</textarea>
+          <p class="err">2 caractères minimum.</p>
+          <div class="reply-foot">
+            <span class="counter">1 / 5000</span
+            ><button class="btn btn-primary" disabled>Publier ma réponse</button>
+          </div>
+        </form>
+        <form class="post">
+          <div class="author">
+            <span class="av">A</span>
+            <div class="author-sub">
+              Répondre en tant que <b style="color: var(--ink)">alice</b>
+            </div>
+          </div>
+          <textarea aria-invalid="true">Lorem ipsum dolor sit amet… (5 120 caractères)</textarea>
+          <p class="err">5 000 caractères maximum.</p>
+          <div class="reply-foot">
+            <span class="counter over">5 120 / 5000</span
+            ><button class="btn btn-primary" disabled>Publier ma réponse</button>
+          </div>
+        </form>
+        <form class="post">
+          <div class="author">
+            <span class="av">A</span>
+            <div class="author-sub">
+              Répondre en tant que <b style="color: var(--ink)">alice</b>
+            </div>
+          </div>
+          <textarea>Merci à vous deux, je pars sur un PEA.</textarea>
+          <div class="banner err">
+            ⚠
+            <span
+              >Le serveur de contenu est indisponible. Votre texte est conservé, réessayez dans un
+              instant.</span
+            >
+          </div>
+          <div class="reply-foot">
+            <span class="counter">41 / 5000</span><button class="btn btn-primary">Réessayer</button>
+          </div>
+        </form>
+        <form class="post">
+          <div class="author">
+            <span class="av">A</span>
+            <div class="author-sub">
+              Répondre en tant que <b style="color: var(--ink)">alice</b>
+            </div>
+          </div>
+          <textarea>Merci à vous deux.</textarea>
+          <div class="banner err">
+            ⚠
+            <span
+              >Votre session a expiré. <a style="text-decoration: underline">Reconnectez-vous</a>,
+              votre texte sera conservé.</span
+            >
+          </div>
+          <div class="reply-foot">
+            <span class="counter">18 / 5000</span
+            ><button class="btn btn-primary" disabled>Publier ma réponse</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="label">
+        3 · Après publication
+        <small
+          >la réponse apparaît en bas, surlignée, reçoit le focus ; le formulaire se vide</small
+        >
+      </div>
+      <div class="grid">
+        <article class="post new">
+          <div class="author">
+            <span class="av">A</span>
+            <div>
+              <div style="font-weight: 600; font-size: 14.5px">
+                alice <span class="chip">Auteur</span>
+              </div>
+              <div class="author-sub">à l'instant</div>
+            </div>
+          </div>
+          <p style="margin-top: 10px; color: var(--ink-2)">
+            Merci à vous deux, je pars sur un PEA et un ETF monde synthétique.
+          </p>
+          <p class="note">
+            Le compteur « 3 réponses » devient « 4 réponses », la carte « Cette discussion » aussi.
+            Le surlignage s'estompe en deux secondes.
+          </p>
+        </article>
+      </div>
+
+      <div class="label">
+        4 · Chargement
+        <small>squelette de l'article et de deux réponses, formulaire déjà présent</small>
+      </div>
+      <div class="grid">
+        <section class="post" aria-busy="true">
+          <div class="sk w40" style="margin-top: 0"></div>
+          <div class="sk title"></div>
+          <div class="sk w40"></div>
+          <div class="sk w90" style="margin-top: 18px"></div>
+          <div class="sk w90"></div>
+          <div class="sk w60"></div>
+        </section>
+        <section class="post" aria-busy="true" style="padding: 16px 20px">
+          <div class="sk w40" style="margin-top: 0"></div>
+          <div class="sk w90"></div>
+          <div class="sk w60"></div>
+        </section>
+      </div>
+
+      <div class="label">
+        5 · Erreurs <small>l'îlot article échoue, la page reste ; slug inconnu → 404 du site</small>
+      </div>
+      <div class="grid">
+        <section class="post island-err">
+          <b>Le serveur de contenu est indisponible.</b
+          ><span class="muted">Réessayez dans un instant.</span>
+          <p style="margin-top: 14px"><button class="btn btn-secondary">Réessayer</button></p>
+          <p class="note">
+            En-tête, fil d'Ariane, colonne de droite et formulaire restent affichés.
+          </p>
+        </section>
+        <section class="post hero">
+          <div class="code">404</div>
+          <h1>Cette discussion n'existe pas</h1>
+          <p class="muted">
+            Elle a peut-être été supprimée. Retrouvez les discussions ou cherchez un sujet.
+          </p>
+          <p style="margin-top: 14px"><a class="btn btn-primary">Voir les discussions</a></p>
+        </section>
+      </div>
+
+      <div class="label">
+        6 · Actions de l'auteur
+        <small
+          >visibles uniquement par l'auteur du message ; Strapi refuse de toute façon les autres
+          (403)</small
+        >
+      </div>
+      <div class="grid">
+        <article class="post">
+          <div class="author">
+            <span class="av">A</span>
+            <div>
+              <div style="font-weight: 600; font-size: 14.5px">
+                alice <span class="chip">Auteur</span>
+              </div>
+              <div class="author-sub">
+                il y a 3 heures · <span style="color: var(--ink-3)">modifié</span>
+              </div>
+            </div>
+            <span style="margin-left: auto; display: flex; gap: 4px"
+              ><a class="btn btn-secondary" style="height: 30px; padding: 0 10px; font-size: 13px"
+                >Modifier</a
+              ><a
+                class="btn btn-secondary"
+                style="height: 30px; padding: 0 10px; font-size: 13px; color: var(--alert)"
+                >Supprimer</a
+              ></span
+            >
+          </div>
+          <p style="margin-top: 10px; color: var(--ink-2)">
+            Merci à vous deux, je pars sur un PEA et un ETF monde synthétique.
+          </p>
+          <p class="note">
+            Même paire sur l'article de la discussion, dans la ligne auteur. bob ne voit rien.
+          </p>
+        </article>
+        <form class="post">
+          <div class="author">
+            <span class="av">A</span>
+            <div class="author-sub">Modification de votre réponse</div>
+          </div>
+          <textarea>
+Merci à vous deux, je pars sur un PEA et un ETF monde synthétique (capitalisant).</textarea>
+          <div class="reply-foot">
+            <span class="counter">78 / 5000</span
+            ><span
+              ><a class="btn btn-secondary">Annuler</a>
+              <button class="btn btn-primary" style="margin-left: 8px">Enregistrer</button></span
+            >
+          </div>
+          <p class="note">
+            Échap ou « Annuler » rétablit le texte. Mêmes règles que la création (2 à 5 000
+            caractères).
+          </p>
+        </form>
+        <form class="post">
+          <div class="author-sub">Modification de la discussion</div>
+          <input
+            style="
+              width: 100%;
+              margin-top: 12px;
+              height: 40px;
+              border: 1px solid var(--line);
+              border-radius: 10px;
+              padding: 0 12px;
+              font: inherit;
+              color: var(--ink);
+              background: transparent;
+            "
+            value="PEA ou CTO pour un premier ETF monde ?"
+          /><textarea style="min-height: 140px">
+Je débute avec 200 € par mois et j'hésite entre ouvrir un PEA ou un compte-titres…</textarea>
+          <div class="reply-foot">
+            <span class="counter">Titre : 10 caractères minimum</span
+            ><span
+              ><a class="btn btn-secondary">Annuler</a>
+              <button class="btn btn-primary" style="margin-left: 8px">Enregistrer</button></span
+            >
+          </div>
+          <p class="note">Catégorie et type : avec le formulaire complet de la branche 07.</p>
+        </form>
+        <section class="post">
+          <h3>Supprimer cette réponse ?</h3>
+          <p class="muted">Elle sera retirée de la discussion. Cette action est irréversible.</p>
+          <p style="margin-top: 14px; text-align: right">
+            <a class="btn btn-secondary">Annuler</a>
+            <a class="btn btn-primary" style="margin-left: 8px">Supprimer</a>
+          </p>
+          <p class="note">
+            Pour la discussion : « Supprimer cette discussion et ses N réponses ? » puis retour à la
+            liste avec un message « Discussion supprimée ».
+          </p>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>
