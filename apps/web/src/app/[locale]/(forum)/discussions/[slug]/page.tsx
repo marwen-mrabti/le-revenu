@@ -17,6 +17,7 @@ import { DiscussionArticleSkeleton } from '@/features/discussions/components/dis
 import { DiscussionAsideIsland } from '@/features/discussions/components/discussion-aside-island';
 import { getDiscussion } from '@/features/discussions/data';
 import { RepliesIsland } from '@/features/replies/components/replies-island';
+import { ReplyBoxIsland } from '@/features/replies/components/reply-box-island';
 import { ReplyListSkeleton } from '@/features/replies/components/reply-list-skeleton';
 import { getPathname, Link } from '@/i18n/navigation';
 import { routing, type AppLocale } from '@/i18n/routing';
@@ -94,6 +95,9 @@ export default async function DiscussionPage({ params }: Props) {
         </Suspense>
         <Suspense fallback={<ReplyListSkeleton />}>
           <RepliesIsland slug={slug} locale={locale} />
+        </Suspense>
+        <Suspense fallback={<Skeleton className="h-44 w-full rounded-xl" />}>
+          <ReplyBoxIsland slug={slug} locale={locale} />
         </Suspense>
       </main>
       <aside className="md:col-start-2 xl:col-start-3">

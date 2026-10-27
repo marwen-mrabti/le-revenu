@@ -1,4 +1,4 @@
-import { discussionDetailSchema, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { discussionDetailSchema, discussionFiltersSchema, discussionQuerySchema } from './schemas';
 

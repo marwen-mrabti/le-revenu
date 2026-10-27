@@ -62,7 +62,20 @@
     "edited": "modifié",
     "replyBy": "Réponse de {name}",
     "emptyTitle": "Aucune réponse pour l'instant",
-    "emptyHint": "Soyez la première personne à aider {name} : votre expérience compte, même partielle."
+    "emptyHint": "Soyez la première personne à aider {name} : votre expérience compte, même partielle.",
+    "replyAs": "Répondre en tant que <b>{name}</b>",
+    "yourReply": "Votre réponse",
+    "placeholderQuestion": "Partagez votre expérience pour aider {name}…",
+    "placeholderDiscussion": "Votre avis sur la question…",
+    "submit": "Publier ma réponse",
+    "posting": "Publication…",
+    "sessionExpired": "Votre session a expiré, votre texte est conservé.",
+    "sessionExpiredLink": "Reconnectez-vous",
+    "gone": "Cette discussion n'existe plus.",
+    "ctaTitle": "Vous avez un avis ou une expérience à partager ?",
+    "ctaText": "Connectez-vous pour répondre à {name}. Vous reviendrez ici ensuite.",
+    "ctaLogin": "Se connecter pour répondre",
+    "ctaRegister": "Créer un compte"
   },
   "Categories": {
     "all": "Tous les espaces",
@@ -202,7 +215,9 @@
     "passwordSame": "Le nouveau mot de passe doit être différent de l'actuel.",
     "currentPasswordWrong": "Mot de passe actuel incorrect.",
     "displayNameLength": "2 à 60 caractères.",
-    "usernameMismatch": "Le nom d'utilisateur ne correspond pas."
+    "usernameMismatch": "Le nom d'utilisateur ne correspond pas.",
+    "replyMin": "2 caractères minimum.",
+    "replyMax": "5 000 caractères maximum."
   },
   "Account": {
     "title": "Mon compte",

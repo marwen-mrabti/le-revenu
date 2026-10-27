@@ -62,7 +62,20 @@
     "edited": "edited",
     "replyBy": "Reply by {name}",
     "emptyTitle": "No reply yet",
-    "emptyHint": "Be the first to help {name}: your experience counts, even partial."
+    "emptyHint": "Be the first to help {name}: your experience counts, even partial.",
+    "replyAs": "Reply as <b>{name}</b>",
+    "yourReply": "Your reply",
+    "placeholderQuestion": "Share your experience to help {name}…",
+    "placeholderDiscussion": "Your take on the question…",
+    "submit": "Post my reply",
+    "posting": "Posting…",
+    "sessionExpired": "Your session has expired, your text is kept.",
+    "sessionExpiredLink": "Sign in again",
+    "gone": "This discussion no longer exists.",
+    "ctaTitle": "Have an opinion or an experience to share?",
+    "ctaText": "Sign in to reply to {name}. You will come back here afterwards.",
+    "ctaLogin": "Sign in to reply",
+    "ctaRegister": "Create an account"
   },
   "Categories": {
     "all": "All spaces",
@@ -202,7 +215,9 @@
     "passwordSame": "The new password must differ from the current one.",
     "currentPasswordWrong": "Current password is incorrect.",
     "displayNameLength": "2 to 60 characters.",
-    "usernameMismatch": "The username does not match."
+    "usernameMismatch": "The username does not match.",
+    "replyMin": "2 characters minimum.",
+    "replyMax": "5,000 characters maximum."
   },
   "Account": {
     "title": "My account",
