@@ -43,7 +43,7 @@
     "emptyHint": "Lancez la première discussion de cet espace.",
     "replyCountLabel": "{count, plural, one {réponse} other {réponses}}",
     "typeQuestion": "Question",
-    "anonymous": "Anonyme",
+    "anonymous": "Compte supprimé",
     "searchLabel": "Rechercher une discussion",
     "searchPlaceholder": "Rechercher une discussion, un sujet…",
     "resultCount": "{count, plural, =0 {Aucune discussion} one {# discussion} other {# discussions}}",
@@ -82,7 +82,7 @@
   "Replies": {
     "title": "Réponses",
     "count": "{count, plural, one {# réponse} other {# réponses}}",
-    "anonymous": "Anonyme",
+    "anonymous": "Compte supprimé",
     "authorChip": "Auteur",
     "edited": "modifié",
     "replyBy": "Réponse de {name}",
