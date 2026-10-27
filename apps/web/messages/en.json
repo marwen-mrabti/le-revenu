@@ -31,7 +31,8 @@
     "forgotTitle": "Forgot password",
     "resetTitle": "New password",
     "verifyTitle": "Confirm your address",
-    "accountTitle": "My account"
+    "accountTitle": "My account",
+    "newDiscussionTitle": "New post"
   },
   "Discussions": {
     "title": "Discussions",
@@ -49,10 +50,34 @@
     "emptyFiltered": "No discussion matches your filters.",
     "emptyOutOfRange": "This page does not exist.",
     "clearFilters": "Clear filters",
-    "backToFirstPage": "Back to page 1"
+    "backToFirstPage": "Back to page 1",
+    "startFirst": "Start the first discussion"
   },
   "DiscussionNew": {
-    "title": "New post"
+    "title": "New post",
+    "intro": "A question or an experience for the community of Le Revenu readers.",
+    "typeLabel": "Type of post",
+    "type_question": "Ask a question",
+    "typeHint_question": "Get help from members and the newsroom.",
+    "type_discussion": "Start a discussion",
+    "typeHint_discussion": "Share an experience, an opinion, a piece of news.",
+    "titleHint": "10 to 150 characters. A clear title, phrased as a question, gets answers faster.",
+    "titlePlaceholder": "E.g.: Should I open a PER at 45?",
+    "space": "Space",
+    "spacePlaceholder": "Choose a space…",
+    "content": "Content",
+    "contentPlaceholder": "Your situation, what you have already considered… The more context, the better the answers.",
+    "publish": "Publish",
+    "publishing": "Publishing…",
+    "cancel": "Cancel",
+    "published": "Discussion published.",
+    "sessionExpired": "Your session has expired, your text is kept.",
+    "sessionExpiredLink": "Sign in again",
+    "tipsTitle": "Tips",
+    "tip1": "A title that says it all: “PEA or CTO for a first ETF?” rather than “ETF question”.",
+    "tip2": "Give context: amount, horizon, what you have already considered.",
+    "tip3": "Share your experience, no personal advice and no solicitation.",
+    "titleLabel": "Title"
   },
   "Replies": {
     "title": "Replies",
@@ -185,7 +210,9 @@
   "Space": {
     "label": "This space",
     "allTitle": "All spaces",
-    "allDescription": "Eleven thematic spaces, mirroring the main sections of Le Revenu. Pick one to filter the discussions."
+    "allDescription": "Eleven thematic spaces, mirroring the main sections of Le Revenu. Pick one to filter the discussions.",
+    "publishHere": "Post in this space",
+    "publish": "Post"
   },
   "Theme": {
     "label": "Theme",
@@ -221,7 +248,9 @@
     "titleMin": "10 characters minimum.",
     "titleMax": "150 characters maximum.",
     "contentMax": "20,000 characters maximum.",
-    "invalid": "Content refused by the server."
+    "invalid": "Content refused by the server.",
+    "categoryRequired": "Choose a space.",
+    "categoryUnknown": "This space no longer exists, choose another one."
   },
   "Account": {
     "title": "My account",

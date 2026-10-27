@@ -10,13 +10,13 @@ import { useRouter } from '@/i18n/navigation';
 import { toast } from '@/lib/toast';
 
 import { useDeleteDiscussion } from '../api/mutations';
-import type { DiscussionDetail } from '../schemas';
+import type { DiscussionInput } from '../schemas';
 import { DiscussionEditForm } from './discussion-edit-form';
+import type { SpaceOption } from './discussion-fields';
 
 interface DiscussionBodyProps {
-  discussion: Pick<DiscussionDetail, 'documentId' | 'title' | 'content'> & {
-    replyCount: number;
-  };
+  discussion: DiscussionInput & { documentId: string; replyCount: number };
+  spaces: SpaceOption[];
   isOwner: boolean;
 }
 
@@ -24,7 +24,7 @@ interface DiscussionBodyProps {
  * Title and content of the article, with the author's edit and delete. The
  * server component around it keeps the meta line and the author line.
  */
-export function DiscussionBody({ discussion, isOwner }: DiscussionBodyProps) {
+export function DiscussionBody({ discussion, spaces, isOwner }: DiscussionBodyProps) {
   const t = useTranslations('Owner');
   const errorMessage = useApiErrorMessage();
   const router = useRouter();
@@ -46,8 +46,13 @@ export function DiscussionBody({ discussion, isOwner }: DiscussionBodyProps) {
     return (
       <DiscussionEditForm
         discussionId={discussion.documentId}
-        initialTitle={discussion.title}
-        initialContent={discussion.content}
+        initial={{
+          type: discussion.type,
+          title: discussion.title,
+          content: discussion.content,
+          category: discussion.category,
+        }}
+        spaces={spaces}
         onSaved={() => {
           setEditing(false);
           toast.success(t('discussionSaved'));

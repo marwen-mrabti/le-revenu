@@ -15,5 +15,5 @@ Every work branch starts with a plan in this folder, reviewed before any code is
 | 03  | [Discussion list](03-discussion-list.md)                                             | `feature/discussion-list`   | done, in PR  |
 | 04  | [Authentication: sign-up, login, Google](04-auth.md)                                 | `feature/auth`              | done, merged |
 | 05  | [Account: reset, confirmation, account page, Google profile, islands](05-account.md) | `feature/account`           | done, in PR  |
-| 06  | [Discussion detail and replies](06-discussion-detail.md)                             | `feature/discussion-detail` | done, in PR  |
-| 07  | [Create a discussion](07-discussion-create.md)                                       | `feature/discussion-create` | approved     |
+| 06  | [Discussion detail and replies](06-discussion-detail.md)                             | `feature/discussion-detail` | done, merged |
+| 07  | [Create a discussion](07-discussion-create.md)                                       | `feature/discussion-create` | done, in PR  |

@@ -1,6 +1,11 @@
 import { getTranslations } from 'next-intl/server';
 
+import { PlusIcon } from 'lucide-react';
+
+import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from '@/i18n/navigation';
+import { cn } from '@/lib/utils';
 
 import type { Category } from '../schemas';
 
@@ -15,8 +20,19 @@ export async function SpaceCard({ category }: { category?: Category }) {
         </CardDescription>
         <CardTitle className="font-heading text-xl">{category?.name ?? t('allTitle')}</CardTitle>
       </CardHeader>
-      <CardContent className="text-sm text-muted-foreground">
-        {category?.description ?? t('allDescription')}
+      <CardContent className="flex flex-col gap-3 text-sm text-muted-foreground">
+        <p>{category?.description ?? t('allDescription')}</p>
+        <Link
+          href={
+            category
+              ? { pathname: '/discussions/new', query: { category: category.slug } }
+              : '/discussions/new'
+          }
+          className={cn(buttonVariants({ size: 'sm' }), 'self-start')}
+        >
+          <PlusIcon aria-hidden="true" />
+          {category ? t('publishHere') : t('publish')}
+        </Link>
       </CardContent>
     </Card>
   );

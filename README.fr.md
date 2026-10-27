@@ -114,19 +114,19 @@ Vous pouvez aussi créer votre propre compte sur `/register` (nom d'utilisateur,
 
 ## 4. Ce que fait l'application
 
-| Fonction                                                                                 | État                       |
-| ---------------------------------------------------------------------------------------- | -------------------------- |
-| Liste des discussions : filtre par espace, tri par date, recherche, pagination           | ✔ `/discussions`           |
-| Détail d'une discussion et ses réponses, URL propre par slug                             | ✔ `/discussions/<slug>`    |
-| Connexion, inscription avec confirmation par e-mail, Google, déconnexion, menu du compte | ✔ `/login`, `/register`    |
-| Mot de passe oublié / réinitialisation par e-mail                                        | ✔ `/forgot-password`       |
-| Page compte : nom affiché, nom d'utilisateur, mot de passe, suppression                  | ✔ `/account`               |
-| Premier mot de passe d'un compte Google, depuis la page compte                           | ✔ `/account`               |
-| Nom et photo Google ; connexion Google liée à un compte avec mot de passe                | ✔                          |
-| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)                 | backend prêt, page à venir |
-| Réponse à une discussion, modification et suppression de ses réponses et discussions     | ✔ depuis la page détail    |
-| Interface en français et en anglais, menu de langue, thème clair / sombre                | ✔                          |
-| Pages 404 et 500 personnalisées (en-tête conservé, recherche, espaces, code d'incident)  | ✔                          |
+| Fonction                                                                                 | État                    |
+| ---------------------------------------------------------------------------------------- | ----------------------- |
+| Liste des discussions : filtre par espace, tri par date, recherche, pagination           | ✔ `/discussions`        |
+| Détail d'une discussion et ses réponses, URL propre par slug                             | ✔ `/discussions/<slug>` |
+| Connexion, inscription avec confirmation par e-mail, Google, déconnexion, menu du compte | ✔ `/login`, `/register` |
+| Mot de passe oublié / réinitialisation par e-mail                                        | ✔ `/forgot-password`    |
+| Page compte : nom affiché, nom d'utilisateur, mot de passe, suppression                  | ✔ `/account`            |
+| Premier mot de passe d'un compte Google, depuis la page compte                           | ✔ `/account`            |
+| Nom et photo Google ; connexion Google liée à un compte avec mot de passe                | ✔                       |
+| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)                 | ✔ `/discussions/new`    |
+| Réponse à une discussion, modification et suppression de ses réponses et discussions     | ✔ depuis la page détail |
+| Interface en français et en anglais, menu de langue, thème clair / sombre                | ✔                       |
+| Pages 404 et 500 personnalisées (en-tête conservé, recherche, espaces, code d'incident)  | ✔                       |
 
 L'avancement détaillé est dans [`docs/plans/`](docs/plans/README.md).
 
@@ -213,9 +213,9 @@ Comment tournent les tests backend :
 
 Prérequis : PostgreSQL démarré (`docker compose up -d db` crée `lerevenu_test`), `apps/cms/.env` renseigné. Variable `DATABASE_TEST_NAME` pour changer le nom de la base de test.
 
-Tests frontend (`apps/web`, Vitest + Testing Library, colocalisés `*.test.ts(x)`, 133 tests) : le client Strapi (chaîne de requête, enveloppe d'erreur, réponse inattendue, serveur injoignable), le schéma des filtres et la correspondance URL ↔ état (valeurs par défaut, page invalide, `clearOnDefault`), la carte de discussion (cinq champs du cahier des charges, lien vers le détail, ni e-mail ni id numérique), la pagination (page courante, filtres conservés, bornes), le handler `GET /api/discussions` (422 sur un tri inconnu, locale transmise, 503 sans fuite du message Strapi), le cookie de session et les gardes des requêtes, les handlers d'authentification, de compte, de réponse, de discussion et de revalidation, les deux pages d'arrivée des liens de mail (langue du lecteur), les formulaires de connexion, d'inscription, de mot de passe oublié, de réinitialisation, de profil, de mot de passe, de premier mot de passe et de suppression, le formulaire et la liste des réponses, les actions de l'auteur, les étiquettes de cache, la page de confirmation, le menu du compte, les îlots (erreur → repli → réessayer), la page 500, le menu de langue et le bouton de thème, la parité des clés fr / en.
+Tests frontend (`apps/web`, Vitest + Testing Library, colocalisés `*.test.ts(x)`, 141 tests) : le client Strapi (chaîne de requête, enveloppe d'erreur, réponse inattendue, serveur injoignable), le schéma des filtres et la correspondance URL ↔ état (valeurs par défaut, page invalide, `clearOnDefault`), la carte de discussion (cinq champs du cahier des charges, lien vers le détail, ni e-mail ni id numérique), la pagination (page courante, filtres conservés, bornes), le handler `GET /api/discussions` (422 sur un tri inconnu, locale transmise, 503 sans fuite du message Strapi), le cookie de session et les gardes des requêtes, les handlers d'authentification, de compte, de réponse, de discussion et de revalidation, les deux pages d'arrivée des liens de mail (langue du lecteur), les formulaires de connexion, d'inscription, de mot de passe oublié, de réinitialisation, de profil, de mot de passe, de premier mot de passe et de suppression, le formulaire et la liste des réponses, le formulaire de création, les actions de l'auteur, les étiquettes de cache, la page de confirmation, le menu du compte, les îlots (erreur → repli → réessayer), la page 500, le menu de langue et le bouton de thème, la parité des clés fr / en.
 
-Bout en bout (`apps/web/e2e`, Playwright) : connexion et confidentialité de la session, i18n, pages 404 / 500, résilience (un 503 sur la liste laisse la page intacte), le détail d'une discussion (depuis la liste, appel à connexion, alice répond, modifie et supprime, 404), et le cycle de vie du compte via l'API de Mailpit (inscription → mail → confirmation → connexion → profil → mot de passe oublié → réinitialisation → suppression). Le spec compte se saute lui-même si Mailpit n'est pas joignable, et il faut que Strapi envoie via Mailpit (`SMTP_HOST=localhost`) : avec un vrai relais comme l'offre gratuite de Resend, les adresses de test sont refusées et l'étape d'inscription échoue.
+Bout en bout (`apps/web/e2e`, Playwright) : connexion et confidentialité de la session, i18n, pages 404 / 500, résilience (un 503 sur la liste laisse la page intacte), le détail d'une discussion (depuis la liste, appel à connexion, alice répond, modifie et supprime, 404), la page de création (visiteur redirigé, règles, alice publie, atterrit, listée, supprime), et le cycle de vie du compte via l'API de Mailpit (inscription → mail → confirmation → connexion → profil → mot de passe oublié → réinitialisation → suppression). Le spec compte se saute lui-même si Mailpit n'est pas joignable, et il faut que Strapi envoie via Mailpit (`SMTP_HOST=localhost`) : avec un vrai relais comme l'offre gratuite de Resend, les adresses de test sont refusées et l'étape d'inscription échoue.
 
 ## 9. Qualité et CI/CD
 
@@ -241,12 +241,12 @@ apps/cms/                       Strapi 5 (TypeScript)
   database/demo.sqlite          base pré-remplie du mode zéro-configuration
 
 apps/web/                       Next.js 16 (App Router, Cache Components)
-  src/app/[locale]/             pages : (forum)/discussions et discussions/[slug], (auth)/login, register, forgot-password, reset-password,
+  src/app/[locale]/             pages : (forum)/discussions, discussions/[slug], discussions/new, (auth)/login, register, forgot-password, reset-password,
                                 verify-email, account, auth/google/callback, not-found.tsx, error.tsx ; loading.tsx par page
   src/app/api/                  Route Handlers (BFF) : auth/*, account, discussions, replies, categories, revalidate (webhook)
   src/features/<domaine>/       discussions, replies, categories, auth : schemas (zod), data (accès serveur),
                                 api (queries et mutations TanStack), components, hooks
-  src/components/               ui/ (shadcn), form/ (champs liés au hook de formulaire), shared/ (îlots, avatar), layout/, theme/
+  src/components/               ui/ (shadcn), form/ (texte, mot de passe, zone de texte, sélection, cartes radio), shared/ (îlots, avatar, actions de l'auteur), layout/, theme/
   src/lib/                      strapi/ (client typé, seul lecteur de STRAPI_URL), api/ (client BFF, erreurs,
                                 gardes), auth/ (cookie de session), i18n/ (langue d'un lien de mail), query/ (TanStack)
   src/i18n/                     routing, navigation, métadonnées des langues

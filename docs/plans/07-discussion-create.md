@@ -1,6 +1,6 @@
 # 07 — Create a discussion
 
-Branch: `feature/discussion-create` · Target: `development` · Estimate: 6 h · Status: approved
+Branch: `feature/discussion-create` · Target: `development` · Estimate: 6 h · Status: done (2026-10-27)
 
 ## 1. Goal
 

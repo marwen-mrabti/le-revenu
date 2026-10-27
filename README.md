@@ -114,19 +114,19 @@ You can also create your own account on `/register` (username, email, password o
 
 ## 4. What the application does
 
-| Feature                                                               | Status                      |
-| --------------------------------------------------------------------- | --------------------------- |
-| Discussion list: filter by space, sort by date, search, pagination    | ✔ `/discussions`            |
-| Discussion detail with its replies, clean URL by slug                 | ✔ `/discussions/<slug>`     |
-| Login, sign-up with email confirmation, Google, logout, account menu  | ✔ `/login`, `/register`     |
-| Forgot / reset password by mail                                       | ✔ `/forgot-password`        |
-| Account page: display name, username, password, delete account        | ✔ `/account`                |
-| First password for a Google account, set from the account page        | ✔ `/account`                |
-| Google name and picture; Google login linked to a password account    | ✔                           |
-| Create a discussion (title ≥ 10 characters, content, space, type)     | backend ready, page to come |
-| Reply to a discussion, edit and delete own replies and discussions    | ✔ from the detail page      |
-| French and English interface, language menu, light / dark theme       | ✔                           |
-| Custom 404 and 500 pages (header kept, search, spaces, incident code) | ✔                           |
+| Feature                                                               | Status                  |
+| --------------------------------------------------------------------- | ----------------------- |
+| Discussion list: filter by space, sort by date, search, pagination    | ✔ `/discussions`        |
+| Discussion detail with its replies, clean URL by slug                 | ✔ `/discussions/<slug>` |
+| Login, sign-up with email confirmation, Google, logout, account menu  | ✔ `/login`, `/register` |
+| Forgot / reset password by mail                                       | ✔ `/forgot-password`    |
+| Account page: display name, username, password, delete account        | ✔ `/account`            |
+| First password for a Google account, set from the account page        | ✔ `/account`            |
+| Google name and picture; Google login linked to a password account    | ✔                       |
+| Create a discussion (title ≥ 10 characters, content, space, type)     | ✔ `/discussions/new`    |
+| Reply to a discussion, edit and delete own replies and discussions    | ✔ from the detail page  |
+| French and English interface, language menu, light / dark theme       | ✔                       |
+| Custom 404 and 500 pages (header kept, search, spaces, incident code) | ✔                       |
 
 Detailed progress lives in [`docs/plans/`](docs/plans/README.md).
 
@@ -213,9 +213,9 @@ How the backend tests run:
 
 Prerequisites: PostgreSQL running (`docker compose up -d db` creates `lerevenu_test`), `apps/cms/.env` filled. `DATABASE_TEST_NAME` changes the test database name.
 
-Frontend tests (`apps/web`, Vitest + Testing Library, colocated `*.test.ts(x)`, 133 tests): the Strapi client (query string, error envelope, unexpected answer, unreachable server), the filters schema and the URL ↔ state mapping (defaults, invalid page, `clearOnDefault`), the discussion card (the brief's five fields, link to the detail, no email or numeric id), pagination (current page, filters kept, bounds), the `GET /api/discussions` handler (422 on an unknown sort, locale passed, 503 without leaking Strapi's message), the session cookie and request guards, the auth, account, reply, discussion and revalidate handlers, the two mail-link landings (reader language), the login, sign-up, forgot, reset, profile, password, first-password and delete forms, the reply form and list, the owner actions, the cache tags, the verify-email page, the user menu, the islands (error → fallback → retry), the 500 page, the language menu and theme toggle, fr / en key parity.
+Frontend tests (`apps/web`, Vitest + Testing Library, colocated `*.test.ts(x)`, 141 tests): the Strapi client (query string, error envelope, unexpected answer, unreachable server), the filters schema and the URL ↔ state mapping (defaults, invalid page, `clearOnDefault`), the discussion card (the brief's five fields, link to the detail, no email or numeric id), pagination (current page, filters kept, bounds), the `GET /api/discussions` handler (422 on an unknown sort, locale passed, 503 without leaking Strapi's message), the session cookie and request guards, the auth, account, reply, discussion and revalidate handlers, the two mail-link landings (reader language), the login, sign-up, forgot, reset, profile, password, first-password and delete forms, the reply form and list, the create form, the owner actions, the cache tags, the verify-email page, the user menu, the islands (error → fallback → retry), the 500 page, the language menu and theme toggle, fr / en key parity.
 
-End to end (`apps/web/e2e`, Playwright): login and session privacy, i18n, 404 / 500 pages, resilience (a 503 on the list leaves the page intact), the discussion detail (from the list, visitor call to action, alice replies, edits and deletes, 404), and the account lifecycle through Mailpit's API (sign-up → mail → confirm → login → profile → forgot → reset → delete). The account spec skips itself when Mailpit is not reachable, and needs Strapi to send through Mailpit (`SMTP_HOST=localhost`): with a real relay such as Resend's free tier, the test addresses are refused and the sign-up step fails.
+End to end (`apps/web/e2e`, Playwright): login and session privacy, i18n, 404 / 500 pages, resilience (a 503 on the list leaves the page intact), the discussion detail (from the list, visitor call to action, alice replies, edits and deletes, 404), the create page (visitor redirect, rules, alice publishes, lands, listed, deletes), and the account lifecycle through Mailpit's API (sign-up → mail → confirm → login → profile → forgot → reset → delete). The account spec skips itself when Mailpit is not reachable, and needs Strapi to send through Mailpit (`SMTP_HOST=localhost`): with a real relay such as Resend's free tier, the test addresses are refused and the sign-up step fails.
 
 ## 9. Quality and CI/CD
 
@@ -241,12 +241,12 @@ apps/cms/                       Strapi 5 (TypeScript)
   database/demo.sqlite          pre-filled database of the zero-setup mode
 
 apps/web/                       Next.js 16 (App Router, Cache Components)
-  src/app/[locale]/             pages: (forum)/discussions and discussions/[slug], (auth)/login, register, forgot-password, reset-password,
+  src/app/[locale]/             pages: (forum)/discussions, discussions/[slug], discussions/new, (auth)/login, register, forgot-password, reset-password,
                                 verify-email, account, auth/google/callback, not-found.tsx, error.tsx; loading.tsx per page
   src/app/api/                  Route Handlers (BFF): auth/*, account, discussions, replies, categories, revalidate (webhook)
   src/features/<domain>/        discussions, replies, categories, auth: schemas (zod), data (server access),
                                 api (TanStack queries and mutations), components, hooks
-  src/components/               ui/ (shadcn), form/ (fields bound to the form hook), shared/ (islands, avatar), layout/, theme/
+  src/components/               ui/ (shadcn), form/ (text, password, textarea, select, radio cards), shared/ (islands, avatar, owner actions), layout/, theme/
   src/lib/                      strapi/ (typed client, only reader of STRAPI_URL), api/ (BFF client, errors,
                                 guards), auth/ (session cookie), i18n/ (locale of a mail link), query/ (TanStack)
   src/i18n/                     routing, navigation, locale metadata

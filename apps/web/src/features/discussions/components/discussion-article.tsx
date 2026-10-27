@@ -6,14 +6,17 @@ import { Badge } from '@/components/ui/badge';
 
 import type { DiscussionDetail } from '../schemas';
 import { DiscussionBody } from './discussion-body';
+import type { SpaceOption } from './discussion-fields';
 
 /** The discussion itself: category, type, title, author line, content; edit and delete for its author. */
 export async function DiscussionArticle({
   discussion,
   currentUserId,
+  spaces,
 }: {
   discussion: DiscussionDetail;
   currentUserId: string | null;
+  spaces: SpaceOption[];
 }) {
   const t = await getTranslations('Discussions');
   const author = discussion.author ? readerName(discussion.author) : t('anonymous');
@@ -47,10 +50,13 @@ export async function DiscussionArticle({
       <DiscussionBody
         discussion={{
           documentId: discussion.documentId,
+          type: discussion.type,
           title: discussion.title,
           content: discussion.content,
+          category: discussion.category?.documentId ?? '',
           replyCount: discussion.replies.length,
         }}
+        spaces={spaces}
         isOwner={isOwner}
       />
       <div className="mt-3.5 flex items-center gap-2.5">

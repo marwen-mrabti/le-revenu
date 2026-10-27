@@ -5,7 +5,19 @@ import { z } from 'zod';
 
 import { bffPost } from '@/lib/api/client';
 
-import { discussionEnvelopeSchema, type DiscussionEditInput } from '../schemas';
+import {
+  discussionEnvelopeSchema,
+  type DiscussionEditInput,
+  type DiscussionInput,
+} from '../schemas';
+
+/** Creates a discussion; the caller goes to its page (a new entry: nothing cached to expire). */
+export function useCreateDiscussion() {
+  return useMutation({
+    mutationFn: (input: DiscussionInput) =>
+      bffPost('/api/discussions', input, discussionEnvelopeSchema),
+  });
+}
 
 export function useUpdateDiscussion(documentId: string) {
   return useMutation({
