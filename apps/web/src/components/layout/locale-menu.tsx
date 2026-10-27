@@ -15,28 +15,29 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LOCALE_META } from '@/i18n/locales';
-import { usePathname, useRouter } from '@/i18n/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { routing, type AppLocale } from '@/i18n/routing';
 
 const THEMES = ['light', 'dark', 'system'] as const;
 
 /**
  * Language menu (flag, native name, code) with the theme choice underneath.
- * Switching the locale keeps the current path and search params.
+ * Switching the locale keeps the current path and search params. The URL is
+ * read at click time only: a URL hook at render would make every page's static
+ * shell wait for the request (or need a Suspense boundary around the header).
  */
 export function LocaleMenu() {
   const locale = useLocale() as AppLocale;
   const t = useTranslations('Nav');
   const tTheme = useTranslations('Theme');
-  const pathname = usePathname();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const current = LOCALE_META[locale];
 
   function switchTo(next: string) {
     if (next === locale) return;
-    // Read at click time: reading search params during render would require a Suspense boundary.
-    router.replace(`${pathname}${window.location.search}`, { locale: next as AppLocale });
+    const { pathname, search } = window.location;
+    router.replace(`${stripLocale(pathname)}${search}`, { locale: next as AppLocale });
   }
 
   return (
@@ -73,4 +74,11 @@ export function LocaleMenu() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
+}
+
+/** `/en/discussions?x` → `/discussions`: next-intl's router adds the prefix of the target locale itself. */
+function stripLocale(pathname: string): string {
+  const [, first = '', ...rest] = pathname.split('/');
+  if ((routing.locales as readonly string[]).includes(first)) return `/${rest.join('/')}`;
+  return pathname;
 }

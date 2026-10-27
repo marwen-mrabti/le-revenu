@@ -4,7 +4,6 @@ import { Suspense } from 'react';
 import { LocaleMenu } from '@/components/layout/locale-menu';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { HeaderAuth, HeaderAuthSkeleton } from '@/features/auth/components/header-auth';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from '@/i18n/navigation';
 
 /** Header: logo, theme, language, and the reader's menu or the sign-in buttons. */
@@ -27,10 +26,7 @@ export async function SiteHeader() {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          {/* Reads the URL (usePathname): streamed after the static shell, like the account menu. */}
-          <Suspense fallback={<Skeleton className="h-8 w-[112px] rounded-full" />}>
-            <LocaleMenu />
-          </Suspense>
+          <LocaleMenu />
           <Suspense fallback={<HeaderAuthSkeleton />}>
             <HeaderAuth />
           </Suspense>
