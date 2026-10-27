@@ -95,7 +95,20 @@ SMTP_PASS=re_…                                         # the API key
 EMAIL_FROM="Communauté Le Revenu <onboarding@resend.dev>"
 ```
 
-Until a domain is verified in Resend, it only delivers to the address of the Resend account and the sender must stay `onboarding@resend.dev`; other recipients are refused (the forgot-password handler then answers 502). For production, verify a domain and put an address of that domain in `EMAIL_FROM`. Any other SMTP relay (Brevo, Postmark, Gmail with an app password) works the same way.
+Until a domain is verified in Resend, it only delivers to the address of the Resend account and the sender must stay `onboarding@resend.dev`; other recipients are refused (the forgot-password handler then answers 502). For production, verify a domain and put an address of that domain in `EMAIL_FROM`.
+
+With Gmail instead (delivers to anyone, about 500 mails a day): turn on 2-Step Verification, create an app password at https://myaccount.google.com/apppasswords, then:
+
+```bash
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=you@gmail.com
+SMTP_PASS=the16characterapppassword                 # no spaces
+EMAIL_FROM="Communauté Le Revenu <you@gmail.com>"     # Gmail rewrites any other sender to your address
+```
+
+Any other SMTP relay (Brevo, Postmark) works the same way: five variables, no code change.
 
 Google login, optional: create a "Web" OAuth client in Google Cloud with the redirect URI `http://localhost:1337/api/connect/google/callback`, put `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `apps/cms/.env` and `NEXT_PUBLIC_GOOGLE_LOGIN=true` in `apps/web/.env`, restart. Without these values the Google button is not shown.
 
