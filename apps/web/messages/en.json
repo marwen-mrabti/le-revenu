@@ -55,7 +55,27 @@
     "title": "New post"
   },
   "Replies": {
-    "title": "Replies"
+    "title": "Replies",
+    "count": "{count, plural, one {# reply} other {# replies}}",
+    "anonymous": "Anonymous",
+    "authorChip": "Author",
+    "edited": "edited",
+    "replyBy": "Reply by {name}",
+    "emptyTitle": "No reply yet",
+    "emptyHint": "Be the first to help {name}: your experience counts, even partial.",
+    "replyAs": "Reply as <b>{name}</b>",
+    "yourReply": "Your reply",
+    "placeholderQuestion": "Share your experience to help {name}…",
+    "placeholderDiscussion": "Your take on the question…",
+    "submit": "Post my reply",
+    "posting": "Posting…",
+    "sessionExpired": "Your session has expired, your text is kept.",
+    "sessionExpiredLink": "Sign in again",
+    "gone": "This discussion no longer exists.",
+    "ctaTitle": "Have an opinion or an experience to share?",
+    "ctaText": "Sign in to reply to {name}. You will come back here afterwards.",
+    "ctaLogin": "Sign in to reply",
+    "ctaRegister": "Create an account"
   },
   "Categories": {
     "all": "All spaces",
@@ -195,7 +215,13 @@
     "passwordSame": "The new password must differ from the current one.",
     "currentPasswordWrong": "Current password is incorrect.",
     "displayNameLength": "2 to 60 characters.",
-    "usernameMismatch": "The username does not match."
+    "usernameMismatch": "The username does not match.",
+    "replyMin": "2 characters minimum.",
+    "replyMax": "5,000 characters maximum.",
+    "titleMin": "10 characters minimum.",
+    "titleMax": "150 characters maximum.",
+    "contentMax": "20,000 characters maximum.",
+    "invalid": "Content refused by the server."
   },
   "Account": {
     "title": "My account",
@@ -222,5 +248,36 @@
     "setPasswordIntro": "You sign in with Google. Add a password to also sign in with your email. Both will work.",
     "setPassword": "Set my password",
     "passwordSet": "Password set. You can now sign in with Google or with your email."
+  },
+  "Discussion": {
+    "breadcrumbRoot": "Discussions",
+    "breadcrumbCurrent": "Discussion",
+    "factsTitle": "This discussion",
+    "factsReplies": "Replies",
+    "factsPublished": "Published on",
+    "spaceDiscussions": "See this space's discussions",
+    "editTitle": "Title",
+    "editTitleHint": "10 to 150 characters.",
+    "editContent": "Content"
+  },
+  "Owner": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "deleting": "Deleting…",
+    "editLabel": "Edit: {subject}",
+    "deleteLabel": "Delete: {subject}",
+    "editingReply": "Editing your reply",
+    "editingDiscussion": "Editing the discussion",
+    "deleteReplyTitle": "Delete this reply?",
+    "deleteReplyText": "It will be removed from the discussion. This cannot be undone.",
+    "replyDeleted": "Reply deleted.",
+    "replySaved": "Reply saved.",
+    "deleteDiscussionTitle": "Delete this discussion?",
+    "deleteDiscussionText": "{count, plural, =0 {It will be removed from the community.} one {It will be removed with its reply.} other {It will be removed with its # replies.}} This cannot be undone.",
+    "discussionDeleted": "Discussion deleted.",
+    "discussionSaved": "Discussion saved."
   }
 }

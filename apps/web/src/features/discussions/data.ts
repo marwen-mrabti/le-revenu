@@ -1,11 +1,21 @@
 import 'server-only';
 
+import { cacheLife, cacheTag } from 'next/cache';
+
 import { getCategories } from '@/features/categories/data';
 import type { AppLocale } from '@/i18n/routing';
 import { strapiGet } from '@/lib/strapi/public';
-import { strapiList } from '@/lib/strapi/schemas';
+import { collectionTag, entryTag } from '@/lib/cache/tags';
+import { StrapiError } from '@/lib/strapi/base';
+import { strapiList, strapiOne } from '@/lib/strapi/schemas';
 
-import { discussionListItemSchema, type DiscussionFilters, type DiscussionPage } from './schemas';
+import {
+  discussionDetailSchema,
+  discussionListItemSchema,
+  type DiscussionDetail,
+  type DiscussionFilters,
+  type DiscussionPage,
+} from './schemas';
 
 /** Strapi query for the list: filters, sort and pagination all happen in the backend. */
 export function buildDiscussionsQuery(filters: DiscussionFilters): Record<string, unknown> {
@@ -45,4 +55,37 @@ export async function getDiscussions(
     return { ...item, category: { ...item.category, name: localized.name } };
   });
   return { items, pagination: meta.pagination };
+}
+
+/**
+ * One discussion by slug with its replies, cached for hours and tagged with
+ * the collection and the entry (ADR-0003, ADR-0006): the reply handlers and
+ * the Strapi webhook invalidate it. `null` for an unknown slug, so the page
+ * can answer 404 without caching an error. `locale` only localises the category.
+ */
+export async function getDiscussion(
+  slug: string,
+  locale: AppLocale,
+): Promise<DiscussionDetail | null> {
+  'use cache';
+  cacheLife('hours');
+  cacheTag(collectionTag('discussions'));
+
+  let detail: DiscussionDetail;
+  try {
+    ({ data: detail } = await strapiGet(`/discussions/slug/${encodeURIComponent(slug)}`, {
+      schema: strapiOne(discussionDetailSchema),
+      tags: [collectionTag('discussions')],
+    }));
+  } catch (error) {
+    if (error instanceof StrapiError && error.status === 404) return null;
+    throw error;
+  }
+  cacheTag(entryTag('discussions', detail.documentId));
+
+  if (!detail.category) return detail;
+  const localized = (await getCategories(locale)).find(
+    (category) => category.documentId === detail.category?.documentId,
+  );
+  return localized ? { ...detail, category: { ...detail.category, name: localized.name } } : detail;
 }

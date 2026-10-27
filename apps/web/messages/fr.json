@@ -55,7 +55,27 @@
     "title": "Nouvelle publication"
   },
   "Replies": {
-    "title": "Réponses"
+    "title": "Réponses",
+    "count": "{count, plural, one {# réponse} other {# réponses}}",
+    "anonymous": "Anonyme",
+    "authorChip": "Auteur",
+    "edited": "modifié",
+    "replyBy": "Réponse de {name}",
+    "emptyTitle": "Aucune réponse pour l'instant",
+    "emptyHint": "Soyez la première personne à aider {name} : votre expérience compte, même partielle.",
+    "replyAs": "Répondre en tant que <b>{name}</b>",
+    "yourReply": "Votre réponse",
+    "placeholderQuestion": "Partagez votre expérience pour aider {name}…",
+    "placeholderDiscussion": "Votre avis sur la question…",
+    "submit": "Publier ma réponse",
+    "posting": "Publication…",
+    "sessionExpired": "Votre session a expiré, votre texte est conservé.",
+    "sessionExpiredLink": "Reconnectez-vous",
+    "gone": "Cette discussion n'existe plus.",
+    "ctaTitle": "Vous avez un avis ou une expérience à partager ?",
+    "ctaText": "Connectez-vous pour répondre à {name}. Vous reviendrez ici ensuite.",
+    "ctaLogin": "Se connecter pour répondre",
+    "ctaRegister": "Créer un compte"
   },
   "Categories": {
     "all": "Tous les espaces",
@@ -195,7 +215,13 @@
     "passwordSame": "Le nouveau mot de passe doit être différent de l'actuel.",
     "currentPasswordWrong": "Mot de passe actuel incorrect.",
     "displayNameLength": "2 à 60 caractères.",
-    "usernameMismatch": "Le nom d'utilisateur ne correspond pas."
+    "usernameMismatch": "Le nom d'utilisateur ne correspond pas.",
+    "replyMin": "2 caractères minimum.",
+    "replyMax": "5 000 caractères maximum.",
+    "titleMin": "10 caractères minimum.",
+    "titleMax": "150 caractères maximum.",
+    "contentMax": "20 000 caractères maximum.",
+    "invalid": "Contenu refusé par le serveur."
   },
   "Account": {
     "title": "Mon compte",
@@ -222,5 +248,36 @@
     "setPasswordIntro": "Vous vous connectez avec Google. Ajoutez un mot de passe pour pouvoir aussi vous connecter avec votre e-mail. Les deux fonctionneront.",
     "setPassword": "Définir mon mot de passe",
     "passwordSet": "Mot de passe défini. Vous pouvez maintenant vous connecter avec Google ou avec votre e-mail."
+  },
+  "Discussion": {
+    "breadcrumbRoot": "Discussions",
+    "breadcrumbCurrent": "Discussion",
+    "factsTitle": "Cette discussion",
+    "factsReplies": "Réponses",
+    "factsPublished": "Publiée le",
+    "spaceDiscussions": "Voir les discussions de cet espace",
+    "editTitle": "Titre",
+    "editTitleHint": "10 à 150 caractères.",
+    "editContent": "Contenu"
+  },
+  "Owner": {
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "deleting": "Suppression…",
+    "editLabel": "Modifier : {subject}",
+    "deleteLabel": "Supprimer : {subject}",
+    "editingReply": "Modification de votre réponse",
+    "editingDiscussion": "Modification de la discussion",
+    "deleteReplyTitle": "Supprimer cette réponse ?",
+    "deleteReplyText": "Elle sera retirée de la discussion. Cette action est irréversible.",
+    "replyDeleted": "Réponse supprimée.",
+    "replySaved": "Réponse enregistrée.",
+    "deleteDiscussionTitle": "Supprimer cette discussion ?",
+    "deleteDiscussionText": "{count, plural, =0 {Elle sera retirée de la communauté.} one {Elle sera retirée avec sa réponse.} other {Elle sera retirée avec ses # réponses.}} Cette action est irréversible.",
+    "discussionDeleted": "Discussion supprimée.",
+    "discussionSaved": "Discussion enregistrée."
   }
 }

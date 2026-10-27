@@ -80,10 +80,15 @@ export default factories.createCoreController(UID, ({ strapi }) => {
       return envelope(await presentRow(row as Row, ctx));
     },
 
-    /** Owner-only (policy). Author and slug cannot be changed. */
+    /** Owner-only (policy). Author and slug cannot be changed; answers like the list (author, category, count). */
     async update(koa) {
-      koa.request.body = { data: clientData(fromKoa(koa)) };
-      return super.update(koa);
+      const ctx = fromKoa(koa);
+      const data = (await api.input(clientData(ctx), ctx)) as Input;
+      const row = await strapi
+        .documents(UID)
+        .update({ documentId: String(ctx.params.id), data, populate: LIST_POPULATE });
+      if (!row) throw new errors.NotFoundError('Discussion not found');
+      return envelope(await presentRow(row as Row, ctx));
     },
 
     /** Owner-only (policy). Removes the replies with the discussion. */

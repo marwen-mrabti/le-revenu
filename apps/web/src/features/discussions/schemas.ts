@@ -25,6 +25,22 @@ export const discussionListItemSchema = z.object({
 });
 export type DiscussionListItem = z.infer<typeof discussionListItemSchema>;
 
+/** One reply as the detail populate returns it: content, dates and a reduced author. */
+export const replyItemSchema = z.object({
+  documentId: z.string(),
+  content: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  author: publicUserSchema.nullable(),
+});
+export type ReplyItem = z.infer<typeof replyItemSchema>;
+
+/** `GET /discussions/slug/:slug`: the list item plus its replies in chronological order. */
+export const discussionDetailSchema = discussionListItemSchema
+  .omit({ replies: true })
+  .extend({ replies: z.array(replyItemSchema) });
+export type DiscussionDetail = z.infer<typeof discussionDetailSchema>;
+
 /** What the DAL and the BFF hand to the list component. */
 export const discussionPageSchema = z.object({
   items: z.array(discussionListItemSchema),
@@ -56,3 +72,16 @@ export type DiscussionFilters = z.infer<typeof discussionFiltersSchema>;
 export const discussionQuerySchema = discussionFiltersSchema.extend({
   locale: z.enum(routing.locales).default(routing.defaultLocale),
 });
+
+export const TITLE_MIN = 10;
+export const TITLE_MAX = 150;
+export const CONTENT_MAX = 20000;
+
+/** What the author may change from the detail page; category and type come with the full form. */
+export const discussionEditSchema = z.object({
+  title: z.string().trim().min(TITLE_MIN, 'titleMin').max(TITLE_MAX, 'titleMax'),
+  content: z.string().trim().min(1, 'required').max(CONTENT_MAX, 'contentMax'),
+});
+export type DiscussionEditInput = z.infer<typeof discussionEditSchema>;
+
+export const discussionEnvelopeSchema = z.object({ discussion: discussionListItemSchema });

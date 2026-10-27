@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mockup 06 · Détail d'une discussion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand: #eb0f0f;
+        --brand-text: #e00b0b;
+        --ok: #1a8a4a;
+        --ok-soft: #e4f6ea;
+        --alert: #e00b0b;
+        --bg: #f5f5f7;
+        --surface: #fff;
+        --ink: #1d1d1f;
+        --ink-2: #48484a;
+        --ink-3: #6e6e73;
+        --line: #e5e5ea;
+        --hairline: rgba(0, 0, 0, 0.07);
+        --fill: rgba(0, 0, 0, 0.05);
+        --accent: rgba(0, 0, 0, 0.03);
+        --r: 14px;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --f-body: 'Inter', system-ui, sans-serif;
+        --f-display: 'Playfair Display', Georgia, serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --brand-text: #ff6961;
+          --ok: #30d158;
+          --ok-soft: #173a22;
+          --alert: #ff6961;
+          --bg: #161618;
+          --surface: #1c1c1e;
+          --ink: #f5f5f7;
+          --ink-2: #c7c7cc;
+          --ink-3: #8e8e93;
+          --line: #38383a;
+          --hairline: rgba(255, 255, 255, 0.08);
+          --fill: rgba(255, 255, 255, 0.07);
+          --accent: rgba(255, 255, 255, 0.04);
+          --shadow: none;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.5 var(--f-body);
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .hdr {
+        height: 56px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--hairline);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 16px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .logo {
+        background: var(--brand);
+        color: #fff;
+        font: 800 13px/1 var(--f-body);
+        letter-spacing: 0.06em;
+        padding: 7px 9px;
+        border-radius: 4px;
+      }
+      .hdr .sub {
+        color: var(--ink-3);
+        font-size: 13.5px;
+      }
+      .hdr .right {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 13.5px;
+      }
+      .pill {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 6px 12px;
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        background: var(--surface);
+      }
+      .wrap {
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 24px 16px 80px;
+        display: grid;
+        grid-template-columns: 212px minmax(0, 1fr) 304px;
+        gap: 28px;
+        align-items: start;
+      }
+      .nav {
+        position: sticky;
+        top: 86px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 14px;
+      }
+      .nav a {
+        padding: 7px 10px;
+        border-radius: 8px;
+        color: var(--ink-2);
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .nav a.on {
+        background: var(--fill);
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .crumbs {
+        font-size: 13px;
+        color: var(--ink-3);
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .crumbs b {
+        color: var(--ink-2);
+        font-weight: 600;
+      }
+      .post {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r);
+        padding: 22px 24px;
+        box-shadow: var(--shadow);
+      }
+      .tmeta {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        font-size: 12.5px;
+        color: var(--ink-3);
+      }
+      .cat {
+        font-weight: 600;
+        color: var(--ink-2);
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .tag {
+        background: var(--fill);
+        border-radius: 999px;
+        padding: 2px 9px;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--ink-2);
+      }
+      .post h1 {
+        font: 700 29px/1.2 var(--f-display);
+        letter-spacing: -0.01em;
+        margin: 8px 0 14px;
+      }
+      .author {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .av {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(235, 15, 15, 0.15);
+        color: var(--brand-text);
+        font: 700 13px/36px var(--f-body);
+        text-align: center;
+        flex: none;
+      }
+      .av.sm {
+        width: 28px;
+        height: 28px;
+        line-height: 28px;
+        font-size: 11px;
+      }
+      .av.img {
+        background: url('https://i.pravatar.cc/72?img=5') center/cover;
+        color: transparent;
+      }
+      .author-name {
+        font-weight: 600;
+        font-size: 14.5px;
+      }
+      .author-sub {
+        color: var(--ink-3);
+        font-size: 12.5px;
+      }
+      .prose {
+        margin-top: 16px;
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--ink-2);
+      }
+      .prose p + p {
+        margin-top: 12px;
+      }
+      .section-title {
+        font: 700 17px var(--f-body);
+        margin: 26px 0 12px;
+      }
+      .replies {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .post.reply {
+        padding: 16px 20px;
+      }
+      .post.reply .prose {
+        font-size: 15px;
+        margin-top: 10px;
+      }
+      .chip {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--brand-text);
+        background: rgba(235, 15, 15, 0.1);
+        border-radius: 999px;
+        padding: 2px 8px;
+        margin-left: 6px;
+        vertical-align: middle;
+      }
+      .post.new {
+        border-color: var(--ok);
+        box-shadow:
+          0 0 0 1px var(--ok),
+          var(--shadow);
+      }
+      .reply-box {
+        margin-top: 12px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 120px;
+        margin-top: 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px;
+        font: inherit;
+        color: var(--ink);
+        background: transparent;
+        resize: vertical;
+      }
+      .reply-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+        gap: 12px;
+      }
+      .counter {
+        font-size: 12.5px;
+        color: var(--ink-3);
+        font-variant-numeric: tabular-nums;
+      }
+      .btn {
+        height: 40px;
+        padding: 0 18px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        font: 600 14.5px var(--f-body);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: var(--brand);
+        color: #fff;
+      }
+      .btn-secondary {
+        background: var(--fill);
+        color: var(--ink);
+      }
+      .btn[disabled] {
+        opacity: 0.55;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r);
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+      }
+      .card + .card {
+        margin-top: 16px;
+      }
+      .card h2 {
+        font-size: 11.5px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        font-weight: 600;
+      }
+      .card h3 {
+        font: 700 17px var(--f-display);
+        margin-top: 6px;
+      }
+      .card p {
+        color: var(--ink-2);
+        font-size: 14px;
+        margin-top: 6px;
+      }
+      .facts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 10px;
+      }
+      .facts small {
+        display: block;
+        color: var(--ink-3);
+        font-size: 12px;
+      }
+      .facts b {
+        font-size: 17px;
+      }
+      .label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin: 32px 0 10px;
+        grid-column: 1 / -1;
+      }
+      .phone {
+        width: 400px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        overflow: hidden;
+        background: var(--bg);
+        grid-column: 2;
+      }
+      .phone .wrap {
+        display: block;
+        padding: 14px 14px 30px;
+      }
+      .phone .post h1 {
+        font-size: 23px;
+      }
+      .phone .card {
+        margin-top: 14px;
+      }
+      @media (max-width: 1100px) {
+        .wrap {
+          grid-template-columns: 1fr;
+        }
+        .nav {
+          display: none;
+        }
+        .phone {
+          grid-column: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hdr">
+      <span class="logo">LE REVENU</span><span class="sub">Communauté</span>
+      <div class="right">
+        <span class="pill">☾</span><span class="pill">🇫🇷 Français ▾</span
+        ><span class="pill"
+          ><span class="av sm" style="width: 22px; height: 22px; line-height: 22px; font-size: 9px"
+            >A</span
+          >alice ▾</span
+        >
+      </div>
+    </header>
+    <div class="wrap">
+      <nav class="nav" aria-label="Espaces">
+        <a>Tous les espaces</a
+        ><a class="on"><span class="dot" style="background: #eb0f0f"></span>Bourse &amp; actions</a
+        ><a><span class="dot" style="background: #2f80ed"></span>Immobilier</a
+        ><a><span class="dot" style="background: #f2994a"></span>Retraite</a
+        ><a><span class="dot" style="background: #27ae60"></span>Épargne &amp; livrets</a
+        ><a><span class="dot" style="background: #9b51e0"></span>Fiscalité</a>
+      </nav>
+
+      <main>
+        <nav class="crumbs" aria-label="Fil d'Ariane">
+          <a>Discussions</a><span>›</span><b>Bourse &amp; actions</b>
+        </nav>
+        <article class="post">
+          <div class="tmeta">
+            <span class="cat"
+              ><span class="dot" style="background: #eb0f0f"></span>Bourse &amp; actions</span
+            ><span class="tag">Question</span>
+          </div>
+          <h1>PEA ou CTO pour un premier ETF monde ?</h1>
+          <div class="author">
+            <span class="av">A</span>
+            <div>
+              <div class="author-name">alice</div>
+              <div class="author-sub">il y a 2 jours</div>
+            </div>
+          </div>
+          <div class="prose">
+            <p>
+              Je débute avec 200 € par mois et j'hésite entre ouvrir un PEA ou un compte-titres pour
+              acheter un ETF monde. Le PEA plafonne à 150 000 € mais la fiscalité après cinq ans est
+              plus douce.
+            </p>
+            <p>
+              Est-ce que la différence de frais entre un ETF éligible PEA (synthétique) et un ETF
+              physique sur CTO justifie le choix ? Merci pour vos retours d'expérience.
+            </p>
+          </div>
+        </article>
+
+        <h2 class="section-title">3 réponses</h2>
+        <section class="replies" aria-label="Réponses">
+          <article class="post reply">
+            <div class="author">
+              <span class="av sm">V</span>
+              <div>
+                <div class="author-name">Vincent_ETF</div>
+                <div class="author-sub">il y a 2 jours</div>
+              </div>
+            </div>
+            <div class="prose">
+              <p>
+                Pour 200 € par mois, le PEA est le bon réflexe : au-delà de cinq ans vous ne payez
+                que les prélèvements sociaux. L'écart de frais entre un ETF synthétique et un
+                physique est de l'ordre de 0,1 % par an, négligeable face à l'avantage fiscal.
+              </p>
+            </div>
+          </article>
+          <article class="post reply">
+            <div class="author">
+              <span class="av sm img">C</span>
+              <div>
+                <div class="author-name">Claire Nantes</div>
+                <div class="author-sub">hier</div>
+              </div>
+            </div>
+            <div class="prose">
+              <p>
+                J'ai fait le CTO au début pour la simplicité, puis j'ai transféré vers un PEA : la
+                fiscalité sur les plus-values a fini par peser. Ouvrez le PEA tôt, la date
+                d'ouverture compte pour les cinq ans.
+              </p>
+            </div>
+          </article>
+          <article class="post reply">
+            <div class="author">
+              <span class="av sm">A</span>
+              <div>
+                <div class="author-name">alice <span class="chip">Auteur</span></div>
+                <div class="author-sub">il y a 3 heures</div>
+              </div>
+            </div>
+            <div class="prose">
+              <p>Merci à vous deux, je pars sur un PEA et un ETF monde synthétique.</p>
+            </div>
+          </article>
+        </section>
+
+        <form class="post reply-box">
+          <div class="author">
+            <span class="av sm">A</span>
+            <div class="author-sub">
+              Répondre en tant que <b style="color: var(--ink)">alice</b>
+            </div>
+          </div>
+          <label for="reply" style="position: absolute; left: -9999px">Votre réponse</label>
+          <textarea id="reply" placeholder="Partagez votre expérience pour aider alice…"></textarea>
+          <div class="reply-foot">
+            <span class="counter">0 / 5000</span
+            ><button class="btn btn-primary" type="submit" disabled>Publier ma réponse</button>
+          </div>
+        </form>
+      </main>
+
+      <aside>
+        <section class="card">
+          <h2>Cette discussion</h2>
+          <div class="facts">
+            <div><small>Réponses</small><b>3</b></div>
+            <div><small>Publiée</small><b>il y a 2 j</b></div>
+          </div>
+          <p style="margin-top: 12px">
+            <span class="cat"
+              ><span class="dot" style="background: #eb0f0f"></span>Bourse &amp; actions</span
+            >
+          </p>
+        </section>
+        <section class="card">
+          <h2>Cet espace</h2>
+          <h3>Bourse &amp; actions</h3>
+          <p>Actions, ETF, PEA, stratégies et actualité des marchés.</p>
+          <p style="margin-top: 12px">
+            <a class="btn btn-secondary" style="height: 36px">Voir les discussions de cet espace</a>
+          </p>
+        </section>
+      </aside>
+
+      <div class="label">
+        À 400 px
+        <small style="text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 8px"
+          >une colonne, les cartes de droite après les réponses</small
+        >
+      </div>
+      <div class="phone">
+        <div class="wrap">
+          <nav class="crumbs"><a>Discussions</a><span>›</span><b>Bourse &amp; actions</b></nav>
+          <article class="post" style="padding: 16px">
+            <div class="tmeta">
+              <span class="cat"
+                ><span class="dot" style="background: #eb0f0f"></span>Bourse &amp; actions</span
+              ><span class="tag">Question</span>
+            </div>
+            <h1>PEA ou CTO pour un premier ETF monde ?</h1>
+            <div class="author">
+              <span class="av">A</span>
+              <div>
+                <div class="author-name">alice</div>
+                <div class="author-sub">il y a 2 jours</div>
+              </div>
+            </div>
+            <div class="prose" style="font-size: 15px">
+              <p>
+                Je débute avec 200 € par mois et j'hésite entre ouvrir un PEA ou un compte-titres
+                pour acheter un ETF monde…
+              </p>
+            </div>
+          </article>
+          <h2 class="section-title">3 réponses</h2>
+          <article class="post reply">
+            <div class="author">
+              <span class="av sm">V</span>
+              <div>
+                <div class="author-name">Vincent_ETF</div>
+                <div class="author-sub">il y a 2 jours</div>
+              </div>
+            </div>
+            <div class="prose"><p>Pour 200 € par mois, le PEA est le bon réflexe…</p></div>
+          </article>
+          <form class="post reply-box">
+            <div class="author">
+              <span class="av sm">A</span>
+              <div class="author-sub">
+                Répondre en tant que <b style="color: var(--ink)">alice</b>
+              </div>
+            </div>
+            <textarea placeholder="Partagez votre expérience…" style="min-height: 90px"></textarea>
+            <div class="reply-foot">
+              <span class="counter">0 / 5000</span
+              ><button class="btn btn-primary" disabled>Publier ma réponse</button>
+            </div>
+          </form>
+          <section class="card">
+            <h2>Cette discussion</h2>
+            <div class="facts">
+              <div><small>Réponses</small><b>3</b></div>
+              <div><small>Publiée</small><b>il y a 2 j</b></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

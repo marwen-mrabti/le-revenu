@@ -6,10 +6,7 @@ import { LocaleMenu } from '@/components/layout/locale-menu';
 import { renderWithIntl } from '@/test/render-with-intl';
 
 const replace = vi.fn();
-vi.mock('@/i18n/navigation', () => ({
-  usePathname: () => '/discussions',
-  useRouter: () => ({ replace }),
-}));
+vi.mock('@/i18n/navigation', () => ({ useRouter: () => ({ replace }) }));
 vi.mock('@/components/theme/theme-provider', () => ({
   useTheme: () => ({ theme: 'system', setTheme: vi.fn() }),
 }));
@@ -33,6 +30,14 @@ describe('LocaleMenu', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Langue' }));
     await userEvent.click(await screen.findByRole('menuitemradio', { name: /English/ }));
     expect(replace).toHaveBeenCalledWith('/discussions?sort=oldest', { locale: 'en' });
+  });
+
+  it('drops the current prefix so the router adds the target one', async () => {
+    window.history.replaceState({}, '', '/en/discussions?sort=oldest');
+    renderWithIntl(<LocaleMenu />, { locale: 'en' });
+    await userEvent.click(screen.getByRole('button', { name: 'Language' }));
+    await userEvent.click(await screen.findByRole('menuitemradio', { name: /Français/ }));
+    expect(replace).toHaveBeenCalledWith('/discussions?sort=oldest', { locale: 'fr' });
   });
 
   it('offers the three theme choices', async () => {

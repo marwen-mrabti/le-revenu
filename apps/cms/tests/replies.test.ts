@@ -71,11 +71,15 @@ describe('POST /api/replies', () => {
       title: 'Une autre discussion cible',
     });
     const reply = await createReply(session('bob'), discussion.documentId);
-    await api()
+    const updated = await api()
       .put(`/api/replies/${reply.documentId}`)
       .set(bearer(session('bob')))
       .send({ data: { content: 'Contenu modifie', discussion: other.documentId } })
       .expect(200);
+    // Answers like `create`: the author populated, no numeric id.
+    expect(updated.body.data.content).toBe('Contenu modifie');
+    expect(updated.body.data.author.username).toBe('bob');
+    expect(updated.body.data.id).toBeUndefined();
 
     const stillThere = await api()
       .get(`/api/replies?filters[discussion][documentId][$eq]=${discussion.documentId}`)

@@ -30,3 +30,13 @@ export function useVisibleFieldErrors(): Array<{ message: string }> {
   }
   return out;
 }
+
+/**
+ * TanStack keeps one error per validation cause. The onBlur verdict would
+ * otherwise survive while the reader types a fix, keeping the submit button
+ * disabled until the next blur; the onChange verdict alone decides meanwhile.
+ */
+export function clearBlurError(field: ReturnType<typeof useFieldContext<string>>): void {
+  if (field.state.meta.errorMap.onBlur === undefined) return;
+  field.setMeta((meta) => ({ ...meta, errorMap: { ...meta.errorMap, onBlur: undefined } }));
+}

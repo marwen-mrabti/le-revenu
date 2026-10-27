@@ -3,6 +3,7 @@ import { createFormHook } from '@tanstack/react-form';
 import { PasswordField } from '@/components/form/password-field';
 import { SubmitButton } from '@/components/form/submit-button';
 import { TextField } from '@/components/form/text-field';
+import { TextareaField } from '@/components/form/textarea-field';
 
 import { fieldContext, formContext } from './form-context';
 
@@ -17,6 +18,6 @@ export const rules = <T>(schema: T) => ({ onChange: schema, onBlur: schema });
 export const { useAppForm, withForm } = createFormHook({
   fieldContext,
   formContext,
-  fieldComponents: { TextField, PasswordField },
+  fieldComponents: { TextField, PasswordField, TextareaField },
   formComponents: { SubmitButton },
 });

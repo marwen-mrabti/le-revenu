@@ -117,14 +117,14 @@ Vous pouvez aussi créer votre propre compte sur `/register` (nom d'utilisateur,
 | Fonction                                                                                 | État                       |
 | ---------------------------------------------------------------------------------------- | -------------------------- |
 | Liste des discussions : filtre par espace, tri par date, recherche, pagination           | ✔ `/discussions`           |
-| Détail d'une discussion et ses réponses, URL propre par slug                             | backend prêt, page à venir |
+| Détail d'une discussion et ses réponses, URL propre par slug                             | ✔ `/discussions/<slug>`    |
 | Connexion, inscription avec confirmation par e-mail, Google, déconnexion, menu du compte | ✔ `/login`, `/register`    |
 | Mot de passe oublié / réinitialisation par e-mail                                        | ✔ `/forgot-password`       |
 | Page compte : nom affiché, nom d'utilisateur, mot de passe, suppression                  | ✔ `/account`               |
 | Premier mot de passe d'un compte Google, depuis la page compte                           | ✔ `/account`               |
 | Nom et photo Google ; connexion Google liée à un compte avec mot de passe                | ✔                          |
 | Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)                 | backend prêt, page à venir |
-| Réponse à une discussion                                                                 | backend prêt, page à venir |
+| Réponse à une discussion, modification et suppression de ses réponses et discussions     | ✔ depuis la page détail    |
 | Interface en français et en anglais, menu de langue, thème clair / sombre                | ✔                          |
 | Pages 404 et 500 personnalisées (en-tête conservé, recherche, espaces, code d'incident)  | ✔                          |
 
@@ -140,6 +140,7 @@ Navigateur ──(JSON + cookie httpOnly)──► Route Handlers Next.js ──
 
 - **Strapi** est la seule source de vérité : schémas, validation, permissions, règles métier.
 - **Next.js** ne parle jamais à la base de données. Les composants serveur lisent Strapi via une couche d'accès typée ; les composants client passent par des Route Handlers (`/api/*`). Aucune Server Action.
+- La page d'une discussion est mise en cache (`'use cache'`, quelques heures) et étiquetée par collection et par entrée ; les handlers de réponse et de modification expirent l'entrée aussitôt, et un webhook Strapi (`POST /api/revalidate`, enregistré au démarrage) l'expire après une modification dans l'admin (ADR-0006).
 - Le JWT Strapi vit dans un cookie `httpOnly` posé par Next.js ; il n'atteint jamais le JavaScript du navigateur et l'URL de Strapi n'est pas exposée (une exception documentée pour le flux Google, ADR-0009).
 - Diagrammes et flux : [`docs/architecture.md`](docs/architecture.md). Modèle de données : [`docs/data-model.md`](docs/data-model.md).
 
@@ -202,7 +203,7 @@ curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&
 
 Playwright a besoin d'un navigateur : `pnpm --filter web exec playwright install chromium` une fois. Par défaut il construit puis démarre l'application ; avec `E2E_BASE_URL=http://localhost:3000` il utilise le serveur de développement déjà lancé. Strapi limite les connexions à 10 par minute et par IP : ne lancez pas de connexions à la main pendant une exécution.
 
-Les quatre tests demandés par le cahier des charges (validation d'une discussion, refus d'une publication non authentifiée, protection contre l'usurpation d'auteur, affichage des discussions) sont dans `apps/cms/tests/`, avec les droits d'auteur, les réponses, la connexion, les catégories bilingues, la confirmation d'e-mail, la réinitialisation du mot de passe, les règles du compte, le premier mot de passe d'un compte Google et les modèles de mail stockés : 13 fichiers, 55 tests, environ 20 s.
+Les quatre tests demandés par le cahier des charges (validation d'une discussion, refus d'une publication non authentifiée, protection contre l'usurpation d'auteur, affichage des discussions) sont dans `apps/cms/tests/`, avec les droits d'auteur, les réponses, la connexion, les catégories bilingues, la confirmation d'e-mail, la réinitialisation du mot de passe, les règles du compte, le premier mot de passe d'un compte Google, les modèles de mail stockés et le webhook de revalidation : 14 fichiers, 56 tests, environ 20 s.
 
 Comment tournent les tests backend :
 
@@ -212,9 +213,9 @@ Comment tournent les tests backend :
 
 Prérequis : PostgreSQL démarré (`docker compose up -d db` crée `lerevenu_test`), `apps/cms/.env` renseigné. Variable `DATABASE_TEST_NAME` pour changer le nom de la base de test.
 
-Tests frontend (`apps/web`, Vitest + Testing Library, colocalisés `*.test.ts(x)`, 110 tests) : le client Strapi (chaîne de requête, enveloppe d'erreur, réponse inattendue, serveur injoignable), le schéma des filtres et la correspondance URL ↔ état (valeurs par défaut, page invalide, `clearOnDefault`), la carte de discussion (cinq champs du cahier des charges, lien vers le détail, ni e-mail ni id numérique), la pagination (page courante, filtres conservés, bornes), le handler `GET /api/discussions` (422 sur un tri inconnu, locale transmise, 503 sans fuite du message Strapi), le cookie de session et les gardes des requêtes, les treize handlers d'authentification et de compte, les deux pages d'arrivée des liens de mail (langue du lecteur), les formulaires de connexion, d'inscription, de mot de passe oublié, de réinitialisation, de profil, de mot de passe, de premier mot de passe et de suppression, la page de confirmation, le menu du compte, les îlots (erreur → repli → réessayer), la page 500, le menu de langue et le bouton de thème, la parité des clés fr / en.
+Tests frontend (`apps/web`, Vitest + Testing Library, colocalisés `*.test.ts(x)`, 133 tests) : le client Strapi (chaîne de requête, enveloppe d'erreur, réponse inattendue, serveur injoignable), le schéma des filtres et la correspondance URL ↔ état (valeurs par défaut, page invalide, `clearOnDefault`), la carte de discussion (cinq champs du cahier des charges, lien vers le détail, ni e-mail ni id numérique), la pagination (page courante, filtres conservés, bornes), le handler `GET /api/discussions` (422 sur un tri inconnu, locale transmise, 503 sans fuite du message Strapi), le cookie de session et les gardes des requêtes, les handlers d'authentification, de compte, de réponse, de discussion et de revalidation, les deux pages d'arrivée des liens de mail (langue du lecteur), les formulaires de connexion, d'inscription, de mot de passe oublié, de réinitialisation, de profil, de mot de passe, de premier mot de passe et de suppression, le formulaire et la liste des réponses, les actions de l'auteur, les étiquettes de cache, la page de confirmation, le menu du compte, les îlots (erreur → repli → réessayer), la page 500, le menu de langue et le bouton de thème, la parité des clés fr / en.
 
-Bout en bout (`apps/web/e2e`, Playwright) : connexion et confidentialité de la session, i18n, pages 404 / 500, résilience (un 503 sur la liste laisse la page intacte), et le cycle de vie du compte via l'API de Mailpit (inscription → mail → confirmation → connexion → profil → mot de passe oublié → réinitialisation → suppression). Le spec compte se saute lui-même si Mailpit n'est pas joignable, et il faut que Strapi envoie via Mailpit (`SMTP_HOST=localhost`) : avec un vrai relais comme l'offre gratuite de Resend, les adresses de test sont refusées et l'étape d'inscription échoue.
+Bout en bout (`apps/web/e2e`, Playwright) : connexion et confidentialité de la session, i18n, pages 404 / 500, résilience (un 503 sur la liste laisse la page intacte), le détail d'une discussion (depuis la liste, appel à connexion, alice répond, modifie et supprime, 404), et le cycle de vie du compte via l'API de Mailpit (inscription → mail → confirmation → connexion → profil → mot de passe oublié → réinitialisation → suppression). Le spec compte se saute lui-même si Mailpit n'est pas joignable, et il faut que Strapi envoie via Mailpit (`SMTP_HOST=localhost`) : avec un vrai relais comme l'offre gratuite de Resend, les adresses de test sont refusées et l'étape d'inscription échoue.
 
 ## 9. Qualité et CI/CD
 
@@ -233,17 +234,17 @@ apps/cms/                       Strapi 5 (TypeScript)
   src/api/discussion/utils/     slug.ts (slug côté serveur), presenter.ts (auteur réduit, aucun id numérique)
   src/policies/                 is-owner.ts (404 / 403 si l'appelant n'est pas l'auteur), is-self.ts (sa propre fiche seulement)
   src/extensions/users-permissions/  champs displayName et avatarUrl, liaison Google, is-self sur les routes utilisateur
-  src/bootstrap/                vérification de l'env, index, locales, permissions, fournisseurs de connexion, profil Google, messagerie
+  src/bootstrap/                vérification de l'env, index, locales, permissions, fournisseurs de connexion, profil Google, messagerie, webhook
   src/emails/                   modèles React Email (gabarit, confirmation, réinitialisation) rendus au démarrage
   src/seed/                     données de démonstration, chargées une fois sur base vide
   tests/                        tests d'intégration (un Strapi sur :1338, base lerevenu_test)
   database/demo.sqlite          base pré-remplie du mode zéro-configuration
 
 apps/web/                       Next.js 16 (App Router, Cache Components)
-  src/app/[locale]/             pages : (forum)/discussions, (auth)/login, register, forgot-password, reset-password,
+  src/app/[locale]/             pages : (forum)/discussions et discussions/[slug], (auth)/login, register, forgot-password, reset-password,
                                 verify-email, account, auth/google/callback, not-found.tsx, error.tsx ; loading.tsx par page
-  src/app/api/                  Route Handlers (BFF) : auth/*, account, discussions, categories
-  src/features/<domaine>/       discussions, categories, auth : schemas (zod), data (accès serveur),
+  src/app/api/                  Route Handlers (BFF) : auth/*, account, discussions, replies, categories, revalidate (webhook)
+  src/features/<domaine>/       discussions, replies, categories, auth : schemas (zod), data (accès serveur),
                                 api (queries et mutations TanStack), components, hooks
   src/components/               ui/ (shadcn), form/ (champs liés au hook de formulaire), shared/ (îlots, avatar), layout/, theme/
   src/lib/                      strapi/ (client typé, seul lecteur de STRAPI_URL), api/ (client BFF, erreurs,
