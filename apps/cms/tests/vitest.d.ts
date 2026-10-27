@@ -13,5 +13,7 @@ declare module 'vitest' {
     baseUrl: string;
     /** Logged-in demo readers. */
     sessions: Record<DemoUser, Session>;
+    /** The test database, for reading tokens Strapi only sends by mail. */
+    database: { host: string; port: number; database: string; user: string; secret: string };
   }
 }

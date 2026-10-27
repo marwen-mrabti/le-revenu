@@ -4,7 +4,8 @@ function makeQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       // Data prefetched on the server is fresh for a minute: no refetch on hydration.
-      queries: { staleTime: 60 * 1000 },
+      // One quick retry, then the island shows its error: readers should not wait on backoff.
+      queries: { staleTime: 60 * 1000, retry: 1, retryDelay: 500 },
       dehydrate: {
         // Pending queries travel too, so the client can await a streamed prefetch.
         shouldDehydrateQuery: (query) =>

@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mockup 05 · Mon compte</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand: #eb0f0f;
+        --brand-text: #e00b0b;
+        --brand-ink: #fff;
+        --ok: #1a8a4a;
+        --ok-soft: #e4f6ea;
+        --alert: #e00b0b;
+        --bg: #f5f5f7;
+        --surface: #fff;
+        --ink: #1d1d1f;
+        --ink-2: #48484a;
+        --ink-3: #6e6e73;
+        --line: #e5e5ea;
+        --hairline: rgba(0, 0, 0, 0.07);
+        --fill: rgba(0, 0, 0, 0.05);
+        --r: 14px;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --f-body: 'Inter', system-ui, sans-serif;
+        --f-display: 'Playfair Display', Georgia, serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --brand-text: #ff6961;
+          --ok: #30d158;
+          --ok-soft: #173a22;
+          --alert: #ff6961;
+          --bg: #161618;
+          --surface: #1c1c1e;
+          --ink: #f5f5f7;
+          --ink-2: #c7c7cc;
+          --ink-3: #8e8e93;
+          --line: #38383a;
+          --hairline: rgba(255, 255, 255, 0.08);
+          --fill: rgba(255, 255, 255, 0.07);
+          --shadow: none;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.5 var(--f-body);
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .wrap {
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 24px 16px 80px;
+      }
+      .label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin: 28px 0 10px;
+      }
+      .label small {
+        font-weight: 400;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-left: 8px;
+      }
+      /* header */
+      .hdr {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: 12px;
+        margin-bottom: 18px;
+      }
+      .hdr .bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 56px;
+        padding: 0 16px;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .logo .mark {
+        display: inline-flex;
+        background: var(--brand);
+        padding: 2px;
+        font-size: 13px;
+        font-weight: 900;
+        color: #fff;
+      }
+      .logo .mark .le {
+        background: var(--ink);
+        padding: 2px 4px;
+        margin-right: 2px;
+      }
+      .logo .mark .rev {
+        padding: 2px 4px;
+      }
+      .logo .sub {
+        border-left: 1px solid var(--line);
+        padding-left: 8px;
+        font-size: 12px;
+        color: var(--ink-3);
+      }
+      .ctrls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .menu-btn {
+        height: 36px;
+        padding: 0 10px 0 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 10px;
+        border: 1px solid var(--hairline);
+        background: var(--surface);
+        font: inherit;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .av {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f6b26b, #e06666);
+        display: inline-grid;
+        place-items: center;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        object-fit: cover;
+      }
+      .av.lg {
+        width: 64px;
+        height: 64px;
+        font-size: 24px;
+      }
+      .caret {
+        color: var(--ink-3);
+        font-size: 11px;
+      }
+      .menu-wrap {
+        position: relative;
+      }
+      .menu {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 6px);
+        min-width: 220px;
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: 12px;
+        padding: 6px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        z-index: 5;
+      }
+      .menu .who {
+        padding: 8px 10px;
+      }
+      .menu .who b {
+        display: block;
+        font-size: 14px;
+      }
+      .menu .who span {
+        font-size: 12.5px;
+        color: var(--ink-3);
+      }
+      .menu .sep {
+        height: 1px;
+        background: var(--line);
+        margin: 6px 4px;
+      }
+      .menu a {
+        display: flex;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--ink-2);
+      }
+      /* page */
+      .page {
+        max-width: 720px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .page h1 {
+        font-family: var(--f-display);
+        font-size: 28px;
+        letter-spacing: -0.01em;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r);
+        padding: 22px;
+        box-shadow: var(--shadow);
+      }
+      .card h2 {
+        font-size: 12.5px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin-bottom: 14px;
+      }
+      .card.danger {
+        border-color: color-mix(in srgb, var(--alert) 40%, transparent);
+      }
+      .card.danger h2 {
+        color: var(--alert);
+      }
+      .profile {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .profile b {
+        display: block;
+        font-family: var(--f-display);
+        font-size: 22px;
+      }
+      .profile span {
+        color: var(--ink-3);
+        font-size: 14px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 9px;
+        border-radius: 999px;
+        background: var(--fill);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink-2);
+        margin-left: 8px;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .field label {
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .field .desc {
+        font-size: 12.5px;
+        color: var(--ink-3);
+      }
+      .input {
+        height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: transparent;
+        padding: 0 12px;
+        font: inherit;
+        color: var(--ink);
+        width: 100%;
+      }
+      .input[disabled] {
+        opacity: 0.6;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 14px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        height: 38px;
+        padding: 0 16px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: var(--brand);
+        color: var(--brand-ink);
+      }
+      .btn-quiet {
+        background: var(--fill);
+        color: var(--ink);
+      }
+      .btn-danger {
+        background: var(--alert);
+        color: #fff;
+      }
+      .btn[disabled] {
+        opacity: 0.5;
+      }
+      .muted {
+        font-size: 13px;
+        color: var(--ink-3);
+      }
+      .toast {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        background: var(--ink);
+        color: var(--surface);
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 13.5px;
+      }
+      /* dialog */
+      .dialog {
+        max-width: 440px;
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r);
+        padding: 22px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+      }
+      .dialog h3 {
+        font-family: var(--f-display);
+        font-size: 20px;
+        margin-bottom: 6px;
+      }
+      .mobile {
+        max-width: 400px;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1 style="font-family: var(--f-display); font-size: 22px">Mon compte</h1>
+      <p style="color: var(--ink-3); margin-top: 4px">
+        Page protégée (<code>/account</code>). Trois formulaires indépendants, chacun avec son
+        bouton, ses erreurs et son message de succès.
+      </p>
+
+      <div class="label">En-tête : compte Google avec photo et nom, menu ouvert</div>
+      <div class="hdr" style="padding-bottom: 140px">
+        <div class="bar">
+          <a class="logo" href="#"
+            ><span class="mark"><span class="le">LE</span><span class="rev">REVENU</span></span
+            ><span class="sub">Communauté</span></a
+          >
+          <div class="ctrls">
+            ☾ &nbsp; 🇫🇷 Français ▾
+            <div class="menu-wrap">
+              <button class="menu-btn" aria-expanded="true">
+                <span class="av" aria-hidden="true">CN</span>Claire Nantes<span class="caret"
+                  >▾</span
+                >
+              </button>
+              <div class="menu" role="menu">
+                <div class="who">
+                  <b>Claire Nantes</b><span>@claire.nantes · claire@gmail.com</span>
+                </div>
+                <div class="sep"></div>
+                <a href="#" role="menuitem">👤 Mon compte</a>
+                <a href="#" role="menuitem">↪ Se déconnecter</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="muted" style="margin-bottom: 6px">
+        Photo Google quand elle existe, sinon initiales sur fond coloré. Le nom affiché prime sur le
+        nom d'utilisateur, partout (en-tête, cartes de discussion, réponses).
+      </p>
+
+      <div class="label">/account</div>
+      <main class="page">
+        <h1>Mon compte</h1>
+
+        <section class="card">
+          <div class="profile">
+            <span class="av lg" aria-hidden="true">CN</span>
+            <div>
+              <b>Claire Nantes <span class="badge">G · via Google</span></b
+              ><span>@claire.nantes · claire@gmail.com · membre depuis le 27 oct. 2026</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Profil</h2>
+          <div class="row">
+            <div class="field">
+              <label for="dn">Nom affiché</label
+              ><input class="input" id="dn" value="Claire Nantes" /><span class="desc"
+                >Facultatif, 2 à 60 caractères. C'est ce que les autres voient.</span
+              >
+            </div>
+            <div class="field">
+              <label for="un">Nom d'utilisateur</label
+              ><input class="input" id="un" value="claire.nantes" /><span class="desc"
+                >3 à 30 caractères : lettres, chiffres, point, tiret, tiret bas.</span
+              >
+            </div>
+          </div>
+          <div class="field" style="margin-top: 14px">
+            <label for="em">E-mail</label
+            ><input class="input" id="em" value="claire@gmail.com" disabled /><span class="desc"
+              >Changement d'adresse : évolution (nécessite une nouvelle confirmation).</span
+            >
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary" type="submit">Enregistrer</button>
+          </div>
+          <p style="margin-top: 12px"><span class="toast">✓ Profil enregistré.</span></p>
+        </section>
+
+        <section class="card">
+          <h2>Mot de passe</h2>
+          <div class="row">
+            <div class="field">
+              <label for="p0">Mot de passe actuel</label
+              ><input class="input" id="p0" type="password" autocomplete="current-password" />
+            </div>
+            <div class="field">
+              <label for="p1">Nouveau</label
+              ><input class="input" id="p1" type="password" autocomplete="new-password" /><span
+                class="desc"
+                >Au moins 8 caractères.</span
+              >
+            </div>
+            <div class="field">
+              <label for="p2">Confirmer</label
+              ><input class="input" id="p2" type="password" autocomplete="new-password" />
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary" type="submit">Changer le mot de passe</button>
+          </div>
+          <p class="muted" style="margin-top: 10px">
+            Compte Google sans mot de passe : cette section affiche « Connexion via Google. Pour
+            ajouter un mot de passe, utilisez “Mot de passe oublié” sur la page de connexion. »
+          </p>
+        </section>
+
+        <section class="card danger">
+          <h2>Zone rouge</h2>
+          <p style="font-size: 14px; color: var(--ink-2)">
+            Supprimer votre compte efface vos informations personnelles. Vos discussions et réponses
+            restent, signées « Compte supprimé ».
+          </p>
+          <div class="actions" style="justify-content: flex-start">
+            <button class="btn btn-danger" type="button">Supprimer mon compte</button>
+          </div>
+        </section>
+      </main>
+
+      <div class="label">
+        Dialogue de suppression
+        <small>le bouton s'active quand le nom d'utilisateur est tapé</small>
+      </div>
+      <div class="dialog" role="dialog" aria-labelledby="dt">
+        <h3 id="dt">Supprimer définitivement ?</h3>
+        <p style="font-size: 14px; color: var(--ink-2)">
+          Tapez <b>claire.nantes</b> pour confirmer. Cette action est irréversible.
+        </p>
+        <div class="field" style="margin: 14px 0">
+          <label for="cf">Nom d'utilisateur</label
+          ><input class="input" id="cf" value="claire.nan" aria-invalid="true" />
+        </div>
+        <div class="actions">
+          <button class="btn btn-quiet" type="button">Annuler</button
+          ><button class="btn btn-danger" type="button" disabled>Supprimer mon compte</button>
+        </div>
+      </div>
+
+      <div class="label">À 400 px</div>
+      <div class="mobile">
+        <section class="card">
+          <div class="profile">
+            <span class="av lg" aria-hidden="true">A</span>
+            <div><b>alice</b><span>@alice · alice@demo.lerevenu.test</span></div>
+          </div>
+        </section>
+        <section class="card" style="margin-top: 14px">
+          <h2>Profil</h2>
+          <div class="field">
+            <label>Nom affiché</label
+            ><input class="input" value="" placeholder="Votre nom, facultatif" />
+          </div>
+          <div class="field" style="margin-top: 12px">
+            <label>Nom d'utilisateur</label><input class="input" value="alice" />
+          </div>
+          <div class="actions"><button class="btn btn-primary">Enregistrer</button></div>
+        </section>
+        <p class="muted" style="margin-top: 10px">
+          Compte avec mot de passe : pas de badge, section mot de passe complète, photo = initiale.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

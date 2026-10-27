@@ -40,9 +40,14 @@ export async function bffGet<T>(
   return schema.parse(await response.json());
 }
 
-export async function bffPost<T>(path: string, body: unknown, schema: z.ZodType<T>): Promise<T> {
+export async function bffPost<T>(
+  path: string,
+  body: unknown,
+  schema: z.ZodType<T>,
+  options: { method?: 'POST' | 'PATCH' | 'DELETE' } = {},
+): Promise<T> {
   const response = await fetch(path, {
-    method: 'POST',
+    method: options.method ?? 'POST',
     headers: { accept: 'application/json', 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });

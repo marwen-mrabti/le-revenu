@@ -1,8 +1,8 @@
 /**
  * discussion presenter: shapes what leaves the API. Two rules live here:
  * - no numeric `id` is ever exposed, only `documentId`;
- * - the author is reduced to `{ documentId, username }` (readers cannot list
- *   users, so Strapi would otherwise strip the relation entirely).
+ * - the author is reduced to `{ documentId, username, displayName, avatarUrl }`
+ *   (readers cannot list users, so Strapi would otherwise strip the relation).
  */
 
 import type { Modules } from '@strapi/strapi';
@@ -13,7 +13,9 @@ import type { DISCUSSION_UID } from '../constants';
 type Populate<T extends typeof DISCUSSION_UID | typeof REPLY_UID> =
   Modules.Documents.Params.Populate.Any<T>;
 
-export const AUTHOR_POPULATE: { fields: ['username'] } = { fields: ['username'] };
+export const AUTHOR_POPULATE: { fields: ['username', 'displayName', 'avatarUrl'] } = {
+  fields: ['username', 'displayName', 'avatarUrl'],
+};
 export const CATEGORY_POPULATE: { fields: ['name', 'slug', 'color'] } = {
   fields: ['name', 'slug', 'color'],
 };
@@ -37,6 +39,8 @@ export const REPLY_POPULATE: Populate<typeof REPLY_UID> = { author: AUTHOR_POPUL
 export interface PublicAuthor {
   documentId: string;
   username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
 }
 
 type Row = Record<string, unknown> & { documentId?: string };
@@ -57,7 +61,9 @@ export function withoutIds<T extends Row>(row: T): Omit<T, 'id'> {
 export function pickAuthor(author: unknown): PublicAuthor | null {
   if (!isRow(author) || typeof author.documentId !== 'string') return null;
   const username = typeof author.username === 'string' ? author.username : '';
-  return { documentId: author.documentId, username };
+  const displayName = typeof author.displayName === 'string' ? author.displayName : null;
+  const avatarUrl = typeof author.avatarUrl === 'string' ? author.avatarUrl : null;
+  return { documentId: author.documentId, username, displayName, avatarUrl };
 }
 
 /** Re-attaches a safe author to an entity sanitised without it. */

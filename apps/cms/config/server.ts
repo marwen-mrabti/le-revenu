@@ -3,8 +3,8 @@ import type { Core } from '@strapi/strapi';
 const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Server => ({
   host: env('HOST', '0.0.0.0'),
   port: env.int('PORT', 1337),
-  // Absolute public URL: third-party login providers build their redirect URI from it.
-  url: env('PUBLIC_URL', 'http://localhost:1337'),
+  // Absolute public URL, required (assert-env): login providers and the confirmation mail link are built from it.
+  url: env('PUBLIC_URL'),
   app: {
     keys: env.array('APP_KEYS')!,
   },

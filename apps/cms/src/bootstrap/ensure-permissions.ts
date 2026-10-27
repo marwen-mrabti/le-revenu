@@ -24,6 +24,12 @@ const AUTHENTICATED_ACTIONS = [
   `${REPLY_UID}.create`,
   `${REPLY_UID}.update`,
   `${REPLY_UID}.delete`,
+  // Own account only: the is-self policy (users-permissions extension) guards both.
+  'plugin::users-permissions.user.update',
+  'plugin::users-permissions.user.destroy',
+  // First password of a Google account, own account only (users-permissions extension).
+  'plugin::users-permissions.auth.passwordStatus',
+  'plugin::users-permissions.auth.setPassword',
 ];
 
 const ROLE_UID = 'plugin::users-permissions.role';

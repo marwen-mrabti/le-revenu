@@ -13,7 +13,8 @@ import type { Core } from '@strapi/strapi';
 export async function ensureProviders(strapi: Core.Strapi): Promise<void> {
   const key = process.env.GOOGLE_CLIENT_ID?.trim() ?? '';
   const secret = process.env.GOOGLE_CLIENT_SECRET?.trim() ?? '';
-  const webUrl = (process.env.WEB_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+  // Required at boot (assert-env): never a hard-coded host in a mail link or a callback.
+  const webUrl = String(process.env.WEB_URL).replace(/\/$/, '');
   const enabled = key !== '' && secret !== '';
 
   const store = strapi.store({ type: 'plugin', name: 'users-permissions' });
@@ -22,10 +23,17 @@ export async function ensureProviders(strapi: Core.Strapi): Promise<void> {
     Record<string, unknown>
   >;
   const current = grant.google ?? {};
-  const wanted = { ...current, enabled, key, secret, callback: `${webUrl}/auth/google/callback` };
+  const wanted = {
+    ...current,
+    enabled,
+    key,
+    secret,
+    scope: ['email', 'profile'],
+    callback: `${webUrl}/auth/google/callback`,
+  };
 
-  const unchanged = (['enabled', 'key', 'secret', 'callback'] as const).every(
-    (field) => current[field] === wanted[field],
+  const unchanged = (['enabled', 'key', 'secret', 'callback', 'scope'] as const).every(
+    (field) => JSON.stringify(current[field]) === JSON.stringify(wanted[field]),
   );
   if (unchanged) return;
 

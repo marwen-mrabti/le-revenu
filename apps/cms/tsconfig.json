@@ -3,6 +3,7 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
     "lib": ["ES2020"],
+    "jsx": "react-jsx",
     "target": "ES2019",
     "strict": true,
     "skipLibCheck": true,
@@ -18,8 +19,9 @@
   "include": [
     // Include root files
     "./",
-    // Include all ts files
+    // Include all ts files, and the React Email templates
     "./**/*.ts",
+    "./**/*.tsx",
     // Include all js files
     "./**/*.js",
     // Force the JSON files in the src folder to be included

@@ -31,6 +31,7 @@ export async function seedUsers(strapi: Core.Strapi): Promise<Map<string, string
     const created = await service.add({
       username: user.username,
       email: user.email,
+      displayName: user.displayName ?? null,
       password: DEMO_PASSWORD,
       role: role.documentId,
       confirmed: true,

@@ -8,9 +8,10 @@ Every work branch starts with a plan in this folder, reviewed before any code is
 - Backend features carry the data model (entity table), the API contract (request and response examples with status codes) and a sequence diagram for any multi-step flow.
 - Steps are small enough to map to commits. Each phase ends with a checkable exit criterion.
 
-| #   | Plan                                                                      | Branch                      | Status              |
-| --- | ------------------------------------------------------------------------- | --------------------------- | ------------------- |
-| 01  | [i18n foundation](01-i18n-foundation.md)                                  | `feature/i18n-foundation`   | done, in PR         |
-| 02  | [Strapi content types, permissions, seed, tests](02-cms-content-types.md) | `feature/cms-content-types` | done, in PR         |
-| 03  | [Discussion list](03-discussion-list.md)                                  | `feature/discussion-list`   | done, in PR         |
-| 04  | [Authentication: sign-up, login, Google](04-auth.md)                      | `feature/auth`              | draft, under review |
+| #   | Plan                                                                                 | Branch                      | Status       |
+| --- | ------------------------------------------------------------------------------------ | --------------------------- | ------------ |
+| 01  | [i18n foundation](01-i18n-foundation.md)                                             | `feature/i18n-foundation`   | done, in PR  |
+| 02  | [Strapi content types, permissions, seed, tests](02-cms-content-types.md)            | `feature/cms-content-types` | done, in PR  |
+| 03  | [Discussion list](03-discussion-list.md)                                             | `feature/discussion-list`   | done, in PR  |
+| 04  | [Authentication: sign-up, login, Google](04-auth.md)                                 | `feature/auth`              | done, merged |
+| 05  | [Account: reset, confirmation, account page, Google profile, islands](05-account.md) | `feature/account`           | done, in PR  |

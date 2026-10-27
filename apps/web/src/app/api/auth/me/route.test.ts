@@ -29,6 +29,7 @@ describe('GET /api/auth/me', () => {
 
   it('answers the reader for a valid cookie, email included, nothing else', async () => {
     vi.mocked(strapiAuth).mockResolvedValueOnce({
+      id: 41,
       documentId: 'u1',
       username: 'alice',
       email: 'alice@demo.lerevenu.test',
@@ -37,7 +38,14 @@ describe('GET /api/auth/me', () => {
     const response = await me('lr_session=good.jwt');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
-      user: { documentId: 'u1', username: 'alice', email: 'alice@demo.lerevenu.test' },
+      user: {
+        documentId: 'u1',
+        username: 'alice',
+        email: 'alice@demo.lerevenu.test',
+        displayName: null,
+        avatarUrl: null,
+        provider: 'local',
+      },
     });
     expect(vi.mocked(strapiAuth).mock.calls[0]?.[1]).toMatchObject({ jwt: 'good.jwt' });
   });

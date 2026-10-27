@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mockup 05 · Confirmation de l'e-mail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --brand: #eb0f0f;
+        --brand-text: #e00b0b;
+        --brand-ink: #fff;
+        --ok: #1a8a4a;
+        --ok-soft: #e4f6ea;
+        --alert: #e00b0b;
+        --bg: #f5f5f7;
+        --surface: #fff;
+        --ink: #1d1d1f;
+        --ink-2: #48484a;
+        --ink-3: #6e6e73;
+        --line: #e5e5ea;
+        --hairline: rgba(0, 0, 0, 0.07);
+        --fill: rgba(0, 0, 0, 0.05);
+        --r: 14px;
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --f-body: 'Inter', system-ui, sans-serif;
+        --f-display: 'Playfair Display', Georgia, serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --brand-text: #ff6961;
+          --ok: #30d158;
+          --ok-soft: #173a22;
+          --alert: #ff6961;
+          --bg: #161618;
+          --surface: #1c1c1e;
+          --ink: #f5f5f7;
+          --ink-2: #c7c7cc;
+          --ink-3: #8e8e93;
+          --line: #38383a;
+          --hairline: rgba(255, 255, 255, 0.08);
+          --fill: rgba(255, 255, 255, 0.07);
+          --shadow: none;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.5 var(--f-body);
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .wrap {
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 24px 16px 80px;
+      }
+      .label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin: 28px 0 10px;
+      }
+      .label small {
+        font-weight: 400;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-left: 8px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 24px;
+        align-items: start;
+      }
+      .card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--surface);
+        border: 1px solid var(--hairline);
+        border-radius: var(--r);
+        padding: 26px 24px;
+        box-shadow: var(--shadow);
+      }
+      .card h1 {
+        font-family: var(--f-display);
+        font-size: 24px;
+        letter-spacing: -0.01em;
+      }
+      .card .intro {
+        color: var(--ink-2);
+        margin-top: 6px;
+        font-size: 14.5px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin: 16px 0 14px;
+      }
+      .field label {
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .input {
+        height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: transparent;
+        padding: 0 12px;
+        font: inherit;
+        color: var(--ink);
+        width: 100%;
+      }
+      .btn {
+        height: 40px;
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        font: inherit;
+        font-size: 14.5px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+      .btn-primary {
+        background: var(--brand);
+        color: var(--brand-ink);
+      }
+      .btn-quiet {
+        background: var(--fill);
+        color: var(--ink);
+      }
+      .btn[disabled] {
+        opacity: 0.6;
+      }
+      .hint {
+        text-align: center;
+        font-size: 13.5px;
+        color: var(--ink-3);
+        margin-top: 18px;
+      }
+      .hint a {
+        color: var(--brand-text);
+        font-weight: 600;
+      }
+      .banner {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 500;
+        margin: 0 0 14px;
+      }
+      .banner.ok {
+        background: var(--ok-soft);
+        color: var(--ok);
+      }
+      .banner.err {
+        background: color-mix(in srgb, var(--alert) 10%, transparent);
+        color: var(--alert);
+      }
+      .banner a {
+        text-decoration: underline;
+      }
+      .ico {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--ok-soft);
+        color: var(--ok);
+        display: inline-grid;
+        place-items: center;
+        font-size: 20px;
+        margin-bottom: 12px;
+      }
+      .steps {
+        margin: 16px 0 0;
+        padding-left: 20px;
+        font-size: 14px;
+        color: var(--ink-2);
+      }
+      .steps li {
+        margin: 4px 0;
+      }
+      .mail {
+        margin-top: 14px;
+        border: 1px dashed var(--line);
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .mail b {
+        display: block;
+        color: var(--ink);
+        margin-bottom: 4px;
+      }
+      .mail code {
+        font:
+          12px ui-monospace,
+          monospace;
+        color: var(--brand-text);
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1 style="font-family: var(--f-display); font-size: 22px">
+        Confirmation de l'e-mail à l'inscription
+      </h1>
+      <p style="color: var(--ink-3); margin-top: 4px">
+        Après « Créer mon compte » : pas de session tant que le lien du mail n'a pas été cliqué.
+      </p>
+
+      <div class="label">1 · /verify-email <small>juste après l'inscription</small></div>
+      <div class="grid">
+        <section class="card">
+          <div class="ico" aria-hidden="true">✉</div>
+          <h1>Encore une étape</h1>
+          <p class="intro">
+            Nous avons envoyé un lien de confirmation à <b>claire@exemple.fr</b>. Cliquez dessus
+            pour activer votre compte.
+          </p>
+          <ol class="steps">
+            <li>Ouvrez votre boîte mail.</li>
+            <li>Cliquez sur « Confirmer mon adresse ».</li>
+            <li>Connectez-vous.</li>
+          </ol>
+          <button class="btn btn-quiet" type="button" style="margin-top: 18px">
+            Renvoyer le lien
+          </button>
+          <p class="hint">Mauvaise adresse ? <a href="#">Créer un autre compte</a></p>
+          <div class="mail">
+            <b>Le mail</b>Objet : Confirmez votre adresse e-mail<br />Bienvenue claire ! Confirmez
+            votre adresse pour rejoindre la communauté :<br /><code
+              >http://localhost:1337/api/auth/email-confirmation?confirmation=9a1f…</code
+            ><br /><span style="color: var(--ink-3)"
+              >Strapi valide le code puis redirige vers /login?confirmed=1. · Confirm your email
+              address to join the community.</span
+            >
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="ico" aria-hidden="true">✉</div>
+          <h1>Encore une étape</h1>
+          <p class="intro">Nous avons envoyé un lien de confirmation à <b>claire@exemple.fr</b>.</p>
+          <div class="banner ok" style="margin-top: 16px">
+            ✓ <span>Lien renvoyé. Regardez aussi les courriers indésirables.</span>
+          </div>
+          <button class="btn btn-quiet" type="button" disabled>Renvoyer le lien (59 s)</button>
+          <p style="font-size: 12.5px; color: var(--ink-3); margin-top: 10px">
+            Le bouton se désactive une minute après chaque envoi.
+          </p>
+        </section>
+      </div>
+
+      <div class="label">2 · /login <small>deux états liés à la confirmation</small></div>
+      <div class="grid">
+        <section class="card">
+          <h1>Se connecter</h1>
+          <p class="intro">Retrouvez la communauté des lecteurs du Revenu.</p>
+          <div class="banner ok" style="margin-top: 16px" role="status">
+            ✓ <span>Adresse confirmée. Vous pouvez vous connecter.</span>
+          </div>
+          <div class="field">
+            <label for="a">E-mail ou nom d'utilisateur</label
+            ><input class="input" id="a" value="claire@exemple.fr" />
+          </div>
+          <div class="field">
+            <label for="b">Mot de passe</label
+            ><input class="input" id="b" type="password" value="••••••••••" />
+          </div>
+          <button class="btn btn-primary" type="submit">Se connecter</button>
+          <p style="font-size: 12.5px; color: var(--ink-3); margin-top: 12px">
+            Arrivée depuis le lien du mail : <code>/login?confirmed=1</code>.
+          </p>
+        </section>
+
+        <section class="card">
+          <h1>Se connecter</h1>
+          <p class="intro">Retrouvez la communauté des lecteurs du Revenu.</p>
+          <div class="banner err" style="margin-top: 16px" role="alert">
+            ⚠
+            <span>Votre adresse n'est pas encore confirmée. <a href="#">Renvoyer le lien</a></span>
+          </div>
+          <div class="field">
+            <label for="c">E-mail ou nom d'utilisateur</label
+            ><input class="input" id="c" value="claire@exemple.fr" />
+          </div>
+          <div class="field">
+            <label for="d">Mot de passe</label
+            ><input class="input" id="d" type="password" value="••••••••••" />
+          </div>
+          <button class="btn btn-primary" type="submit">Se connecter</button>
+          <p style="font-size: 12.5px; color: var(--ink-3); margin-top: 12px">
+            Tentative de connexion avant d'avoir cliqué : 403 <code>EMAIL_NOT_CONFIRMED</code>.
+          </p>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>

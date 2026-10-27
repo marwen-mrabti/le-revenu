@@ -43,7 +43,14 @@ describe('POST /api/auth/login', () => {
     );
     const body = await response.json();
     expect(body).toEqual({
-      user: { documentId: 'u1', username: 'alice', email: 'alice@demo.lerevenu.test' },
+      user: {
+        documentId: 'u1',
+        username: 'alice',
+        email: 'alice@demo.lerevenu.test',
+        displayName: null,
+        avatarUrl: null,
+        provider: 'local',
+      },
     });
     expect(JSON.stringify(body)).not.toContain('secret.jwt');
   });

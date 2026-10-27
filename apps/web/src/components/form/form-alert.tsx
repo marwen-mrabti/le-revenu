@@ -1,7 +1,7 @@
 import { AlertTriangleIcon } from 'lucide-react';
 
 /** A form-level error, announced to assistive tech. */
-export function FormAlert({ message }: { message: string | null }) {
+export function FormAlert({ message }: { message: React.ReactNode | null }) {
   if (!message) return null;
   return (
     <div

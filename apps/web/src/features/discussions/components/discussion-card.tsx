@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 
 import { RelativeTime } from '@/components/shared/relative-time';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { readerName, UserAvatar } from '@/components/shared/user-avatar';
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
@@ -12,7 +12,7 @@ import type { DiscussionListItem } from '../schemas';
 export function DiscussionCard({ discussion }: { discussion: DiscussionListItem }) {
   const t = useTranslations('Discussions');
   const count = discussion.replies.count;
-  const initial = (discussion.author?.username ?? '?').charAt(0).toUpperCase();
+  const author = discussion.author ? readerName(discussion.author) : t('anonymous');
   const color = discussion.category?.color ?? undefined;
 
   return (
@@ -65,14 +65,12 @@ export function DiscussionCard({ discussion }: { discussion: DiscussionListItem 
           {discussion.content}
         </p>
         <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[13px] text-muted-foreground">
-          <Avatar size="sm" className="size-[22px] text-[9.5px]">
-            <AvatarFallback className="bg-primary/15 font-semibold text-brand-text">
-              {initial}
-            </AvatarFallback>
-          </Avatar>
-          <span className="font-semibold text-secondary-foreground">
-            {discussion.author?.username ?? t('anonymous')}
-          </span>
+          <UserAvatar
+            avatarUrl={discussion.author?.avatarUrl}
+            name={author}
+            className="size-[22px] text-[9.5px]"
+          />
+          <span className="font-semibold text-secondary-foreground">{author}</span>
           <span aria-hidden="true">·</span>
           <RelativeTime date={discussion.createdAt} />
         </div>

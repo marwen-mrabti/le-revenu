@@ -12,7 +12,7 @@ import { toast } from '@/lib/toast';
 import { useRegister } from '../api/mutations';
 import { registerSchema } from '../schemas';
 
-/** Username, email, password. A taken email or username comes back on the email field. */
+/** Username, email, password. Pending until the mailed link is used; logged in at once without a mailer. */
 export function RegisterForm({ next }: { next: string }) {
   const t = useTranslations('Auth');
   const router = useRouter();
@@ -25,9 +25,13 @@ export function RegisterForm({ next }: { next: string }) {
     onSubmit: async ({ value, formApi }) => {
       setServerError(null);
       try {
-        const { user } = await register.mutateAsync(value);
+        const { user, pending } = await register.mutateAsync(value);
         // Next keeps visited pages alive for instant back navigation: never leave a password in the form state.
         formApi.reset();
+        if (pending) {
+          router.push({ pathname: '/verify-email', query: { email: user.email, next } });
+          return;
+        }
         toast.success(t('welcome', { name: user.username }));
         router.push(next as '/discussions');
       } catch (error) {
