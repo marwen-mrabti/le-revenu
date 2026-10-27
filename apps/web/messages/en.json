@@ -211,7 +211,6 @@
     "currentPassword": "Current password",
     "changePassword": "Change password",
     "passwordChanged": "Password changed.",
-    "googleNoPassword": "Signed in with Google. To add a password, use <link>“Forgot your password?”</link> on the login page.",
     "dangerZone": "Danger zone",
     "deleteIntro": "Deleting your account erases your personal information. Your discussions and replies stay, signed “Deleted account”.",
     "deleteButton": "Delete my account",
@@ -219,6 +218,9 @@
     "deleteConfirmHint": "Type <b>{username}</b> to confirm. This cannot be undone.",
     "deleteConfirmLabel": "Username",
     "cancel": "Cancel",
-    "deleted": "Your account has been deleted."
+    "deleted": "Your account has been deleted.",
+    "setPasswordIntro": "You sign in with Google. Add a password to also sign in with your email. Both will work.",
+    "setPassword": "Set my password",
+    "passwordSet": "Password set. You can now sign in with Google or with your email."
   }
 }

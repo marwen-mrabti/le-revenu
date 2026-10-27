@@ -76,6 +76,17 @@ export const resetPasswordSchema = z
   });
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
+/** First password of a Google account: no current password exists. */
+export const setPasswordSchema = z
+  .object({ password: newPassword, passwordConfirmation: z.string() })
+  .refine((v) => v.password === v.passwordConfirmation, {
+    path: ['passwordConfirmation'],
+    message: 'passwordMismatch',
+  });
+export type SetPasswordInput = z.infer<typeof setPasswordSchema>;
+
+export const passwordStatusSchema = z.object({ hasPassword: z.boolean() });
+
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, 'required').max(200),

@@ -14,6 +14,7 @@ import {
   type LoginInput,
   type RegisterInput,
   type ResetPasswordInput,
+  type SetPasswordInput,
 } from '../schemas';
 import { authQueries } from './queries';
 
@@ -78,6 +79,13 @@ export function useChangePassword() {
   return useMutation({
     mutationFn: (input: ChangePasswordInput) =>
       bffPost('/api/auth/change-password', input, userEnvelope),
+  });
+}
+
+/** First password of a Google account; the session stays as it is. */
+export function useSetPassword() {
+  return useMutation({
+    mutationFn: (input: SetPasswordInput) => bffPost('/api/auth/set-password', input, okEnvelope),
   });
 }
 

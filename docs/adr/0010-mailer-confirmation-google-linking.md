@@ -21,6 +21,8 @@ ADR-0009 shipped login, sign-up and Google login and left three gaps: no way to 
 
 - **Templates are React Email components** (`src/emails/`, added 2026-10-27): one shared layout (text logo, serif title, red button, link in clear, English block), rendered to HTML with `@react-email/render` at boot and stored as the plugin's `message`. React escapes `<%= %>`, so the components carry `__URL__`-style tokens swapped after rendering. The plugin sends the message as both `text` and `html`; the email service's `send` is wrapped once to derive the text part with `toPlainText`, so text-only clients read sentences. Mails are French first with a short English block: Strapi does not know the reader's language at send time.
 
+- **First password for a Google account** (added 2026-10-27): `GET /auth/password-status` → `{ hasPassword }` and `POST /auth/set-password` (new password twice, no current one), both in the plugin extension, for the logged-in reader only, the second refused with 409 once a password exists. Strapi's local login only looks at `provider = 'local'` accounts, so the first password also makes the account local; the next Google login on that email goes through the linking path above. The account page shows the "set" form or the usual "change" form from that status. Every Google login also fills an empty display name or picture, so accounts created before the profile scope catch up.
+
 ## Consequences
 
 - The "two-minute start" (SQLite, no Docker) keeps working: no mail, no confirmation, sign-up logs in at once, as before.

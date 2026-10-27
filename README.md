@@ -121,6 +121,7 @@ You can also create your own account on `/register` (username, email, password o
 | Login, sign-up with email confirmation, Google, logout, account menu  | ✔ `/login`, `/register`     |
 | Forgot / reset password by mail                                       | ✔ `/forgot-password`        |
 | Account page: display name, username, password, delete account        | ✔ `/account`                |
+| First password for a Google account, set from the account page        | ✔ `/account`                |
 | Google name and picture; Google login linked to a password account    | ✔                           |
 | Create a discussion (title ≥ 10 characters, content, space, type)     | backend ready, page to come |
 | Reply to a discussion                                                 | backend ready, page to come |
@@ -180,6 +181,8 @@ Base: `http://localhost:1337/api`. Strapi format: `{ data, meta }`, errors `{ da
 | `POST /auth/reset-password`                   | —               | code + new password → `{ jwt, user }`                    |
 | `POST /auth/send-email-confirmation`          | —               | resend the confirmation mail                             |
 | `POST /auth/change-password`                  | Bearer          | current + new password → new `jwt`                       |
+| `GET /auth/password-status`                   | Bearer          | `{ hasPassword }`                                        |
+| `POST /auth/set-password`                     | Bearer          | first password of a Google account, 409 once set         |
 | `GET /users/me`                               | Bearer          | current profile                                          |
 | `PUT` / `DELETE /users/:id`                   | Bearer + self   | own `username` / `displayName`, own deletion             |
 
@@ -199,7 +202,7 @@ curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&
 
 Playwright needs a browser: `pnpm --filter web exec playwright install chromium`, once. By default it builds then starts the application; with `E2E_BASE_URL=http://localhost:3000` it uses the development server already running. Strapi limits logins to 10 per minute per IP: do not log in by hand during a run.
 
-The four tests required by the brief (discussion validation, unauthenticated post refused, author spoofing blocked, discussion listing) live in `apps/cms/tests/`, together with ownership, replies, login, bilingual categories, email confirmation, password reset, the own-account rules and the stored mail templates: 12 files, 51 tests, about 20 s.
+The four tests required by the brief (discussion validation, unauthenticated post refused, author spoofing blocked, discussion listing) live in `apps/cms/tests/`, together with ownership, replies, login, bilingual categories, email confirmation, password reset, the own-account rules, the first password of a Google account and the stored mail templates: 13 files, 55 tests, about 20 s.
 
 How the backend tests run:
 
@@ -209,7 +212,7 @@ How the backend tests run:
 
 Prerequisites: PostgreSQL running (`docker compose up -d db` creates `lerevenu_test`), `apps/cms/.env` filled. `DATABASE_TEST_NAME` changes the test database name.
 
-Frontend tests (`apps/web`, Vitest + Testing Library, colocated `*.test.ts(x)`, 101 tests): the Strapi client (query string, error envelope, unexpected answer, unreachable server), the filters schema and the URL ↔ state mapping (defaults, invalid page, `clearOnDefault`), the discussion card (the brief's five fields, link to the detail, no email or numeric id), pagination (current page, filters kept, bounds), the `GET /api/discussions` handler (422 on an unknown sort, locale passed, 503 without leaking Strapi's message), the session cookie and request guards, the eleven auth and account handlers, the two mail-link landings (reader language), the login, sign-up, forgot, reset, profile, password and delete forms, the verify-email page, the user menu, the islands (error → fallback → retry), the 500 page, the language menu and theme toggle, fr / en key parity.
+Frontend tests (`apps/web`, Vitest + Testing Library, colocated `*.test.ts(x)`, 110 tests): the Strapi client (query string, error envelope, unexpected answer, unreachable server), the filters schema and the URL ↔ state mapping (defaults, invalid page, `clearOnDefault`), the discussion card (the brief's five fields, link to the detail, no email or numeric id), pagination (current page, filters kept, bounds), the `GET /api/discussions` handler (422 on an unknown sort, locale passed, 503 without leaking Strapi's message), the session cookie and request guards, the thirteen auth and account handlers, the two mail-link landings (reader language), the login, sign-up, forgot, reset, profile, password, first-password and delete forms, the verify-email page, the user menu, the islands (error → fallback → retry), the 500 page, the language menu and theme toggle, fr / en key parity.
 
 End to end (`apps/web/e2e`, Playwright): login and session privacy, i18n, 404 / 500 pages, resilience (a 503 on the list leaves the page intact), and the account lifecycle through Mailpit's API (sign-up → mail → confirm → login → profile → forgot → reset → delete). The account spec skips itself when Mailpit is not reachable.
 

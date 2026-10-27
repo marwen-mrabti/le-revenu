@@ -5,10 +5,11 @@ import { Suspense } from 'react';
 
 import { readerName, UserAvatar } from '@/components/shared/user-avatar';
 import { AccountProfileForm } from '@/features/auth/components/account-profile-form';
-import { ChangePasswordForm } from '@/features/auth/components/change-password-form';
+import { PasswordCard } from '@/features/auth/components/password-card';
 import { DeleteAccountPanel } from '@/features/auth/components/delete-account-panel';
-import { getCurrentUser } from '@/features/auth/data';
-import { Link, redirect } from '@/i18n/navigation';
+import { getCurrentUser, getPasswordStatus } from '@/features/auth/data';
+import { redirect } from '@/i18n/navigation';
+import { readSession } from '@/lib/auth/session';
 import { routing } from '@/i18n/routing';
 
 import AccountLoading from './loading';
@@ -20,10 +21,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Section({
   title,
+  badge,
   children,
   danger = false,
 }: {
   title: string;
+  badge?: string;
   children: React.ReactNode;
   danger?: boolean;
 }) {
@@ -32,7 +35,14 @@ function Section({
       aria-label={title}
       className={`mt-5 rounded-xl border bg-card p-5 shadow-xs sm:p-6 ${danger ? 'border-destructive/40' : 'border-border'}`}
     >
-      <h2 className={`text-[15px] font-bold ${danger ? 'text-destructive' : ''}`}>{title}</h2>
+      <h2 className={`text-[15px] font-bold ${danger ? 'text-destructive' : ''}`}>
+        {title}
+        {badge ? (
+          <span className="ml-2 rounded-full bg-muted px-2 py-0.5 align-middle text-[11px] font-semibold text-muted-foreground">
+            {badge}
+          </span>
+        ) : null}
+      </h2>
       <div className="mt-4">{children}</div>
     </section>
   );
@@ -53,6 +63,8 @@ async function AccountContent() {
 
   const name = readerName(user);
   const viaGoogle = user.provider === 'google';
+  const jwt = await readSession();
+  const hasPassword = jwt ? await getPasswordStatus(jwt) : true;
 
   return (
     <main id="content" className="mx-auto w-full max-w-[720px] px-4 py-8">
@@ -80,20 +92,8 @@ async function AccountContent() {
         <AccountProfileForm user={user} />
       </Section>
 
-      <Section title={t('password')}>
-        {viaGoogle ? (
-          <p className="text-sm text-secondary-foreground">
-            {t.rich('googleNoPassword', {
-              link: (chunks) => (
-                <Link href="/forgot-password" className="font-semibold text-brand-text">
-                  {chunks}
-                </Link>
-              ),
-            })}
-          </p>
-        ) : (
-          <ChangePasswordForm />
-        )}
+      <Section title={t('password')} badge={viaGoogle ? t('viaGoogle') : undefined}>
+        <PasswordCard hasPassword={hasPassword} />
       </Section>
 
       <Section title={t('dangerZone')} danger>

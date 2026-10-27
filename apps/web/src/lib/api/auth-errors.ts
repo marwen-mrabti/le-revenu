@@ -59,6 +59,9 @@ export function toAuthErrorResponse(error: unknown): Response {
     if (error.status === 400 && /blocked/i.test(error.message)) {
       return toErrorResponse(new BffError(403, 'BLOCKED', 'Ce compte a été bloqué.'));
     }
+    if (error.status === 409 && /already set/i.test(error.message)) {
+      return toErrorResponse(new BffError(409, 'ALREADY_SET', 'Ce compte a déjà un mot de passe.'));
+    }
   }
   return toErrorResponse(error);
 }

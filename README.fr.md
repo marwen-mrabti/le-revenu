@@ -121,6 +121,7 @@ Vous pouvez aussi créer votre propre compte sur `/register` (nom d'utilisateur,
 | Connexion, inscription avec confirmation par e-mail, Google, déconnexion, menu du compte | ✔ `/login`, `/register`    |
 | Mot de passe oublié / réinitialisation par e-mail                                        | ✔ `/forgot-password`       |
 | Page compte : nom affiché, nom d'utilisateur, mot de passe, suppression                  | ✔ `/account`               |
+| Premier mot de passe d'un compte Google, depuis la page compte                           | ✔ `/account`               |
 | Nom et photo Google ; connexion Google liée à un compte avec mot de passe                | ✔                          |
 | Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)                 | backend prêt, page à venir |
 | Réponse à une discussion                                                                 | backend prêt, page à venir |
@@ -180,6 +181,8 @@ Base : `http://localhost:1337/api`. Format Strapi : `{ data, meta }`, erreurs `{
 | `POST /auth/reset-password`                   | —               | code + nouveau mot de passe → `{ jwt, user }`          |
 | `POST /auth/send-email-confirmation`          | —               | renvoi du mail de confirmation                         |
 | `POST /auth/change-password`                  | Bearer          | mot de passe actuel + nouveau → nouveau `jwt`          |
+| `GET /auth/password-status`                   | Bearer          | `{ hasPassword }`                                      |
+| `POST /auth/set-password`                     | Bearer          | premier mot de passe d'un compte Google, 409 ensuite   |
 | `GET /users/me`                               | Bearer          | profil courant                                         |
 | `PUT` / `DELETE /users/:id`                   | Bearer + soi    | ses `username` / `displayName`, sa propre suppression  |
 
@@ -199,7 +202,7 @@ curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&
 
 Playwright a besoin d'un navigateur : `pnpm --filter web exec playwright install chromium` une fois. Par défaut il construit puis démarre l'application ; avec `E2E_BASE_URL=http://localhost:3000` il utilise le serveur de développement déjà lancé. Strapi limite les connexions à 10 par minute et par IP : ne lancez pas de connexions à la main pendant une exécution.
 
-Les quatre tests demandés par le cahier des charges (validation d'une discussion, refus d'une publication non authentifiée, protection contre l'usurpation d'auteur, affichage des discussions) sont dans `apps/cms/tests/`, avec les droits d'auteur, les réponses, la connexion, les catégories bilingues, la confirmation d'e-mail, la réinitialisation du mot de passe, les règles du compte et les modèles de mail stockés : 12 fichiers, 51 tests, environ 20 s.
+Les quatre tests demandés par le cahier des charges (validation d'une discussion, refus d'une publication non authentifiée, protection contre l'usurpation d'auteur, affichage des discussions) sont dans `apps/cms/tests/`, avec les droits d'auteur, les réponses, la connexion, les catégories bilingues, la confirmation d'e-mail, la réinitialisation du mot de passe, les règles du compte, le premier mot de passe d'un compte Google et les modèles de mail stockés : 13 fichiers, 55 tests, environ 20 s.
 
 Comment tournent les tests backend :
 
@@ -209,7 +212,7 @@ Comment tournent les tests backend :
 
 Prérequis : PostgreSQL démarré (`docker compose up -d db` crée `lerevenu_test`), `apps/cms/.env` renseigné. Variable `DATABASE_TEST_NAME` pour changer le nom de la base de test.
 
-Tests frontend (`apps/web`, Vitest + Testing Library, colocalisés `*.test.ts(x)`, 101 tests) : le client Strapi (chaîne de requête, enveloppe d'erreur, réponse inattendue, serveur injoignable), le schéma des filtres et la correspondance URL ↔ état (valeurs par défaut, page invalide, `clearOnDefault`), la carte de discussion (cinq champs du cahier des charges, lien vers le détail, ni e-mail ni id numérique), la pagination (page courante, filtres conservés, bornes), le handler `GET /api/discussions` (422 sur un tri inconnu, locale transmise, 503 sans fuite du message Strapi), le cookie de session et les gardes des requêtes, les onze handlers d'authentification et de compte, les deux pages d'arrivée des liens de mail (langue du lecteur), les formulaires de connexion, d'inscription, de mot de passe oublié, de réinitialisation, de profil, de mot de passe et de suppression, la page de confirmation, le menu du compte, les îlots (erreur → repli → réessayer), la page 500, le menu de langue et le bouton de thème, la parité des clés fr / en.
+Tests frontend (`apps/web`, Vitest + Testing Library, colocalisés `*.test.ts(x)`, 110 tests) : le client Strapi (chaîne de requête, enveloppe d'erreur, réponse inattendue, serveur injoignable), le schéma des filtres et la correspondance URL ↔ état (valeurs par défaut, page invalide, `clearOnDefault`), la carte de discussion (cinq champs du cahier des charges, lien vers le détail, ni e-mail ni id numérique), la pagination (page courante, filtres conservés, bornes), le handler `GET /api/discussions` (422 sur un tri inconnu, locale transmise, 503 sans fuite du message Strapi), le cookie de session et les gardes des requêtes, les treize handlers d'authentification et de compte, les deux pages d'arrivée des liens de mail (langue du lecteur), les formulaires de connexion, d'inscription, de mot de passe oublié, de réinitialisation, de profil, de mot de passe, de premier mot de passe et de suppression, la page de confirmation, le menu du compte, les îlots (erreur → repli → réessayer), la page 500, le menu de langue et le bouton de thème, la parité des clés fr / en.
 
 Bout en bout (`apps/web/e2e`, Playwright) : connexion et confidentialité de la session, i18n, pages 404 / 500, résilience (un 503 sur la liste laisse la page intacte), et le cycle de vie du compte via l'API de Mailpit (inscription → mail → confirmation → connexion → profil → mot de passe oublié → réinitialisation → suppression). Le spec compte se saute lui-même si Mailpit n'est pas joignable.
 

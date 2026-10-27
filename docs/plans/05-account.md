@@ -215,6 +215,17 @@ Mockup: [`docs/mockups/05-account/emails.html`](../mockups/05-account/emails.htm
 19. README fr + en (where the templates live, how to change the wording), ADR-0010 addendum.
     Exit: both mails arrive in Gmail with the mockup's look; `pnpm verify` green.
 
+### Phase G — Password for Google accounts, Google profile backfill (1.5 h) · added 2026-10-27
+
+Mockup: [`docs/mockups/05-account/set-password.html`](../mockups/05-account/set-password.html).
+
+20. Strapi, in the Users & Permissions extension: `GET /api/auth/password-status` → `{ hasPassword }` and `POST /api/auth/set-password { password, passwordConfirmation }`, both for the authenticated reader only; set-password refused (409) when a password already exists, same length rules as sign-up, hashed by the user service. The account becomes `local` (Strapi's local login only looks at local accounts); a later Google login on that email goes through the linking path, so both ways keep working.
+21. Google callback: on every Google login, fill `displayName` and `avatarUrl` when empty (today only on the first login or on linking).
+22. BFF: `GET /api/account/password-status`, `POST /api/auth/set-password`; the account page reads the status server-side and shows the "set" form (new password twice, no current one) or the "change" form; success notice swaps the form without a reload.
+23. Tests: integration (status, set once, second set refused, local login works afterwards, Google-provider user keeps Google login), unit (handler, form), e2e step in `account.spec.ts` cannot cover Google: covered by hand.
+24. README fr + en, ADR-0010 addendum, tracker.
+    Exit: a Google-only account sets a password from `/account` and logs in with it; the header shows the Google name and picture after the next Google login.
+
 ## 7. Tests
 
 | Kind            | File                                                                                                                                   | Covers    |
