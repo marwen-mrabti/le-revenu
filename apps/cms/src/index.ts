@@ -2,6 +2,7 @@ import type { Core } from '@strapi/strapi';
 
 import { assertEnv } from './bootstrap/assert-env';
 import { ensureEmail } from './bootstrap/ensure-email';
+import { ensureGoogleProfile } from './bootstrap/ensure-google-profile';
 import { ensureIndexes } from './bootstrap/ensure-indexes';
 import { ensureLocales } from './bootstrap/ensure-locales';
 import { ensurePermissions } from './bootstrap/ensure-permissions';
@@ -25,6 +26,7 @@ export default {
     await ensureLocales(strapi);
     await ensurePermissions(strapi);
     await ensureProviders(strapi);
+    ensureGoogleProfile(strapi);
     await ensureEmail(strapi);
     if (process.env.SEED_DEMO_DATA === 'true') {
       await seed(strapi);

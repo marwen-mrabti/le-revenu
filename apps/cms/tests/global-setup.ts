@@ -44,7 +44,12 @@ export async function setup(project: TestProject): Promise<void> {
   const appDir = process.cwd();
   app = createStrapi({ appDir, distDir: path.join(appDir, DIST_DIR), serveAdminPanel: false });
 
-  await resetDatabase(app.config.get('database.connection') as PostgresConnection);
+  const db = app.config.get('database.connection') as PostgresConnection;
+  // Copied before start(): Strapi normalises its connection settings afterwards.
+  // Vitest drops a key named `password` from provided values: hand it over as `secret`.
+  const { host, port, database, user, password } = db.connection;
+  const connection = { host, port, database, user, secret: password };
+  await resetDatabase(db);
   await app.start();
 
   const baseUrl = `http://${HOST}:${PORT}`;
@@ -54,6 +59,7 @@ export async function setup(project: TestProject): Promise<void> {
 
   project.provide('baseUrl', baseUrl);
   project.provide('sessions', sessions);
+  project.provide('database', connection);
 }
 
 export async function teardown(): Promise<void> {

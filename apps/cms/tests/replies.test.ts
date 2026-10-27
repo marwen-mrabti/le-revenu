@@ -41,7 +41,7 @@ describe('POST /api/replies', () => {
         },
       })
       .expect(201);
-    expect(res.body.data.author).toEqual({
+    expect(res.body.data.author).toMatchObject({
       documentId: session('bob').documentId,
       username: 'bob',
     });

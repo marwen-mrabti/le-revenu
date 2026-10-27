@@ -53,9 +53,12 @@ export default async function DiscussionsPage({ searchParams }: Props) {
         <Suspense fallback={<Skeleton className="h-8 w-full md:hidden" />}>
           <CategoryChipsIsland locale={locale} />
         </Suspense>
-        <Suspense fallback={<DiscussionFiltersSkeleton />}>
-          <DiscussionFilters />
-        </Suspense>
+        {/* Stays under the header while the list scrolls: search and sort are always one tap away. */}
+        <div className="sticky top-14 z-30 -mx-4 bg-background/90 px-4 py-2 backdrop-blur md:mx-0 md:px-0">
+          <Suspense fallback={<DiscussionFiltersSkeleton />}>
+            <DiscussionFilters />
+          </Suspense>
+        </div>
         <Suspense fallback={<DiscussionListSkeleton />}>
           <DiscussionsIsland searchParams={searchParams} locale={locale} />
         </Suspense>

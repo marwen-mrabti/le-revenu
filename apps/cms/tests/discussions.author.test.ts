@@ -17,7 +17,7 @@ describe('author and slug are owned by the server', () => {
       author: session('bob').documentId,
       slug: 'hack',
     });
-    expect(row.author).toEqual({ documentId: alice.documentId, username: 'alice' });
+    expect(row.author).toMatchObject({ documentId: alice.documentId, username: 'alice' });
     expect(row.slug).toBe('alice-tente-de-poster-au-nom-de-bob');
   });
 

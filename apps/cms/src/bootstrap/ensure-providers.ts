@@ -22,10 +22,17 @@ export async function ensureProviders(strapi: Core.Strapi): Promise<void> {
     Record<string, unknown>
   >;
   const current = grant.google ?? {};
-  const wanted = { ...current, enabled, key, secret, callback: `${webUrl}/auth/google/callback` };
+  const wanted = {
+    ...current,
+    enabled,
+    key,
+    secret,
+    scope: ['email', 'profile'],
+    callback: `${webUrl}/auth/google/callback`,
+  };
 
-  const unchanged = (['enabled', 'key', 'secret', 'callback'] as const).every(
-    (field) => current[field] === wanted[field],
+  const unchanged = (['enabled', 'key', 'secret', 'callback', 'scope'] as const).every(
+    (field) => JSON.stringify(current[field]) === JSON.stringify(wanted[field]),
   );
   if (unchanged) return;
 

@@ -24,6 +24,9 @@ const AUTHENTICATED_ACTIONS = [
   `${REPLY_UID}.create`,
   `${REPLY_UID}.update`,
   `${REPLY_UID}.delete`,
+  // Own account only: the is-self policy (users-permissions extension) guards both.
+  'plugin::users-permissions.user.update',
+  'plugin::users-permissions.user.destroy',
 ];
 
 const ROLE_UID = 'plugin::users-permissions.role';
