@@ -95,7 +95,20 @@ SMTP_PASS=re_…                                         # la clé API
 EMAIL_FROM="Communauté Le Revenu <onboarding@resend.dev>"
 ```
 
-Tant qu'aucun domaine n'est vérifié dans Resend, seule l'adresse du compte Resend reçoit les mails et l'expéditeur doit rester `onboarding@resend.dev` ; les autres destinataires sont refusés (le handler mot de passe oublié répond alors 502). En production, vérifier un domaine et mettre une adresse de ce domaine dans `EMAIL_FROM`. Tout autre relais SMTP (Brevo, Postmark, Gmail avec un mot de passe d'application) fonctionne de la même façon.
+Tant qu'aucun domaine n'est vérifié dans Resend, seule l'adresse du compte Resend reçoit les mails et l'expéditeur doit rester `onboarding@resend.dev` ; les autres destinataires sont refusés (le handler mot de passe oublié répond alors 502). En production, vérifier un domaine et mettre une adresse de ce domaine dans `EMAIL_FROM`.
+
+Avec Gmail (livre à tout le monde, environ 500 mails par jour) : activer la validation en deux étapes, créer un mot de passe d'application sur https://myaccount.google.com/apppasswords, puis :
+
+```bash
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=vous@gmail.com
+SMTP_PASS=le16caracteresdumotdepasse                 # sans espaces
+EMAIL_FROM="Communauté Le Revenu <vous@gmail.com>"    # Gmail remplace tout autre expéditeur par votre adresse
+```
+
+Tout autre relais SMTP (Brevo, Postmark) fonctionne de la même façon : cinq variables, aucun changement de code.
 
 Connexion Google, facultative : créer un client OAuth « Web » dans Google Cloud avec l'URI de redirection `http://localhost:1337/api/connect/google/callback`, mettre `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` dans `apps/cms/.env` et `NEXT_PUBLIC_GOOGLE_LOGIN=true` dans `apps/web/.env`, redémarrer. Sans ces valeurs, le bouton Google n'apparaît pas.
 
