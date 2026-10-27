@@ -1,4 +1,4 @@
-/** Brief rule: only logged-in readers write. Sign-up stays open (the site has a sign-up page). */
+/** Brief rule: only logged-in readers write. Sign-up is open but needs an email confirmation. */
 import { describe, expect, it } from 'vitest';
 
 import { api, errorOf, firstCategoryId, validDiscussion } from './helpers/api';
@@ -29,11 +29,18 @@ describe('POST /api/auth/local/register', () => {
     password: 'Password123!',
   };
 
-  it('creates an Authenticated reader and returns a session without the password', async () => {
+  it('creates an unconfirmed reader and gives no session until the email is confirmed', async () => {
     const res = await api().post('/api/auth/local/register').send(account).expect(200);
-    expect(res.body.jwt).toEqual(expect.any(String));
+    expect(res.body.jwt).toBeUndefined();
     expect(res.body.user.username).toBe(account.username);
+    expect(res.body.user.confirmed).toBe(false);
     expect(res.body.user).not.toHaveProperty('password');
+
+    const login = await api()
+      .post('/api/auth/local')
+      .send({ identifier: account.email, password: account.password })
+      .expect(400);
+    expect(errorOf(login.body).message).toMatch(/not confirmed/i);
   });
 
   it('refuses the same email twice', async () => {

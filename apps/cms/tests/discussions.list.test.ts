@@ -34,7 +34,12 @@ describe('GET /api/discussions', () => {
     expect(items.length).toBe(3);
     for (const item of items) {
       expect(Object.keys(item).sort()).toEqual(LIST_ITEM_KEYS);
-      expect(Object.keys(item.author).sort()).toEqual(['documentId', 'username']);
+      expect(Object.keys(item.author).sort()).toEqual([
+        'avatarUrl',
+        'displayName',
+        'documentId',
+        'username',
+      ]);
       expect(Object.keys(item.category).sort()).toEqual(['color', 'documentId', 'name', 'slug']);
       expect(item.replies).toEqual({ count: expect.any(Number) });
     }
@@ -102,7 +107,12 @@ describe('GET /api/discussions/slug/:slug', () => {
       ),
     ).toBe(true);
     for (const reply of detail.replies) {
-      expect(Object.keys(reply.author).sort()).toEqual(['documentId', 'username']);
+      expect(Object.keys(reply.author).sort()).toEqual([
+        'avatarUrl',
+        'displayName',
+        'documentId',
+        'username',
+      ]);
     }
     expect(hasKeyDeep(res.body, 'id')).toBe(false);
     expect(hasKeyDeep(res.body, 'email')).toBe(false);

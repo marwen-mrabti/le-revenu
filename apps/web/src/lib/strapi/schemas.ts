@@ -31,5 +31,7 @@ export const strapiErrorSchema = z.object({
 export const publicUserSchema = z.object({
   documentId: z.string(),
   username: z.string(),
+  displayName: z.string().nullable().optional(),
+  avatarUrl: z.string().nullable().optional(),
 });
 export type PublicUser = z.infer<typeof publicUserSchema>;

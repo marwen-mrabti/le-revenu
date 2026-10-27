@@ -29,6 +29,7 @@ async function LoginContent({ searchParams }: Pick<Props, 'searchParams'>) {
     getCurrentUser(),
   ]);
   const next = nextPathSchema.parse(Array.isArray(params.next) ? params.next[0] : params.next);
+  const confirmed = params.confirmed === '1';
   const appLocale = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
   if (user) redirect({ href: next as '/discussions', locale: appLocale });
 
@@ -48,7 +49,7 @@ async function LoginContent({ searchParams }: Pick<Props, 'searchParams'>) {
       })}
     >
       <GoogleButton next={next} locale={appLocale} />
-      <LoginForm next={next} />
+      <LoginForm next={next} confirmed={confirmed} />
       {process.env.NODE_ENV !== 'production' ? (
         <p className="mt-4 rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
           {t('demoAccounts', { a: 'alice', b: 'bob', password: 'Password123!' })}

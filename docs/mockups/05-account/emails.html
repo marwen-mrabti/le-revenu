@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mockup 05 · Mails de confirmation et de réinitialisation</title>
+    <style>
+      body {
+        margin: 0;
+        background: #e9e9ee;
+        font:
+          15px/1.5 Inter,
+          system-ui,
+          sans-serif;
+        color: #1d1d1f;
+      }
+      .wrap {
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 24px 16px 80px;
+      }
+      .label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #6e6e73;
+        margin: 28px 0 10px;
+      }
+      .label small {
+        font-weight: 400;
+        text-transform: none;
+        letter-spacing: 0;
+        margin-left: 8px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 24px;
+        align-items: start;
+      }
+      .client {
+        background: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .client .bar {
+        background: #f5f5f7;
+        border-bottom: 1px solid #e5e5ea;
+        padding: 10px 14px;
+        font-size: 12.5px;
+        color: #48484a;
+      }
+      .client .bar b {
+        color: #1d1d1f;
+      }
+      .notes {
+        font-size: 13px;
+        color: #48484a;
+        max-width: 720px;
+      }
+      .notes li {
+        margin: 4px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1
+        style="
+          font:
+            700 22px 'Playfair Display',
+            Georgia,
+            serif;
+          margin: 0;
+        "
+      >
+        Mails transactionnels
+      </h1>
+      <p style="color: #6e6e73; margin-top: 4px">
+        Deux mails, même gabarit : carte blanche de 560 px, logo texte (aucune image, les clients
+        mail les bloquent), titre serif, un bouton rouge, le lien en clair dessous, pied bilingue.
+      </p>
+
+      <div class="label">1 · Confirmation de l'adresse <small>après l'inscription</small></div>
+      <div class="grid">
+        <div class="client">
+          <div class="bar">
+            <b>De :</b> Communauté Le Revenu &lt;no-reply@…&gt; &nbsp;·&nbsp;
+            <b>Objet :</b> Confirmez votre adresse e-mail · Confirm your email address
+          </div>
+          <!-- email body: tables and inline styles only, exactly what React Email renders -->
+          <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            style="background: #f5f5f7; padding: 32px 12px"
+          >
+            <tr>
+              <td align="center">
+                <table
+                  role="presentation"
+                  width="560"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="
+                    max-width: 560px;
+                    width: 100%;
+                    background: #ffffff;
+                    border-radius: 14px;
+                    border: 1px solid #e5e5ea;
+                  "
+                >
+                  <tr>
+                    <td style="padding: 28px 32px 0">
+                      <span
+                        style="
+                          display: inline-block;
+                          background: #eb0f0f;
+                          color: #ffffff;
+                          font:
+                            800 13px/1 Arial,
+                            Helvetica,
+                            sans-serif;
+                          letter-spacing: 0.06em;
+                          padding: 7px 9px;
+                          border-radius: 4px;
+                        "
+                        >LE REVENU</span
+                      >
+                      <span
+                        style="
+                          font:
+                            600 13px Arial,
+                            Helvetica,
+                            sans-serif;
+                          color: #6e6e73;
+                          margin-left: 8px;
+                        "
+                        >Communauté</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 22px 32px 0;
+                        font:
+                          700 24px/1.25 Georgia,
+                          'Times New Roman',
+                          serif;
+                        color: #1d1d1f;
+                      "
+                    >
+                      Bienvenue, claire.nantes&nbsp;!
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 12px 32px 0;
+                        font:
+                          15px/1.55 Arial,
+                          Helvetica,
+                          sans-serif;
+                        color: #48484a;
+                      "
+                    >
+                      Encore une étape : confirmez votre adresse e-mail pour rejoindre la communauté
+                      des lecteurs du Revenu.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 22px 32px 0">
+                      <a
+                        href="#"
+                        style="
+                          display: inline-block;
+                          background: #eb0f0f;
+                          color: #ffffff;
+                          font:
+                            700 15px/1 Arial,
+                            Helvetica,
+                            sans-serif;
+                          text-decoration: none;
+                          padding: 13px 22px;
+                          border-radius: 10px;
+                        "
+                        >Confirmer mon adresse</a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 16px 32px 0;
+                        font:
+                          12.5px/1.5 Arial,
+                          Helvetica,
+                          sans-serif;
+                        color: #6e6e73;
+                      "
+                    >
+                      Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br />
+                      <a href="#" style="color: #e00b0b; word-break: break-all"
+                        >http://localhost:1337/api/auth/email-confirmation?confirmation=9a1f…</a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 22px 32px 0">
+                      <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 0" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 16px 32px 28px;
+                        font:
+                          12.5px/1.55 Arial,
+                          Helvetica,
+                          sans-serif;
+                        color: #6e6e73;
+                      "
+                    >
+                      <b style="color: #48484a">English</b> · Welcome! Confirm your email address to
+                      join the community: click the button above.<br /><br />
+                      Vous n'avez pas créé de compte ? Ignorez ce message. · Didn't sign up? Ignore
+                      this email.<br />
+                      Communauté Le Revenu
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="client">
+          <div class="bar"><b>Version texte</b> (clients sans HTML)</div>
+          <pre
+            style="
+              margin: 0;
+              padding: 18px 20px;
+              font:
+                13px/1.5 ui-monospace,
+                monospace;
+              color: #1d1d1f;
+              white-space: pre-wrap;
+            "
+          >
+Bienvenue, claire.nantes !
+
+Encore une étape : confirmez votre adresse e-mail pour rejoindre la communauté des lecteurs du Revenu.
+
+Confirmer mon adresse :
+http://localhost:1337/api/auth/email-confirmation?confirmation=9a1f…
+
+English · Welcome! Confirm your email address to join the community with the link above.
+
+Vous n'avez pas créé de compte ? Ignorez ce message. · Didn't sign up? Ignore this email.
+Communauté Le Revenu</pre>
+        </div>
+      </div>
+
+      <div class="label">
+        2 · Réinitialisation du mot de passe <small>après « Mot de passe oublié »</small>
+      </div>
+      <div class="grid">
+        <div class="client">
+          <div class="bar">
+            <b>De :</b> Communauté Le Revenu &lt;no-reply@…&gt; &nbsp;·&nbsp;
+            <b>Objet :</b> Réinitialisez votre mot de passe · Reset your password
+          </div>
+          <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            style="background: #f5f5f7; padding: 32px 12px"
+          >
+            <tr>
+              <td align="center">
+                <table
+                  role="presentation"
+                  width="560"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="
+                    max-width: 560px;
+                    width: 100%;
+                    background: #ffffff;
+                    border-radius: 14px;
+                    border: 1px solid #e5e5ea;
+                  "
+                >
+                  <tr>
+                    <td style="padding: 28px 32px 0">
+                      <span
+                        style="
+                          display: inline-block;
+                          background: #eb0f0f;
+                          color: #ffffff;
+                          font:
+                            800 13px/1 Arial,
+                            Helvetica,
+                            sans-serif;
+                          letter-spacing: 0.06em;
+                          padding: 7px 9px;
+                          border-radius: 4px;
+                        "
+                        >LE REVENU</span
+                      >
+                      <span
+                        style="
+                          font:
+                            600 13px Arial,
+                            Helvetica,
+                            sans-serif;
+                          color: #6e6e73;
+                          margin-left: 8px;
+                        "
+                        >Communauté</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 22px 32px 0;
+                        font:
+                          700 24px/1.25 Georgia,
+                          'Times New Roman',
+                          serif;
+                        color: #1d1d1f;
+                      "
+                    >
+                      Nouveau mot de passe
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 12px 32px 0;
+                        font:
+                          15px/1.55 Arial,
+                          Helvetica,
+                          sans-serif;
+                        color: #48484a;
+                      "
+                    >
+                      Bonjour alice, cliquez sur le bouton pour choisir un nouveau mot de passe. Le
+                      lien ne sert qu'une fois et expire dans une heure.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 22px 32px 0">
+                      <a
+                        href="#"
+                        style="
+                          display: inline-block;
+                          background: #eb0f0f;
+                          color: #ffffff;
+                          font:
+                            700 15px/1 Arial,
+                            Helvetica,
+                            sans-serif;
+                          text-decoration: none;
+                          padding: 13px 22px;
+                          border-radius: 10px;
+                        "
+                        >Choisir un nouveau mot de passe</a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 16px 32px 0;
+                        font:
+                          12.5px/1.5 Arial,
+                          Helvetica,
+                          sans-serif;
+                        color: #6e6e73;
+                      "
+                    >
+                      Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br />
+                      <a href="#" style="color: #e00b0b; word-break: break-all"
+                        >http://localhost:3000/api/auth/reset?code=3f9c2a…</a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 22px 32px 0">
+                      <hr style="border: 0; border-top: 1px solid #e5e5ea; margin: 0" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 16px 32px 28px;
+                        font:
+                          12.5px/1.55 Arial,
+                          Helvetica,
+                          sans-serif;
+                        color: #6e6e73;
+                      "
+                    >
+                      <b style="color: #48484a">English</b> · Click the button above to choose a new
+                      password. The link works once and expires in one hour.<br /><br />
+                      Vous n'êtes pas à l'origine de cette demande ? Ignorez ce message, votre mot
+                      de passe reste inchangé. · If you did not ask for this, ignore this email.<br />
+                      Communauté Le Revenu
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="client">
+          <div class="bar">
+            <b>Sur mobile</b> (360 px) · même gabarit, la carte prend toute la largeur
+          </div>
+          <div style="width: 360px; max-width: 100%; margin: 0 auto">
+            <table
+              role="presentation"
+              width="100%"
+              cellpadding="0"
+              cellspacing="0"
+              style="background: #f5f5f7; padding: 20px 8px"
+            >
+              <tr>
+                <td align="center">
+                  <table
+                    role="presentation"
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    style="background: #ffffff; border-radius: 14px; border: 1px solid #e5e5ea"
+                  >
+                    <tr>
+                      <td style="padding: 22px 20px 0">
+                        <span
+                          style="
+                            display: inline-block;
+                            background: #eb0f0f;
+                            color: #ffffff;
+                            font:
+                              800 13px/1 Arial,
+                              Helvetica,
+                              sans-serif;
+                            letter-spacing: 0.06em;
+                            padding: 7px 9px;
+                            border-radius: 4px;
+                          "
+                          >LE REVENU</span
+                        >
+                        <span
+                          style="
+                            font:
+                              600 13px Arial,
+                              Helvetica,
+                              sans-serif;
+                            color: #6e6e73;
+                            margin-left: 8px;
+                          "
+                          >Communauté</span
+                        >
+                      </td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="
+                          padding: 18px 20px 0;
+                          font:
+                            700 22px/1.25 Georgia,
+                            'Times New Roman',
+                            serif;
+                          color: #1d1d1f;
+                        "
+                      >
+                        Nouveau mot de passe
+                      </td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="
+                          padding: 10px 20px 0;
+                          font:
+                            15px/1.55 Arial,
+                            Helvetica,
+                            sans-serif;
+                          color: #48484a;
+                        "
+                      >
+                        Bonjour alice, cliquez sur le bouton pour choisir un nouveau mot de passe.
+                        Le lien ne sert qu'une fois et expire dans une heure.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 18px 20px 0">
+                        <a
+                          href="#"
+                          style="
+                            display: block;
+                            text-align: center;
+                            background: #eb0f0f;
+                            color: #ffffff;
+                            font:
+                              700 15px/1 Arial,
+                              Helvetica,
+                              sans-serif;
+                            text-decoration: none;
+                            padding: 13px 22px;
+                            border-radius: 10px;
+                          "
+                          >Choisir un nouveau mot de passe</a
+                        >
+                      </td>
+                    </tr>
+                    <tr>
+                      <td
+                        style="
+                          padding: 14px 20px 24px;
+                          font:
+                            12.5px/1.5 Arial,
+                            Helvetica,
+                            sans-serif;
+                          color: #6e6e73;
+                        "
+                      >
+                        Si le bouton ne fonctionne pas :
+                        <a href="#" style="color: #e00b0b; word-break: break-all"
+                          >http://localhost:3000/api/auth/reset?code=3f9c2a…</a
+                        >
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="label">Notes</div>
+      <ul class="notes">
+        <li>
+          Un seul gabarit (en-tête, carte, bouton, pied) partagé par les deux mails, écrit avec
+          React Email et rendu en HTML au démarrage de Strapi.
+        </li>
+        <li>
+          Pas d'image ni de police web : les clients mail les bloquent. Logo en texte sur fond
+          rouge, titre Georgia, corps Arial.
+        </li>
+        <li>
+          Le lien est toujours écrit en clair sous le bouton : certains clients neutralisent les
+          boutons.
+        </li>
+        <li>
+          Les mails ne connaissent pas la langue du lecteur (Strapi n'a pas cette information) :
+          français d'abord, un bloc anglais court en pied. L'arrivée sur le site, elle, est dans la
+          langue du lecteur.
+        </li>
+        <li>Version texte générée depuis le même gabarit pour les clients sans HTML.</li>
+      </ul>
+    </div>
+  </body>
+</html>

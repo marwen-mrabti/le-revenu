@@ -1,21 +1,18 @@
-import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import type { Metadata } from 'next';
-import { connection } from 'next/server';
 import { hasLocale } from 'next-intl';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Suspense } from 'react';
 
-import { CategoryChips } from '@/features/categories/components/category-chips';
-import { SpaceCard } from '@/features/categories/components/space-card';
-import { findCategory, getCategories } from '@/features/categories/data';
-import { discussionQueries } from '@/features/discussions/api/queries';
+import { CategoryChipsIsland } from '@/features/categories/components/category-chips-island';
+import { SpaceCardIsland } from '@/features/categories/components/space-card-island';
+import { findCategory } from '@/features/categories/data';
 import { DiscussionFilters } from '@/features/discussions/components/discussion-filters';
-import { DiscussionList } from '@/features/discussions/components/discussion-list';
+import { DiscussionFiltersSkeleton } from '@/features/discussions/components/discussion-filters-skeleton';
 import { DiscussionListSkeleton } from '@/features/discussions/components/discussion-list-skeleton';
-import { getDiscussions } from '@/features/discussions/data';
+import { DiscussionsIsland } from '@/features/discussions/components/discussions-island';
 import { loadDiscussionFilters } from '@/features/discussions/search-params';
 import { routing, type AppLocale } from '@/i18n/routing';
-import { getQueryClient } from '@/lib/query/get-query-client';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type Props = PageProps<'/[locale]/discussions'>;
 
@@ -30,31 +27,19 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     currentLocale(),
     loadDiscussionFilters(searchParams),
   ]);
-  const category = filters.category ? await findCategory(locale, filters.category) : undefined;
+  const category = filters.category
+    ? await findCategory(locale, filters.category).catch(() => undefined)
+    : undefined;
   const title = category ? `${category.name} · ${t('discussionsTitle')}` : t('discussionsTitle');
   return { title, description: category?.description ?? t('discussionsDescription') };
 }
 
+/**
+ * Static shell (title, intro, filter chrome, grid) rendered at once; each
+ * data section is an island that loads and fails on its own.
+ */
 export default async function DiscussionsPage({ searchParams }: Props) {
-  // The list is request-time data (search params, fresh Strapi read, cache timestamps):
-  // declare it so the prerender keeps only the shell above the Suspense boundary.
-  await connection();
-  const [t, locale, filters] = await Promise.all([
-    getTranslations('Discussions'),
-    currentLocale(),
-    loadDiscussionFilters(searchParams),
-  ]);
-  const [categories, category] = await Promise.all([
-    getCategories(locale),
-    filters.category ? findCategory(locale, filters.category) : undefined,
-  ]);
-
-  // Server-side fetch straight from Strapi; the client gets the result through the hydrated cache.
-  const queryClient = getQueryClient();
-  void queryClient.prefetchQuery({
-    ...discussionQueries.list(filters, locale),
-    queryFn: () => getDiscussions(filters, locale),
-  });
+  const [t, locale] = await Promise.all([getTranslations('Discussions'), currentLocale()]);
 
   return (
     <>
@@ -65,16 +50,23 @@ export default async function DiscussionsPage({ searchParams }: Props) {
           </h1>
           <p className="mt-1.5 max-w-[62ch] text-muted-foreground">{t('intro')}</p>
         </header>
-        <HydrationBoundary state={dehydrate(queryClient)}>
-          <Suspense fallback={<DiscussionListSkeleton />}>
-            <CategoryChips categories={categories} />
+        <Suspense fallback={<Skeleton className="h-8 w-full md:hidden" />}>
+          <CategoryChipsIsland locale={locale} />
+        </Suspense>
+        {/* Stays under the header while the list scrolls: search and sort are always one tap away. */}
+        <div className="sticky top-14 z-30 -mx-4 bg-background/90 px-4 py-2 backdrop-blur md:mx-0 md:px-0">
+          <Suspense fallback={<DiscussionFiltersSkeleton />}>
             <DiscussionFilters />
-            <DiscussionList />
           </Suspense>
-        </HydrationBoundary>
+        </div>
+        <Suspense fallback={<DiscussionListSkeleton />}>
+          <DiscussionsIsland searchParams={searchParams} locale={locale} />
+        </Suspense>
       </main>
       <aside className="md:col-start-2 xl:col-start-3">
-        <SpaceCard category={category} />
+        <Suspense fallback={<Skeleton className="h-40 w-full rounded-xl" />}>
+          <SpaceCardIsland searchParams={searchParams} locale={locale} />
+        </Suspense>
       </aside>
     </>
   );

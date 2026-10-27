@@ -11,7 +11,7 @@ declare module 'koa' {
     params: Record<string, string>;
     state: {
       /** Set by Users & Permissions when a valid Bearer token is present. */
-      user?: { documentId: string; username?: string };
+      user?: { id: number; documentId: string; username?: string; email?: string };
       auth?: unknown;
     };
   }

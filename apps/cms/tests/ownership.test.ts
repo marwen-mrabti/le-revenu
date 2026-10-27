@@ -56,6 +56,11 @@ describe('is-owner policy', () => {
       .send({ data: { title: 'Alice modifie sa discussion' } })
       .expect(200);
     expect(res.body.data.title).toBe('Alice modifie sa discussion');
+    // Same shape as the list: author and category populated, reply count, no numeric id.
+    expect(res.body.data.author.username).toBe('alice');
+    expect(res.body.data.category.slug).toEqual(expect.any(String));
+    expect(res.body.data.replies).toEqual({ count: expect.any(Number) });
+    expect(res.body.data.id).toBeUndefined();
   });
 
   it('lets bob delete his own reply', async () => {

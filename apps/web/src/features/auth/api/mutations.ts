@@ -6,7 +6,16 @@ import { z } from 'zod';
 
 import { bffPost } from '@/lib/api/client';
 
-import { sessionUserSchema, type LoginInput, type RegisterInput } from '../schemas';
+import {
+  sessionUserSchema,
+  type AccountInput,
+  type ChangePasswordInput,
+  type ForgotPasswordInput,
+  type LoginInput,
+  type RegisterInput,
+  type ResetPasswordInput,
+  type SetPasswordInput,
+} from '../schemas';
 import { authQueries } from './queries';
 
 const userEnvelope = z.object({ user: sessionUserSchema });
@@ -30,11 +39,71 @@ export function useLogin() {
   });
 }
 
+const pendingEnvelope = z.object({ user: sessionUserSchema, pending: z.boolean() });
+const okEnvelope = z.object({ ok: z.boolean() });
+
+/** Sign-up: pending until the email is confirmed when a mailer exists, logged in at once otherwise. */
 export function useRegister() {
   const changed = useSessionChanged();
   return useMutation({
-    mutationFn: (input: RegisterInput) => bffPost('/api/auth/register', input, userEnvelope),
+    mutationFn: (input: RegisterInput) => bffPost('/api/auth/register', input, pendingEnvelope),
+    onSuccess: ({ user, pending }) => (pending ? undefined : changed(user)),
+  });
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (input: ForgotPasswordInput) =>
+      bffPost('/api/auth/forgot-password', input, okEnvelope),
+  });
+}
+
+export function useSendConfirmation() {
+  return useMutation({
+    mutationFn: (input: ForgotPasswordInput) =>
+      bffPost('/api/auth/send-confirmation', input, okEnvelope),
+  });
+}
+
+/** The mailed code plus a new password: the reader is logged in on success. */
+export function useResetPassword() {
+  const changed = useSessionChanged();
+  return useMutation({
+    mutationFn: (input: ResetPasswordInput) =>
+      bffPost('/api/auth/reset-password', input, userEnvelope),
     onSuccess: ({ user }) => changed(user),
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (input: ChangePasswordInput) =>
+      bffPost('/api/auth/change-password', input, userEnvelope),
+  });
+}
+
+/** First password of a Google account; the session stays as it is. */
+export function useSetPassword() {
+  return useMutation({
+    mutationFn: (input: SetPasswordInput) => bffPost('/api/auth/set-password', input, okEnvelope),
+  });
+}
+
+export function useUpdateAccount() {
+  const changed = useSessionChanged();
+  return useMutation({
+    mutationFn: (input: AccountInput) =>
+      bffPost('/api/account', input, userEnvelope, { method: 'PATCH' }),
+    onSuccess: ({ user }) => changed(user),
+  });
+}
+
+export function useDeleteAccount() {
+  const changed = useSessionChanged();
+  return useMutation({
+    mutationFn: (input: { username: string }) =>
+      bffPost('/api/account', input, z.undefined(), { method: 'DELETE' }),
+    onSuccess: () => changed(null),
   });
 }
 

@@ -12,11 +12,15 @@ vi.mock('next/server', async (importOriginal) => ({
   ...(await importOriginal<typeof NextServer>()),
   connection: vi.fn().mockResolvedValue(undefined),
 }));
-vi.mock('@/config/env', () => ({ env: { STRAPI_URL: 'http://strapi.test' } }));
+vi.mock('@/config/env', () => ({
+  env: { AUTH_COOKIE_NAME: 'lr_session', STRAPI_URL: 'http://strapi.test' },
+}));
+vi.mock('@/lib/strapi/private', () => ({ strapiAuth: vi.fn() }));
 
 import { getDiscussions } from '@/features/discussions/data';
+import { strapiAuth } from '@/lib/strapi/private';
 
-import { GET } from './route';
+import { GET, POST } from './route';
 
 const page = {
   items: [],
@@ -55,5 +59,63 @@ describe('GET /api/discussions', () => {
     const body = await response.json();
     expect(body.code).toBe('UNAVAILABLE');
     expect(body.message).not.toContain('1337');
+  });
+});
+
+const valid = {
+  type: 'question',
+  title: 'Faut-il ouvrir un PER à 45 ans ?',
+  content: 'Contexte.',
+  category: 'c1',
+};
+const post = (body: unknown, cookie = 'lr_session=good.jwt') =>
+  POST(
+    new NextRequest('http://web.test/api/discussions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'sec-fetch-site': 'same-origin', cookie },
+      body: JSON.stringify(body),
+    }),
+  );
+
+describe('POST /api/discussions', () => {
+  it('needs a session and applies the brief rules before calling Strapi', async () => {
+    expect((await post(valid, '')).status).toBe(401);
+    const short = await post({ ...valid, title: 'Court' });
+    expect(short.status).toBe(422);
+    expect((await short.json()).fieldErrors).toEqual({ title: ['titleMin'] });
+    const noSpace = await post({ ...valid, category: '' });
+    expect((await noSpace.json()).fieldErrors).toEqual({ category: ['categoryRequired'] });
+    expect(strapiAuth).not.toHaveBeenCalled();
+  });
+
+  it('creates with the session token and answers the item', async () => {
+    vi.mocked(strapiAuth).mockResolvedValueOnce({
+      data: {
+        documentId: 'd9',
+        title: valid.title,
+        slug: 'faut-il-ouvrir-un-per',
+        content: 'Contexte.',
+        type: 'question',
+        createdAt: '',
+        updatedAt: '',
+        author: null,
+        category: null,
+        replies: { count: 0 },
+      },
+    });
+    const response = await post(valid);
+    expect(response.status).toBe(201);
+    expect((await response.json()).discussion.slug).toBe('faut-il-ouvrir-un-per');
+    expect(vi.mocked(strapiAuth).mock.calls[0]).toEqual([
+      '/discussions',
+      expect.objectContaining({ jwt: 'good.jwt', body: { data: valid } }),
+    ]);
+  });
+
+  it('turns an unknown space into a field error', async () => {
+    vi.mocked(strapiAuth).mockRejectedValueOnce(new StrapiError(404, 'NotFoundError', 'Not Found'));
+    const response = await post(valid);
+    expect(response.status).toBe(422);
+    expect((await response.json()).fieldErrors).toEqual({ category: ['categoryUnknown'] });
   });
 });

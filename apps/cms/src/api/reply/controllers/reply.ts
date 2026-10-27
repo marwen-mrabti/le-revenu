@@ -54,10 +54,15 @@ export default factories.createCoreController(UID, ({ strapi }) => {
       return envelope(await presentRow(row as Row, ctx));
     },
 
-    /** Owner-only (policy). Author and discussion cannot be changed. */
+    /** Owner-only (policy). Author and discussion cannot be changed; answers like `create` (author populated). */
     async update(koa) {
-      koa.request.body = { data: clientData(fromKoa(koa), false) };
-      return super.update(koa);
+      const ctx = fromKoa(koa);
+      const data = (await api.input(clientData(ctx, false), ctx)) as Input;
+      const row = await strapi
+        .documents(UID)
+        .update({ documentId: String(ctx.params.id), data, populate: REPLY_POPULATE });
+      if (!row) throw new errors.NotFoundError('Reply not found');
+      return envelope(await presentRow(row as Row, ctx));
     },
   };
 });

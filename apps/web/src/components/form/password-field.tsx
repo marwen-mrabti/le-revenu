@@ -9,7 +9,7 @@ import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui
 import { Input } from '@/components/ui/input';
 import { useFieldContext } from '@/hooks/form-context';
 
-import { useVisibleFieldErrors } from './field-errors';
+import { clearBlurError, useVisibleFieldErrors } from './field-errors';
 
 interface PasswordFieldProps {
   label: string;
@@ -39,7 +39,10 @@ export function PasswordField({ label, description, autoComplete }: PasswordFiel
           aria-invalid={invalid || undefined}
           aria-describedby={description ? `${id}-description` : undefined}
           onBlur={field.handleBlur}
-          onChange={(event) => field.handleChange(event.target.value)}
+          onChange={(event) => {
+            clearBlurError(field);
+            field.handleChange(event.target.value);
+          }}
           className="h-10 pr-10"
         />
         <Button

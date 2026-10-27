@@ -29,17 +29,34 @@ const register = (body: unknown) =>
   );
 
 describe('POST /api/auth/register', () => {
-  it('creates the account, logs it in and sends Strapi a lowercase email', async () => {
+  it('creates the account as pending, no session, and sends Strapi a lowercase email', async () => {
     vi.mocked(strapiFetch).mockResolvedValueOnce({
-      jwt: 'new.jwt',
-      user: { documentId: 'u9', username: 'claire', email: 'claire@exemple.fr' },
+      user: {
+        id: 9,
+        documentId: 'u9',
+        username: 'claire',
+        email: 'claire@exemple.fr',
+        confirmed: false,
+      },
     });
     const response = await register(account);
     expect(response.status).toBe(201);
-    expect(response.headers.get('set-cookie')).toContain('lr_session=new.jwt');
+    expect(response.headers.get('set-cookie')).toBeNull();
+    expect((await response.json()).pending).toBe(true);
     expect(vi.mocked(strapiFetch).mock.calls[0]?.[1]).toMatchObject({
       body: { username: 'claire', email: 'claire@exemple.fr', password: 'Password123!' },
     });
+  });
+
+  it('sets the session when Strapi answers a token (no mailer, confirmation off)', async () => {
+    vi.mocked(strapiFetch).mockResolvedValueOnce({
+      jwt: 'strapi-jwt-value-long-enough-0123456789',
+      user: { id: 9, documentId: 'u9', username: 'claire', email: 'claire@exemple.fr' },
+    });
+    const response = await register(account);
+    expect(response.status).toBe(201);
+    expect(response.headers.get('set-cookie')).toContain('lr_session=');
+    expect((await response.json()).pending).toBe(false);
   });
 
   it('maps a taken email or username to 409 on the email field', async () => {

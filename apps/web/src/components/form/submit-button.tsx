@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Spinner } from '@/components/ui/spinner';
 import { useFormContext } from '@/hooks/form-context';
 
@@ -8,9 +9,12 @@ import { useFormContext } from '@/hooks/form-context';
 export function SubmitButton({
   children,
   pendingLabel,
+  className,
 }: {
   children: string;
   pendingLabel: string;
+  /** Full width by default (auth cards); pass a width to right-align inside a wider form. */
+  className?: string;
 }) {
   const form = useFormContext();
   return (
@@ -19,7 +23,7 @@ export function SubmitButton({
         <Button
           type="submit"
           size="lg"
-          className="h-10 w-full"
+          className={cn('h-10 w-full', className)}
           disabled={!canSubmit || isSubmitting}
           aria-busy={isSubmitting || undefined}
         >

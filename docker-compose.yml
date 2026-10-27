@@ -20,5 +20,18 @@ services:
       timeout: 5s
       retries: 10
 
+  # Local mailbox: Strapi sends to SMTP 1025, every mail is readable at http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: lerevenu-mail
+    restart: unless-stopped
+    ports:
+      - '${MAILPIT_SMTP_PORT:-1025}:1025'
+      - '${MAILPIT_UI_PORT:-8025}:8025'
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
 volumes:
   pgdata:
