@@ -1,6 +1,8 @@
 import { createFormHook } from '@tanstack/react-form';
 
+import { NativeSelectField } from '@/components/form/native-select-field';
 import { PasswordField } from '@/components/form/password-field';
+import { RadioCardsField } from '@/components/form/radio-cards-field';
 import { SubmitButton } from '@/components/form/submit-button';
 import { TextField } from '@/components/form/text-field';
 import { TextareaField } from '@/components/form/textarea-field';
@@ -18,6 +20,6 @@ export const rules = <T>(schema: T) => ({ onChange: schema, onBlur: schema });
 export const { useAppForm, withForm } = createFormHook({
   fieldContext,
   formContext,
-  fieldComponents: { TextField, PasswordField, TextareaField },
+  fieldComponents: { TextField, PasswordField, TextareaField, NativeSelectField, RadioCardsField },
   formComponents: { SubmitButton },
 });

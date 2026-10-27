@@ -76,12 +76,21 @@ export const discussionQuerySchema = discussionFiltersSchema.extend({
 export const TITLE_MIN = 10;
 export const TITLE_MAX = 150;
 export const CONTENT_MAX = 20000;
+export const DISCUSSION_TYPES = ['question', 'discussion'] as const;
+export type DiscussionType = (typeof DISCUSSION_TYPES)[number];
 
-/** What the author may change from the detail page; category and type come with the full form. */
-export const discussionEditSchema = z.object({
+/**
+ * What a reader writes, to create or to edit: the brief's rules (title ≥ 10,
+ * content required, a space, a type). Strapi applies the same rules on its side.
+ */
+export const discussionInputSchema = z.object({
+  type: z.enum(DISCUSSION_TYPES),
   title: z.string().trim().min(TITLE_MIN, 'titleMin').max(TITLE_MAX, 'titleMax'),
   content: z.string().trim().min(1, 'required').max(CONTENT_MAX, 'contentMax'),
+  category: z.string().min(1, 'categoryRequired').max(64),
 });
-export type DiscussionEditInput = z.infer<typeof discussionEditSchema>;
+export type DiscussionInput = z.infer<typeof discussionInputSchema>;
+export const discussionEditSchema = discussionInputSchema;
+export type DiscussionEditInput = DiscussionInput;
 
 export const discussionEnvelopeSchema = z.object({ discussion: discussionListItemSchema });

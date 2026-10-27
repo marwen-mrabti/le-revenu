@@ -40,7 +40,12 @@ describe('PATCH and DELETE /api/discussions/[documentId]', () => {
     const request = new NextRequest('http://web.test/api/discussions/d1', {
       method: 'PATCH',
       headers,
-      body: JSON.stringify({ title: 'Court', content: 'Contenu' }),
+      body: JSON.stringify({
+        type: 'question',
+        title: 'Court',
+        content: 'Contenu',
+        category: 'c1',
+      }),
     });
     const response = await PATCH(request, { params });
     expect(response.status).toBe(422);
@@ -48,16 +53,28 @@ describe('PATCH and DELETE /api/discussions/[documentId]', () => {
     expect(strapiAuth).not.toHaveBeenCalled();
   });
 
-  it('edits title and content, then expires the entry and the collection', async () => {
+  it('edits the four fields, then expires the entry and the collection', async () => {
     vi.mocked(strapiAuth).mockResolvedValueOnce({ data: item });
     const request = new NextRequest('http://web.test/api/discussions/d1', {
       method: 'PATCH',
       headers,
-      body: JSON.stringify({ title: 'Un titre assez long', content: 'Contenu' }),
+      body: JSON.stringify({
+        type: 'question',
+        title: 'Un titre assez long',
+        content: 'Contenu',
+        category: 'c1',
+      }),
     });
     expect((await PATCH(request, { params })).status).toBe(200);
     expect(vi.mocked(strapiAuth).mock.calls[0]?.[1]).toMatchObject({
-      body: { data: { title: 'Un titre assez long', content: 'Contenu' } },
+      body: {
+        data: {
+          type: 'question',
+          title: 'Un titre assez long',
+          content: 'Contenu',
+          category: 'c1',
+        },
+      },
       init: { method: 'PUT' },
     });
     expect(revalidateTag).toHaveBeenCalledWith('strapi:discussions:d1', { expire: 0 });

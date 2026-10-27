@@ -5,36 +5,36 @@ import { useState } from 'react';
 
 import { FormAlert } from '@/components/form/form-alert';
 import { Button } from '@/components/ui/button';
-import { rules, useAppForm } from '@/hooks/form';
+import { useAppForm } from '@/hooks/form';
 import { useApiErrorMessage } from '@/hooks/use-api-error-message';
 
 import { useUpdateDiscussion } from '../api/mutations';
-import { CONTENT_MAX, discussionEditSchema } from '../schemas';
+import { discussionEditSchema, type DiscussionInput } from '../schemas';
+import { DiscussionFields, type SpaceOption } from './discussion-fields';
 
 interface DiscussionEditFormProps {
   discussionId: string;
-  initialTitle: string;
-  initialContent: string;
+  initial: DiscussionInput;
+  spaces: SpaceOption[];
   onSaved: () => void;
   onCancel: () => void;
 }
 
-/** Inline edit of title and content; category and type come with the full form (branch 07). */
+/** Inline edit of the four fields; Escape or Annuler restores the text. */
 export function DiscussionEditForm({
   discussionId,
-  initialTitle,
-  initialContent,
+  initial,
+  spaces,
   onSaved,
   onCancel,
 }: DiscussionEditFormProps) {
-  const t = useTranslations('Discussion');
   const tOwner = useTranslations('Owner');
   const errorMessage = useApiErrorMessage();
   const update = useUpdateDiscussion(discussionId);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const form = useAppForm({
-    defaultValues: { title: initialTitle, content: initialContent },
+    defaultValues: initial,
     validators: { onSubmit: discussionEditSchema },
     onSubmit: async ({ value }) => {
       setServerError(null);
@@ -61,14 +61,7 @@ export function DiscussionEditForm({
       className="mt-3 flex flex-col gap-4"
     >
       <FormAlert message={serverError} />
-      <form.AppField name="title" validators={rules(discussionEditSchema.shape.title)}>
-        {(field) => <field.TextField label={t('editTitle')} description={t('editTitleHint')} />}
-      </form.AppField>
-      <form.AppField name="content" validators={rules(discussionEditSchema.shape.content)}>
-        {(field) => (
-          <field.TextareaField label={t('editContent')} maxLength={CONTENT_MAX} rows={8} />
-        )}
-      </form.AppField>
+      <DiscussionFields form={form} spaces={spaces} />
       <div className="flex justify-end gap-2">
         <Button type="button" variant="secondary" onClick={onCancel}>
           {tOwner('cancel')}

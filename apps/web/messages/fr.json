@@ -31,7 +31,8 @@
     "forgotTitle": "Mot de passe oublié",
     "resetTitle": "Nouveau mot de passe",
     "verifyTitle": "Confirmez votre adresse",
-    "accountTitle": "Mon compte"
+    "accountTitle": "Mon compte",
+    "newDiscussionTitle": "Nouvelle publication"
   },
   "Discussions": {
     "title": "Discussions",
@@ -42,22 +43,46 @@
     "emptyHint": "Lancez la première discussion de cet espace.",
     "replyCountLabel": "{count, plural, one {réponse} other {réponses}}",
     "typeQuestion": "Question",
-    "anonymous": "Anonyme",
+    "anonymous": "Compte supprimé",
     "searchLabel": "Rechercher une discussion",
     "searchPlaceholder": "Rechercher une discussion, un sujet…",
     "resultCount": "{count, plural, =0 {Aucune discussion} one {# discussion} other {# discussions}}",
     "emptyFiltered": "Aucune discussion ne correspond à vos filtres.",
     "emptyOutOfRange": "Cette page n'existe pas.",
     "clearFilters": "Effacer les filtres",
-    "backToFirstPage": "Revenir à la page 1"
+    "backToFirstPage": "Revenir à la page 1",
+    "startFirst": "Lancer la première discussion"
   },
   "DiscussionNew": {
-    "title": "Nouvelle publication"
+    "title": "Nouvelle publication",
+    "intro": "Une question ou un retour d'expérience pour la communauté des lecteurs du Revenu.",
+    "typeLabel": "Type de publication",
+    "type_question": "Poser une question",
+    "typeHint_question": "Obtenez l'aide des membres et de la rédaction.",
+    "type_discussion": "Lancer une discussion",
+    "typeHint_discussion": "Partagez une expérience, un avis, une actualité.",
+    "titleHint": "10 à 150 caractères. Un titre clair, formulé comme une question, obtient plus vite des réponses.",
+    "titlePlaceholder": "Ex. : Faut-il ouvrir un PER à 45 ans ?",
+    "space": "Espace",
+    "spacePlaceholder": "Choisissez un espace…",
+    "content": "Contenu",
+    "contentPlaceholder": "Votre situation, ce que vous avez déjà envisagé… Plus le contexte est précis, meilleures sont les réponses.",
+    "publish": "Publier",
+    "publishing": "Publication…",
+    "cancel": "Annuler",
+    "published": "Discussion publiée.",
+    "sessionExpired": "Votre session a expiré, votre texte est conservé.",
+    "sessionExpiredLink": "Reconnectez-vous",
+    "tipsTitle": "Conseils",
+    "tip1": "Un titre qui dit tout : « PEA ou CTO pour un premier ETF ? » plutôt que « Question ETF ».",
+    "tip2": "Donnez le contexte : montant, horizon, ce que vous avez déjà envisagé.",
+    "tip3": "Partagez votre expérience, pas de conseil personnalisé ni de sollicitation.",
+    "titleLabel": "Titre"
   },
   "Replies": {
     "title": "Réponses",
     "count": "{count, plural, one {# réponse} other {# réponses}}",
-    "anonymous": "Anonyme",
+    "anonymous": "Compte supprimé",
     "authorChip": "Auteur",
     "edited": "modifié",
     "replyBy": "Réponse de {name}",
@@ -185,7 +210,9 @@
   "Space": {
     "label": "Cet espace",
     "allTitle": "Tous les espaces",
-    "allDescription": "Onze espaces thématiques, calqués sur les grandes rubriques du Revenu. Choisissez-en un pour filtrer les discussions."
+    "allDescription": "Onze espaces thématiques, calqués sur les grandes rubriques du Revenu. Choisissez-en un pour filtrer les discussions.",
+    "publishHere": "Publier dans cet espace",
+    "publish": "Publier"
   },
   "Theme": {
     "label": "Thème",
@@ -221,7 +248,9 @@
     "titleMin": "10 caractères minimum.",
     "titleMax": "150 caractères maximum.",
     "contentMax": "20 000 caractères maximum.",
-    "invalid": "Contenu refusé par le serveur."
+    "invalid": "Contenu refusé par le serveur.",
+    "categoryRequired": "Choisissez un espace.",
+    "categoryUnknown": "Cet espace n'existe plus, choisissez-en un autre."
   },
   "Account": {
     "title": "Mon compte",

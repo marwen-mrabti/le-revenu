@@ -1,6 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 
 import { IslandError } from '@/components/shared/island-error';
+import { PlusIcon } from 'lucide-react';
+
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { findCategory } from '@/features/categories/data';
@@ -48,12 +50,21 @@ export async function DiscussionAsideIsland({
           </CardHeader>
           <CardContent className="flex flex-col gap-3 text-sm text-muted-foreground">
             <p>{category.description}</p>
-            <Link
-              href={{ pathname: '/discussions', query: { category: category.slug } }}
-              className={cn(buttonVariants({ variant: 'secondary', size: 'sm' }), 'self-start')}
-            >
-              {t('spaceDiscussions')}
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={{ pathname: '/discussions/new', query: { category: category.slug } }}
+                className={buttonVariants({ size: 'sm' })}
+              >
+                <PlusIcon aria-hidden="true" />
+                {tSpace('publishHere')}
+              </Link>
+              <Link
+                href={{ pathname: '/discussions', query: { category: category.slug } }}
+                className={cn(buttonVariants({ variant: 'secondary', size: 'sm' }))}
+              >
+                {t('spaceDiscussions')}
+              </Link>
+            </div>
           </CardContent>
         </Card>
       ) : null}
