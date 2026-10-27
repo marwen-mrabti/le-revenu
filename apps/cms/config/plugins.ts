@@ -23,7 +23,35 @@ const deniedTypes = [
   'application/x-mach-binary',
 ];
 
+/**
+ * Mail transport. With SMTP_HOST set, nodemailer talks to that server
+ * (Mailpit in development, any SMTP, Resend or Brevo in production).
+ * Without it, mails are built and discarded (`jsonTransport`): the zero-setup
+ * mode keeps working and ensure-email.ts logs one warning at boot.
+ */
+const mailTransport = (env: Core.Config.Shared.ConfigParams['env']) =>
+  env('SMTP_HOST')
+    ? {
+        host: env('SMTP_HOST'),
+        port: env.int('SMTP_PORT', 587),
+        secure: env.bool('SMTP_SECURE', false),
+        ...(env('SMTP_USER')
+          ? { auth: { user: env('SMTP_USER'), pass: env('SMTP_PASS', '') } }
+          : {}),
+      }
+    : { jsonTransport: true };
+
 const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Plugin => ({
+  email: {
+    config: {
+      provider: 'nodemailer',
+      providerOptions: mailTransport(env),
+      settings: {
+        defaultFrom: env('EMAIL_FROM', 'Communauté Le Revenu <no-reply@lerevenu.test>'),
+        defaultReplyTo: env('EMAIL_REPLY_TO', 'no-reply@lerevenu.test'),
+      },
+    },
+  },
   'users-permissions': {
     config: {
       jwtSecret: env('JWT_SECRET'),
