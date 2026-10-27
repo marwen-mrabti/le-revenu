@@ -48,6 +48,17 @@ describe('POST /api/auth/register', () => {
     });
   });
 
+  it('sets the session when Strapi answers a token (no mailer, confirmation off)', async () => {
+    vi.mocked(strapiFetch).mockResolvedValueOnce({
+      jwt: 'strapi-jwt-value-long-enough-0123456789',
+      user: { id: 9, documentId: 'u9', username: 'claire', email: 'claire@exemple.fr' },
+    });
+    const response = await register(account);
+    expect(response.status).toBe(201);
+    expect(response.headers.get('set-cookie')).toContain('lr_session=');
+    expect((await response.json()).pending).toBe(false);
+  });
+
   it('maps a taken email or username to 409 on the email field', async () => {
     vi.mocked(strapiFetch).mockRejectedValueOnce(
       new StrapiError(400, 'ApplicationError', 'Email or Username are already taken'),

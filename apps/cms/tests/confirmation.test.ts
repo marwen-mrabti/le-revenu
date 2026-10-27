@@ -32,7 +32,7 @@ describe('email confirmation', () => {
       .get(`/api/auth/email-confirmation?confirmation=${row!.confirmation_token}`)
       .redirects(0)
       .expect(302);
-    expect(landing.headers.location).toBe('http://localhost:3000/login?confirmed=1');
+    expect(landing.headers.location).toBe('http://localhost:3000/api/auth/confirmed');
 
     const login = await api()
       .post('/api/auth/local')

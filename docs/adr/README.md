@@ -13,3 +13,4 @@ Short records of the decisions that shape this codebase. Format: context, decisi
 | [0007](0007-i18n-next-intl.md)                       | French and English from day one with next-intl                        | Accepted |
 | [0008](0008-forum-api-rules-in-strapi.md)            | Forum rules enforced in Strapi, document ids only, tests over HTTP    | Accepted |
 | [0009](0009-session-cookie-and-google-login.md)      | Session cookie set by Next.js, Google login through Strapi's provider | Accepted |
+| [0010](0010-mailer-confirmation-google-linking.md)   | Mailer, email confirmation, account page and Google account linking   | Accepted |

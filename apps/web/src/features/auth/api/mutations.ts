@@ -41,10 +41,12 @@ export function useLogin() {
 const pendingEnvelope = z.object({ user: sessionUserSchema, pending: z.boolean() });
 const okEnvelope = z.object({ ok: z.boolean() });
 
-/** Sign-up creates a pending account: no session until the email is confirmed. */
+/** Sign-up: pending until the email is confirmed when a mailer exists, logged in at once otherwise. */
 export function useRegister() {
+  const changed = useSessionChanged();
   return useMutation({
     mutationFn: (input: RegisterInput) => bffPost('/api/auth/register', input, pendingEnvelope),
+    onSuccess: ({ user, pending }) => (pending ? undefined : changed(user)),
   });
 }
 

@@ -14,8 +14,12 @@ type Template = {
 /**
  * Users & Permissions mail settings, set from the environment at boot so a
  * fresh database behaves like every other one:
- * - password reset link points at the web app's /reset-password page;
- * - email confirmation is required for new accounts and lands on /login?confirmed=1;
+ * - password reset link points at the web app's /api/auth/reset, which carries the
+ *   code to the reset page in the reader's language;
+ * - email confirmation is required for new accounts and lands on the web app's
+ *   /api/auth/confirmed, which picks the reader's language for the login page,
+ *   but only when a mailer is configured (SMTP_HOST): without one, a pending
+ *   account could never be activated, so the zero-setup mode keeps instant sign-up;
  * - the two templates carry our wording (French, one English line) and sender.
  * Templates are plain text with Strapi's placeholders: `<%= URL %>`, `<%= TOKEN %>`, `<%= CODE %>`.
  */
@@ -26,16 +30,20 @@ export async function ensureEmail(strapi: Core.Strapi): Promise<void> {
   );
   const replyTo = process.env.EMAIL_REPLY_TO ?? from.email;
   const store = strapi.store({ type: 'plugin', name: 'users-permissions' });
+  // Integration tests read the tokens from the database, so they keep confirmation on without a mailer.
+  const hasMailer = Boolean(process.env.SMTP_HOST) || process.env.NODE_ENV === 'test';
 
   const advanced = ((await store.get({ key: 'advanced' })) ?? {}) as Record<string, unknown>;
   const wantedAdvanced = {
-    email_confirmation: true,
-    email_reset_password: `${webUrl}/reset-password`,
-    email_confirmation_redirection: `${webUrl}/login?confirmed=1`,
+    email_confirmation: hasMailer,
+    email_reset_password: `${webUrl}/api/auth/reset`,
+    email_confirmation_redirection: `${webUrl}/api/auth/confirmed`,
   };
   if (!shallowEqual(advanced, wantedAdvanced)) {
     await store.set({ key: 'advanced', value: { ...advanced, ...wantedAdvanced } });
-    strapi.log.info('email: reset and confirmation links point at the web app');
+    strapi.log.info(
+      `email: reset and confirmation links point at the web app, confirmation ${hasMailer ? 'on' : 'off'}`,
+    );
   }
 
   const templates = ((await store.get({ key: 'email' })) ?? {}) as Record<string, Template>;
@@ -84,9 +92,9 @@ Communauté Le Revenu`,
     strapi.log.info('email: templates set');
   }
 
-  if (!process.env.SMTP_HOST) {
+  if (!hasMailer) {
     strapi.log.warn(
-      'email: SMTP_HOST is empty, mails are discarded. Run `docker compose up -d mailpit` and set SMTP_HOST=localhost to read them at http://localhost:8025',
+      'email: SMTP_HOST is empty, mails are discarded and sign-up needs no confirmation. Run `docker compose up -d mailpit` and set SMTP_HOST=localhost to read them at http://localhost:8025',
     );
   }
 }

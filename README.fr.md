@@ -49,7 +49,7 @@ Prérequis : Node 24 (fichier `.nvmrc`) et pnpm 10 (`corepack enable` suffit, la
    pnpm --filter web dev
    ```
 
-4. Se connecter avec `alice` / `Password123!` (section 3), ou créer un compte sur `/register`.
+4. Se connecter avec `alice` / `Password123!` (section 3), ou créer un compte sur `/register` (pas de messagerie dans ce mode : le compte est actif tout de suite).
 
 Ce qui se passe : Strapi lit `apps/cms/.env.sqlite` (clés de démonstration, jamais pour la production) et copie `apps/cms/database/demo.sqlite` dans `.tmp/` à chaque lancement, le fichier versionné n'est jamais modifié. Next.js a des valeurs par défaut de développement (`apps/web/src/config/env.ts`) accordées avec ce fichier. Le panneau d'administration http://localhost:1337/admin demande de créer un compte administrateur à la première visite.
 
@@ -69,7 +69,7 @@ Prérequis : Node 24, pnpm 10, Docker avec Compose v2.
 
    ```bash
    pnpm install
-   docker compose up -d db                    # PostgreSQL 16, bases lerevenu et lerevenu_test
+   docker compose up -d db mailpit            # PostgreSQL 16 (lerevenu, lerevenu_test) et Mailpit, la boîte mail de développement
    ```
 
 3. Démarrer les deux applications. Attendu : Strapi sur http://localhost:1337, Next.js sur http://localhost:3000.
@@ -78,7 +78,9 @@ Prérequis : Node 24, pnpm 10, Docker avec Compose v2.
    pnpm dev                                   # Turborepo lance cms et web
    ```
 
-Au premier démarrage, Strapi crée les tables, les deux locales (fr par défaut, en), les permissions des rôles, puis les données de démonstration si `SEED_DEMO_DATA=true`. Un second démarrage ne duplique rien.
+Au premier démarrage, Strapi crée les tables, les deux locales (fr par défaut, en), les permissions des rôles, les réglages de messagerie, puis les données de démonstration si `SEED_DEMO_DATA=true`. Un second démarrage ne duplique rien.
+
+Les mails (confirmation à l'inscription, réinitialisation du mot de passe) arrivent dans Mailpit : ouvrir http://localhost:8025 pour les lire. Leurs liens arrivent sur le site dans la langue du lecteur. `apps/cms/.env.example` pointe déjà `SMTP_HOST` dessus. Avec `SMTP_HOST` vide, les mails sont jetés, l'inscription ne demande pas de confirmation et Strapi affiche un avertissement au démarrage. En production, renseigner `SMTP_*` avec n'importe quel relais (Resend, Brevo, Postmark).
 
 Connexion Google, facultative : créer un client OAuth « Web » dans Google Cloud avec l'URI de redirection `http://localhost:1337/api/connect/google/callback`, mettre `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` dans `apps/cms/.env` et `NEXT_PUBLIC_GOOGLE_LOGIN=true` dans `apps/web/.env`, redémarrer. Sans ces valeurs, le bouton Google n'apparaît pas.
 
@@ -93,19 +95,22 @@ Tous les lecteurs de démonstration partagent le mot de passe **`Password123!`**
 
 Adresse e-mail de chaque compte : `<identifiant en minuscules>@demo.lerevenu.test`.
 
-Vous pouvez aussi créer votre propre compte sur `/register` (nom d'utilisateur, e-mail, mot de passe de 8 caractères minimum), ou passer par Google si les identifiants Google sont renseignés (voir § 2).
+Vous pouvez aussi créer votre propre compte sur `/register` (nom d'utilisateur, e-mail, mot de passe de 8 caractères minimum) : avec Mailpit lancé, confirmez l'adresse depuis le mail sur http://localhost:8025, puis connectez-vous. Ou passez par Google si les identifiants Google sont renseignés (voir § 2).
 
 ## 4. Ce que fait l'application
 
-| Fonction                                                                                | État                       |
-| --------------------------------------------------------------------------------------- | -------------------------- |
-| Liste des discussions : filtre par espace, tri par date, recherche, pagination          | ✔ `/discussions`           |
-| Détail d'une discussion et ses réponses, URL propre par slug                            | backend prêt, page à venir |
-| Connexion, inscription, Google, déconnexion, menu du compte                             | ✔ `/login`, `/register`    |
-| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)                | backend prêt, page à venir |
-| Réponse à une discussion                                                                | backend prêt, page à venir |
-| Interface en français et en anglais, menu de langue, thème clair / sombre               | ✔                          |
-| Pages 404 et 500 personnalisées (en-tête conservé, recherche, espaces, code d'incident) | ✔                          |
+| Fonction                                                                                 | État                       |
+| ---------------------------------------------------------------------------------------- | -------------------------- |
+| Liste des discussions : filtre par espace, tri par date, recherche, pagination           | ✔ `/discussions`           |
+| Détail d'une discussion et ses réponses, URL propre par slug                             | backend prêt, page à venir |
+| Connexion, inscription avec confirmation par e-mail, Google, déconnexion, menu du compte | ✔ `/login`, `/register`    |
+| Mot de passe oublié / réinitialisation par e-mail                                        | ✔ `/forgot-password`       |
+| Page compte : nom affiché, nom d'utilisateur, mot de passe, suppression                  | ✔ `/account`               |
+| Nom et photo Google ; connexion Google liée à un compte avec mot de passe                | ✔                          |
+| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)                 | backend prêt, page à venir |
+| Réponse à une discussion                                                                 | backend prêt, page à venir |
+| Interface en français et en anglais, menu de langue, thème clair / sombre                | ✔                          |
+| Pages 404 et 500 personnalisées (en-tête conservé, recherche, espaces, code d'incident)  | ✔                          |
 
 L'avancement détaillé est dans [`docs/plans/`](docs/plans/README.md).
 
@@ -124,19 +129,22 @@ Navigateur ──(JSON + cookie httpOnly)──► Route Handlers Next.js ──
 
 ## 6. Modèle de sécurité
 
-| Règle                                       | Où elle est appliquée                                                                                                                            |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Publication interdite sans authentification | Rôle Public sans permission `create` → **403**                                                                                                   |
-| Impossible de publier au nom d'un autre     | Le contrôleur ignore tout `author` envoyé et impose l'utilisateur de la session                                                                  |
-| Titre ≥ 10 caractères, contenu obligatoire  | `schema.json` Strapi, appliqué même en appelant l'API directement → **400**                                                                      |
-| Modification réservée à l'auteur            | Politique `is-owner` sur `update` et `delete` → **403**                                                                                          |
-| Adresse e-mail jamais exposée               | Population limitée à `username` ; aucun rôle n'a `user.find`                                                                                     |
-| Draft & Publish désactivé                   | Sinon Strapi masque les nouvelles entrées et saute la validation sur les brouillons                                                              |
-| Session                                     | Cookie `lr_session` httpOnly, SameSite=Lax, 7 jours, écrit par Next.js ; le JWT Strapi n'apparaît dans aucune réponse                            |
-| Écritures du BFF                            | JSON uniquement (**415**) et même origine (`Sec-Fetch-Site` / `Origin`, **403**)                                                                 |
-| Connexion Google                            | Fournisseur Strapi, activé seulement si `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` sont définis ; échange final vérifié contre `/api/users/me` |
+| Règle                                       | Où elle est appliquée                                                                                                                                |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Publication interdite sans authentification | Rôle Public sans permission `create` → **403**                                                                                                       |
+| Impossible de publier au nom d'un autre     | Le contrôleur ignore tout `author` envoyé et impose l'utilisateur de la session                                                                      |
+| Titre ≥ 10 caractères, contenu obligatoire  | `schema.json` Strapi, appliqué même en appelant l'API directement → **400**                                                                          |
+| Modification réservée à l'auteur            | Politique `is-owner` sur `update` et `delete` → **403**                                                                                              |
+| Adresse e-mail jamais exposée               | Population limitée à `username` ; aucun rôle n'a `user.find`                                                                                         |
+| Draft & Publish désactivé                   | Sinon Strapi masque les nouvelles entrées et saute la validation sur les brouillons                                                                  |
+| Session                                     | Cookie `lr_session` httpOnly, SameSite=Lax, 7 jours, écrit par Next.js ; le JWT Strapi n'apparaît dans aucune réponse                                |
+| Écritures du BFF                            | JSON uniquement (**415**) et même origine (`Sec-Fetch-Site` / `Origin`, **403**)                                                                     |
+| Connexion Google                            | Fournisseur Strapi, activé seulement si `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` sont définis ; échange final vérifié contre `/api/users/me`     |
+| Confirmation de l'e-mail                    | Exigée quand une messagerie est configurée ; la connexion répond **403** `EMAIL_NOT_CONFIRMED` tant que le lien du mail n'a pas servi                |
+| Mot de passe oublié                         | Toujours **200**, pas d'énumération des comptes ; code à usage unique, le nouveau mot de passe connecte ; code déjà utilisé → **400** `INVALID_CODE` |
+| Son propre compte seulement                 | Politique `is-self` sur `PUT` / `DELETE /users/:id` : son id, `username` et `displayName` seulement ; e-mail, rôle, confirmed, blocked intouchables  |
 
-Les permissions sont créées par le code au démarrage (`apps/cms/src/bootstrap/ensure-permissions.ts`), pas à la main dans l'admin : un clone du dépôt donne le même état. Détails de la session et du flux Google : [ADR-0009](docs/adr/0009-session-cookie-and-google-login.md).
+Les permissions sont créées par le code au démarrage (`apps/cms/src/bootstrap/ensure-permissions.ts`), pas à la main dans l'admin : un clone du dépôt donne le même état. Session et flux Google : [ADR-0009](docs/adr/0009-session-cookie-and-google-login.md) ; messagerie, confirmation, compte et liaison Google : [ADR-0010](docs/adr/0010-mailer-confirmation-google-linking.md).
 
 ## 7. API
 
@@ -152,8 +160,13 @@ Base : `http://localhost:1337/api`. Format Strapi : `{ data, meta }`, erreurs `{
 | `POST /replies`                               | Bearer          | réponse, auteur imposé                                 |
 | `PUT` / `DELETE /replies/:documentId`         | Bearer + auteur |                                                        |
 | `POST /auth/local`                            | —               | connexion → `{ jwt, user }`                            |
-| `POST /auth/local/register`                   | —               | inscription                                            |
+| `POST /auth/local/register`                   | —               | inscription ; en attente de confirmation si messagerie |
+| `POST /auth/forgot-password`                  | —               | mail de réinitialisation, toujours 200                 |
+| `POST /auth/reset-password`                   | —               | code + nouveau mot de passe → `{ jwt, user }`          |
+| `POST /auth/send-email-confirmation`          | —               | renvoi du mail de confirmation                         |
+| `POST /auth/change-password`                  | Bearer          | mot de passe actuel + nouveau → nouveau `jwt`          |
 | `GET /users/me`                               | Bearer          | profil courant                                         |
+| `PUT` / `DELETE /users/:id`                   | Bearer + soi    | ses `username` / `displayName`, sa propre suppression  |
 
 Exemple :
 
@@ -171,7 +184,7 @@ curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&
 
 Playwright a besoin d'un navigateur : `pnpm --filter web exec playwright install chromium` une fois. Par défaut il construit puis démarre l'application ; avec `E2E_BASE_URL=http://localhost:3000` il utilise le serveur de développement déjà lancé. Strapi limite les connexions à 10 par minute et par IP : ne lancez pas de connexions à la main pendant une exécution.
 
-Les quatre tests demandés par le cahier des charges (validation d'une discussion, refus d'une publication non authentifiée, protection contre l'usurpation d'auteur, affichage des discussions) sont dans `apps/cms/tests/`, avec les droits d'auteur, les réponses, la connexion et les catégories bilingues : 8 fichiers, 41 tests, environ 15 s.
+Les quatre tests demandés par le cahier des charges (validation d'une discussion, refus d'une publication non authentifiée, protection contre l'usurpation d'auteur, affichage des discussions) sont dans `apps/cms/tests/`, avec les droits d'auteur, les réponses, la connexion, les catégories bilingues, la confirmation d'e-mail, la réinitialisation du mot de passe et les règles du compte : 11 fichiers, 50 tests, environ 20 s.
 
 Comment tournent les tests backend :
 
@@ -181,7 +194,9 @@ Comment tournent les tests backend :
 
 Prérequis : PostgreSQL démarré (`docker compose up -d db` crée `lerevenu_test`), `apps/cms/.env` renseigné. Variable `DATABASE_TEST_NAME` pour changer le nom de la base de test.
 
-Tests frontend (`apps/web`, Vitest + Testing Library, colocalisés `*.test.ts(x)`, 65 tests) : le client Strapi (chaîne de requête, enveloppe d'erreur, réponse inattendue, serveur injoignable), le schéma des filtres et la correspondance URL ↔ état (valeurs par défaut, page invalide, `clearOnDefault`), la carte de discussion (cinq champs du cahier des charges, lien vers le détail, ni e-mail ni id numérique), la pagination (page courante, filtres conservés, bornes), le handler `GET /api/discussions` (422 sur un tri inconnu, locale transmise, 503 sans fuite du message Strapi), le cookie de session et les gardes des requêtes, les cinq handlers d'authentification, les formulaires de connexion et d'inscription, le menu du compte, la page 500, le menu de langue et le bouton de thème, la parité des clés fr / en.
+Tests frontend (`apps/web`, Vitest + Testing Library, colocalisés `*.test.ts(x)`, 101 tests) : le client Strapi (chaîne de requête, enveloppe d'erreur, réponse inattendue, serveur injoignable), le schéma des filtres et la correspondance URL ↔ état (valeurs par défaut, page invalide, `clearOnDefault`), la carte de discussion (cinq champs du cahier des charges, lien vers le détail, ni e-mail ni id numérique), la pagination (page courante, filtres conservés, bornes), le handler `GET /api/discussions` (422 sur un tri inconnu, locale transmise, 503 sans fuite du message Strapi), le cookie de session et les gardes des requêtes, les onze handlers d'authentification et de compte, les deux pages d'arrivée des liens de mail (langue du lecteur), les formulaires de connexion, d'inscription, de mot de passe oublié, de réinitialisation, de profil, de mot de passe et de suppression, la page de confirmation, le menu du compte, les îlots (erreur → repli → réessayer), la page 500, le menu de langue et le bouton de thème, la parité des clés fr / en.
+
+Bout en bout (`apps/web/e2e`, Playwright) : connexion et confidentialité de la session, i18n, pages 404 / 500, résilience (un 503 sur la liste laisse la page intacte), et le cycle de vie du compte via l'API de Mailpit (inscription → mail → confirmation → connexion → profil → mot de passe oublié → réinitialisation → suppression). Le spec compte se saute lui-même si Mailpit n'est pas joignable.
 
 ## 9. Qualité et CI/CD
 
@@ -198,21 +213,22 @@ apps/cms/                       Strapi 5 (TypeScript)
   config/                       serveur, base (postgres | sqlite), plugins, middlewares ; env/test/ pour les tests
   src/api/<type>/               category, discussion, reply : schema.json, controller, service, routes, constants
   src/api/discussion/utils/     slug.ts (slug côté serveur), presenter.ts (auteur réduit, aucun id numérique)
-  src/policies/is-owner.ts      404 / 403 sur update et delete si l'appelant n'est pas l'auteur
-  src/bootstrap/                vérification de l'env, index, locales, permissions, fournisseurs de connexion
+  src/policies/                 is-owner.ts (404 / 403 si l'appelant n'est pas l'auteur), is-self.ts (sa propre fiche seulement)
+  src/extensions/users-permissions/  champs displayName et avatarUrl, liaison Google, is-self sur les routes utilisateur
+  src/bootstrap/                vérification de l'env, index, locales, permissions, fournisseurs de connexion, profil Google, messagerie
   src/seed/                     données de démonstration, chargées une fois sur base vide
   tests/                        tests d'intégration (un Strapi sur :1338, base lerevenu_test)
   database/demo.sqlite          base pré-remplie du mode zéro-configuration
 
 apps/web/                       Next.js 16 (App Router, Cache Components)
-  src/app/[locale]/             pages : (forum)/discussions, (auth)/login et register, auth/google/callback,
-                                not-found.tsx, error.tsx ; loading.tsx par page
-  src/app/api/                  Route Handlers (BFF) : auth/*, discussions, categories
+  src/app/[locale]/             pages : (forum)/discussions, (auth)/login, register, forgot-password, reset-password,
+                                verify-email, account, auth/google/callback, not-found.tsx, error.tsx ; loading.tsx par page
+  src/app/api/                  Route Handlers (BFF) : auth/*, account, discussions, categories
   src/features/<domaine>/       discussions, categories, auth : schemas (zod), data (accès serveur),
                                 api (queries et mutations TanStack), components, hooks
-  src/components/               ui/ (shadcn), form/ (champs liés au hook de formulaire), layout/, theme/
+  src/components/               ui/ (shadcn), form/ (champs liés au hook de formulaire), shared/ (îlots, avatar), layout/, theme/
   src/lib/                      strapi/ (client typé, seul lecteur de STRAPI_URL), api/ (client BFF, erreurs,
-                                gardes), auth/ (cookie de session), query/ (TanStack)
+                                gardes), auth/ (cookie de session), i18n/ (langue d'un lien de mail), query/ (TanStack)
   src/i18n/                     routing, navigation, métadonnées des langues
   messages/                     fr.json, en.json (clés identiques, vérifiées par un test)
   e2e/                          Playwright
@@ -240,24 +256,27 @@ Chaque décision structurante est consignée dans un ADR (Architecture Decision 
 | 0007 | Français et anglais dès le départ avec next-intl                                                             |
 | 0008 | Règles du forum appliquées dans Strapi, identifiants documentId uniquement, tests d'intégration en HTTP      |
 | 0009 | Cookie de session posé par Next.js, connexion Google via le fournisseur Strapi                               |
+| 0010 | Messagerie, confirmation de l'e-mail, page compte et liaison des comptes Google                              |
 
 ## 12. Problèmes fréquents
 
-| Symptôme                                            | Cause et remède                                                                                           |
-| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `pnpm install` refuse la version de Node            | Node 24 requis : `nvm use` (lit `.nvmrc`) ou `mise use`                                                   |
-| `pnpm: command not found`                           | `corepack enable`, puis relancer                                                                          |
-| `EADDRINUSE 1337` ou `3000`                         | Un autre Strapi ou Next tourne déjà ; ne jamais lancer deux `strapi develop` dans le même dossier         |
-| Strapi : `Environment check failed`                 | Une variable manque ou vaut `change-me` dans `apps/cms/.env` ; la liste est dans le message               |
-| Next : `Invalid environment variables` (production) | `STRAPI_URL` et `REVALIDATE_SECRET` sont obligatoires en production                                       |
-| `connect ECONNREFUSED 5432`                         | Docker non démarré : `docker compose up -d db`, puis `docker compose ps`                                  |
-| Connexion : « Trop de tentatives »                  | Strapi limite à 10 connexions par minute et par IP ; attendre une minute                                  |
-| Google : « access blocked »                         | Application Google en mode test : ajouter votre adresse dans Google Auth Platform → Audience → Test users |
-| Tests d'intégration : `Refusing to reset`           | La base visée ne finit pas par `_test` ; vérifier `DATABASE_TEST_NAME`                                    |
+| Symptôme                                            | Cause et remède                                                                                                   |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `pnpm install` refuse la version de Node            | Node 24 requis : `nvm use` (lit `.nvmrc`) ou `mise use`                                                           |
+| `pnpm: command not found`                           | `corepack enable`, puis relancer                                                                                  |
+| `EADDRINUSE 1337` ou `3000`                         | Un autre Strapi ou Next tourne déjà ; ne jamais lancer deux `strapi develop` dans le même dossier                 |
+| Strapi : `Environment check failed`                 | Une variable manque ou vaut `change-me` dans `apps/cms/.env` ; la liste est dans le message                       |
+| Next : `Invalid environment variables` (production) | `STRAPI_URL` et `REVALIDATE_SECRET` sont obligatoires en production                                               |
+| `connect ECONNREFUSED 5432`                         | Docker non démarré : `docker compose up -d db`, puis `docker compose ps`                                          |
+| Connexion : « Trop de tentatives »                  | Strapi limite à 10 connexions par minute et par IP ; attendre une minute                                          |
+| Google : « access blocked »                         | Application Google en mode test : ajouter votre adresse dans Google Auth Platform → Audience → Test users         |
+| Aucun mail de confirmation ou de réinitialisation   | Mailpit non lancé (`docker compose up -d mailpit`) ou `SMTP_HOST` vide ; lire les mails sur http://localhost:8025 |
+| Connexion : « adresse pas encore confirmée »        | Cliquer le lien du mail de confirmation, ou « Renvoyer le lien » ; seul le mail le plus récent est valable        |
+| Tests d'intégration : `Refusing to reset`           | La base visée ne finit pas par `_test` ; vérifier `DATABASE_TEST_NAME`                                            |
 
 ## 13. Évolutions
 
-Onglets de la maquette (Tendances, Pour vous, Sans réponse), vue compacte, sujets épinglés, compteurs « Utile » et vues, recherche insensible aux accents (`unaccent`), votes « Utile » et meilleure réponse, recherche plein texte PostgreSQL, profil utilisateur, génération OpenAPI typée depuis Strapi, `jwtManagement: 'refresh'`, déploiement : Next.js sur Vercel, Strapi sur Railway ou Strapi Cloud.
+Onglets de la maquette (Tendances, Pour vous, Sans réponse), vue compacte, sujets épinglés, compteurs « Utile » et vues, recherche insensible aux accents (`unaccent`), votes « Utile » et meilleure réponse, recherche plein texte PostgreSQL, profil public des lecteurs, changement d'e-mail avec confirmation, page aux couleurs du site pour un lien de confirmation expiré, génération OpenAPI typée depuis Strapi, `jwtManagement: 'refresh'`, déploiement : Next.js sur Vercel, Strapi sur Railway ou Strapi Cloud.
 
 ---
 

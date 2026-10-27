@@ -49,6 +49,7 @@ describe('RegisterForm', () => {
   it('creates the pending account and goes to the verify-email page', async () => {
     mutateAsync.mockResolvedValueOnce({
       user: { documentId: 'u9', username: 'claire', email: 'claire@exemple.fr' },
+      pending: true,
     });
     renderWithIntl(<RegisterForm next="/discussions" />, { locale: 'fr' });
     await fill();
@@ -59,5 +60,16 @@ describe('RegisterForm', () => {
         query: { email: 'claire@exemple.fr', next: '/discussions' },
       }),
     );
+  });
+
+  it('goes straight to next when the account needs no confirmation', async () => {
+    mutateAsync.mockResolvedValueOnce({
+      user: { documentId: 'u9', username: 'claire', email: 'claire@exemple.fr' },
+      pending: false,
+    });
+    renderWithIntl(<RegisterForm next="/discussions" />, { locale: 'fr' });
+    await fill();
+    await userEvent.click(screen.getByRole('button', { name: 'Créer mon compte' }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/discussions'));
   });
 });
