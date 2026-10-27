@@ -1,6 +1,6 @@
 # 05 — Account: password reset, email confirmation, account page, Google profile
 
-Branch: `feature/account` · Target: `development` · Estimate: 15 h · Status: draft
+Branch: `feature/account` · Target: `development` · Estimate: 15 h · Status: approved
 
 ## 1. Goal
 
