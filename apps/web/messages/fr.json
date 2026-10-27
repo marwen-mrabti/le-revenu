@@ -114,7 +114,17 @@
     "serverKicker": "Erreur 500",
     "serverTitle": "Quelque chose s'est mal passé de notre côté.",
     "serverDescription": "Ce n'est pas vous. Réessayez dans un instant ; si le problème persiste, prévenez-nous avec le code ci-dessous.",
-    "incident": "Code de l'incident :"
+    "incident": "Code de l'incident :",
+    "codes": {
+      "unavailable": "Le serveur de contenu est indisponible.",
+      "upstream": "Le serveur de contenu a répondu de façon inattendue.",
+      "rateLimited": "Trop de requêtes, réessayez dans une minute.",
+      "notFound": "Introuvable.",
+      "invalid": "Requête invalide.",
+      "forbidden": "Vous n'avez pas le droit d'effectuer cette action.",
+      "unauthenticated": "Connectez-vous pour continuer.",
+      "generic": "Une erreur est survenue, réessayez dans un instant."
+    }
   },
   "Space": {
     "label": "Cet espace",

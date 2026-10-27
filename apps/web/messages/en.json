@@ -114,7 +114,17 @@
     "serverKicker": "Error 500",
     "serverTitle": "Something went wrong on our side.",
     "serverDescription": "Not your fault. Try again in a moment; if it keeps failing, tell us with the code below.",
-    "incident": "Incident code:"
+    "incident": "Incident code:",
+    "codes": {
+      "unavailable": "The content server is unavailable.",
+      "upstream": "The content server answered unexpectedly.",
+      "rateLimited": "Too many requests, try again in a minute.",
+      "notFound": "Not found.",
+      "invalid": "Invalid request.",
+      "forbidden": "You are not allowed to do this.",
+      "unauthenticated": "Sign in to continue.",
+      "generic": "Something went wrong, try again in a moment."
+    }
   },
   "Space": {
     "label": "This space",
