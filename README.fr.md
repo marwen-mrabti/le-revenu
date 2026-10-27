@@ -78,9 +78,11 @@ Prérequis : Node 24, pnpm 10, Docker avec Compose v2.
    pnpm dev                                   # Turborepo lance cms et web
    ```
 
+`WEB_URL` et `PUBLIC_URL` sont les adresses publiques des deux applications : chaque lien de mail et chaque callback de connexion en découle, rien n'est codé en dur. Strapi refuse de démarrer sans elles.
+
 Au premier démarrage, Strapi crée les tables, les deux locales (fr par défaut, en), les permissions des rôles, les réglages de messagerie, puis les données de démonstration si `SEED_DEMO_DATA=true`. Un second démarrage ne duplique rien.
 
-Les mails (confirmation à l'inscription, réinitialisation du mot de passe) arrivent dans Mailpit : ouvrir http://localhost:8025 pour les lire. Leurs liens arrivent sur le site dans la langue du lecteur. `apps/cms/.env.example` pointe déjà `SMTP_HOST` dessus. Avec `SMTP_HOST` vide, les mails sont jetés, l'inscription ne demande pas de confirmation et Strapi affiche un avertissement au démarrage.
+Les mails (confirmation à l'inscription, réinitialisation du mot de passe) arrivent dans Mailpit : ouvrir http://localhost:8025 pour les lire. Leurs liens arrivent sur le site dans la langue du lecteur. Les mails sont des composants React Email dans `apps/cms/src/emails/` (un gabarit commun, sans image ni police web), rendus en HTML au démarrage et stockés là où le plugin Users & Permissions de Strapi lit ses modèles ; modifier le texte là, puis redémarrer. `apps/cms/.env.example` pointe déjà `SMTP_HOST` dessus. Avec `SMTP_HOST` vide, les mails sont jetés, l'inscription ne demande pas de confirmation et Strapi affiche un avertissement au démarrage.
 
 Vraies boîtes mail, avec Resend (gratuit, sans changement de code) : créer une clé API sur https://resend.com/api-keys, puis dans `apps/cms/.env` :
 
@@ -197,7 +199,7 @@ curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&
 
 Playwright a besoin d'un navigateur : `pnpm --filter web exec playwright install chromium` une fois. Par défaut il construit puis démarre l'application ; avec `E2E_BASE_URL=http://localhost:3000` il utilise le serveur de développement déjà lancé. Strapi limite les connexions à 10 par minute et par IP : ne lancez pas de connexions à la main pendant une exécution.
 
-Les quatre tests demandés par le cahier des charges (validation d'une discussion, refus d'une publication non authentifiée, protection contre l'usurpation d'auteur, affichage des discussions) sont dans `apps/cms/tests/`, avec les droits d'auteur, les réponses, la connexion, les catégories bilingues, la confirmation d'e-mail, la réinitialisation du mot de passe et les règles du compte : 11 fichiers, 50 tests, environ 20 s.
+Les quatre tests demandés par le cahier des charges (validation d'une discussion, refus d'une publication non authentifiée, protection contre l'usurpation d'auteur, affichage des discussions) sont dans `apps/cms/tests/`, avec les droits d'auteur, les réponses, la connexion, les catégories bilingues, la confirmation d'e-mail, la réinitialisation du mot de passe, les règles du compte et les modèles de mail stockés : 12 fichiers, 51 tests, environ 20 s.
 
 Comment tournent les tests backend :
 
@@ -229,6 +231,7 @@ apps/cms/                       Strapi 5 (TypeScript)
   src/policies/                 is-owner.ts (404 / 403 si l'appelant n'est pas l'auteur), is-self.ts (sa propre fiche seulement)
   src/extensions/users-permissions/  champs displayName et avatarUrl, liaison Google, is-self sur les routes utilisateur
   src/bootstrap/                vérification de l'env, index, locales, permissions, fournisseurs de connexion, profil Google, messagerie
+  src/emails/                   modèles React Email (gabarit, confirmation, réinitialisation) rendus au démarrage
   src/seed/                     données de démonstration, chargées une fois sur base vide
   tests/                        tests d'intégration (un Strapi sur :1338, base lerevenu_test)
   database/demo.sqlite          base pré-remplie du mode zéro-configuration

@@ -36,6 +36,8 @@ let app: Strapi.Core.Strapi | undefined;
 
 export async function setup(project: TestProject): Promise<void> {
   process.env.NODE_ENV = 'test';
+  // Tests read confirmation and reset tokens from the database: never hand a mail to a real relay.
+  process.env.SMTP_HOST = '';
   process.env.HOST = HOST;
   process.env.PORT = String(PORT);
   process.env.SEED_DEMO_DATA = 'true';

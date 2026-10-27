@@ -10,7 +10,9 @@ const REQUIRED = [
   'JWT_SECRET',
   'ENCRYPTION_KEY',
   'DATABASE_CLIENT',
+  // Public URLs of both apps: every link in a mail and every OAuth callback is built from them.
   'WEB_URL',
+  'PUBLIC_URL',
   'REVALIDATE_SECRET',
 ] as const;
 

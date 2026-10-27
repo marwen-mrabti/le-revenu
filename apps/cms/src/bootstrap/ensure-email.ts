@@ -1,5 +1,7 @@
 import type { Core } from '@strapi/strapi';
 
+import { renderMailTemplates, toPlainText } from '../emails';
+
 type Template = {
   display: string;
   icon: string;
@@ -20,11 +22,14 @@ type Template = {
  *   /api/auth/confirmed, which picks the reader's language for the login page,
  *   but only when a mailer is configured (SMTP_HOST): without one, a pending
  *   account could never be activated, so the zero-setup mode keeps instant sign-up;
- * - the two templates carry our wording (French, one English line) and sender.
- * Templates are plain text with Strapi's placeholders: `<%= URL %>`, `<%= TOKEN %>`, `<%= CODE %>`.
+ * - the two templates are React Email components (`src/emails/`) rendered to HTML here,
+ *   with Strapi's placeholders (`<%= URL %>`, `<%= TOKEN %>`, `<%= CODE %>`) left for send time.
+ * Strapi sends the stored message as both text and html; `withPlainText` derives a real
+ * text version for clients that show no HTML.
  */
 export async function ensureEmail(strapi: Core.Strapi): Promise<void> {
-  const webUrl = (process.env.WEB_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+  // Required at boot (assert-env): never a hard-coded host in a mail link or a callback.
+  const webUrl = String(process.env.WEB_URL).replace(/\/$/, '');
   const from = parseSender(
     process.env.EMAIL_FROM ?? 'Communauté Le Revenu <no-reply@lerevenu.test>',
   );
@@ -46,6 +51,7 @@ export async function ensureEmail(strapi: Core.Strapi): Promise<void> {
     );
   }
 
+  const rendered = await renderMailTemplates();
   const templates = ((await store.get({ key: 'email' })) ?? {}) as Record<string, Template>;
   const wantedTemplates: Record<string, Template> = {
     reset_password: {
@@ -55,15 +61,7 @@ export async function ensureEmail(strapi: Core.Strapi): Promise<void> {
         from,
         response_email: replyTo,
         object: 'Réinitialisez votre mot de passe · Reset your password',
-        message: `Bonjour <%= USER.username %>,
-
-Cliquez sur ce lien pour choisir un nouveau mot de passe (il ne sert qu'une fois) :
-<%= URL %>?code=<%= TOKEN %>
-
-Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.
-If you did not ask for this, ignore this email.
-
-Communauté Le Revenu`,
+        message: rendered.resetPassword.html,
       },
     },
     email_confirmation: {
@@ -73,14 +71,7 @@ Communauté Le Revenu`,
         from,
         response_email: replyTo,
         object: 'Confirmez votre adresse e-mail · Confirm your email address',
-        message: `Bienvenue <%= USER.username %> !
-
-Confirmez votre adresse pour rejoindre la communauté :
-<%= URL %>?confirmation=<%= CODE %>
-
-Confirm your email address to join the community.
-
-Communauté Le Revenu`,
+        message: rendered.confirmation.html,
       },
     },
   };
@@ -91,6 +82,8 @@ Communauté Le Revenu`,
     await store.set({ key: 'email', value: { ...templates, ...wantedTemplates } });
     strapi.log.info('email: templates set');
   }
+
+  withPlainText(strapi);
 
   if (!hasMailer) {
     strapi.log.warn(
@@ -106,4 +99,29 @@ function parseSender(value: string): { name: string; email: string } {
 
 function shallowEqual(current: Record<string, unknown>, wanted: Record<string, unknown>): boolean {
   return Object.entries(wanted).every(([key, value]) => current[key] === value);
+}
+
+const PATCHED = Symbol.for('lerevenu.email.plainText');
+
+type SendOptions = { text?: string; html?: string } & Record<string, unknown>;
+type EmailService = { send: (options: SendOptions) => Promise<unknown>; [PATCHED]?: true };
+
+/**
+ * Users & Permissions passes its template as both `text` and `html`. When that
+ * message is our rendered HTML, derive the text part from it so text-only clients
+ * read sentences, not markup. Wrapped once per process.
+ */
+function withPlainText(strapi: Core.Strapi): void {
+  const service = strapi.plugin('email').service('email') as EmailService;
+  if (service[PATCHED]) return;
+  const send = service.send.bind(service);
+  service.send = (options) =>
+    send(
+      typeof options.html === 'string' &&
+        options.text === options.html &&
+        /<html/i.test(options.html)
+        ? { ...options, text: toPlainText(options.html) }
+        : options,
+    );
+  service[PATCHED] = true;
 }

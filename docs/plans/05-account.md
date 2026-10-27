@@ -203,6 +203,18 @@ Same hook and field components as branch 04. Password confirmation checked clien
 12. `e2e/account.spec.ts` through Mailpit's API; `expect.timeout` raised for dev; auth spec stabilised against a built app in CI (tracker 29 if time allows).
 13. ADR-0010, README fr + en (mailer setup, Mailpit, account), plan done, tracker 21–25 green, `pnpm verify`, push, PR text.
 
+### Phase F — Branded mails with React Email (1.5 h) · added 2026-10-27
+
+Mockup: [`docs/mockups/05-account/emails.html`](../mockups/05-account/emails.html).
+
+14. `apps/cms/src/emails/`: `layout.tsx` (header with the text logo, white card, button, bilingual footer), `confirmation.tsx`, `reset-password.tsx`, written with `@react-email/components`, inline styles only, no image and no web font. Placeholders are written as `__URL__`, `__CODE__`, `__TOKEN__`, `__USERNAME__` because React escapes `<%= %>`.
+15. `ensure-email.ts` renders both templates at boot with `render()` (HTML) and `render(…, { plainText: true })` (text), swaps the placeholders for Strapi's `<%= URL %>`, `<%= CODE %>`, `<%= TOKEN %>`, `<%= USER.username %>`, and stores them in the Users & Permissions email settings as today (idempotent compare).
+16. Strapi sends one `message` as both `text` and `html`. A thin override of `sendConfirmationEmail` (user service) and `forgotPassword` (auth controller) in `strapi-server.ts` passes the text version separately, so plain-text clients do not see HTML source. If this override proves too invasive, keep the HTML only and note it.
+17. cms `tsconfig.json`: `"jsx": "react-jsx"`, `.tsx` included; `tests/tsconfig.json` follows. Dependencies: `@react-email/components`, `@react-email/render` (React 18 peer, already present for the admin).
+18. Tests: integration test reads the stored templates and asserts the brand header, the button and every placeholder; the existing confirmation and reset tests prove the links still work. Live: one mail of each kind to the Resend account address, screenshot in Gmail.
+19. README fr + en (where the templates live, how to change the wording), ADR-0010 addendum.
+    Exit: both mails arrive in Gmail with the mockup's look; `pnpm verify` green.
+
 ## 7. Tests
 
 | Kind            | File                                                                                                                                   | Covers    |

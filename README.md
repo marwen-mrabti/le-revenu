@@ -78,9 +78,11 @@ Prerequisites: Node 24, pnpm 10, Docker with Compose v2.
    pnpm dev                                   # Turborepo starts cms and web
    ```
 
+`WEB_URL` and `PUBLIC_URL` are the public addresses of the two apps: every mail link and every login callback is built from them, nothing is hard-coded. Strapi refuses to start without them.
+
 On first boot Strapi creates the tables, the two locales (fr by default, en), the role permissions, the mail settings, then the demo data when `SEED_DEMO_DATA=true`. A second boot duplicates nothing.
 
-Mails (confirmation at sign-up, password reset) go to Mailpit: open http://localhost:8025 to read them. Their links land on the web app in the reader's language. `apps/cms/.env.example` already points `SMTP_HOST` at it. With `SMTP_HOST` empty, mails are discarded, sign-up needs no confirmation, and Strapi logs one warning at boot.
+Mails (confirmation at sign-up, password reset) go to Mailpit: open http://localhost:8025 to read them. Their links land on the web app in the reader's language. The mails are React Email components in `apps/cms/src/emails/` (one shared layout, no image, no web font), rendered to HTML at boot and stored where Strapi's Users & Permissions plugin reads its templates; edit the wording there and restart. `apps/cms/.env.example` already points `SMTP_HOST` at it. With `SMTP_HOST` empty, mails are discarded, sign-up needs no confirmation, and Strapi logs one warning at boot.
 
 Real inboxes, with Resend (free, no code change): create an API key at https://resend.com/api-keys, then in `apps/cms/.env`:
 
@@ -197,7 +199,7 @@ curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&
 
 Playwright needs a browser: `pnpm --filter web exec playwright install chromium`, once. By default it builds then starts the application; with `E2E_BASE_URL=http://localhost:3000` it uses the development server already running. Strapi limits logins to 10 per minute per IP: do not log in by hand during a run.
 
-The four tests required by the brief (discussion validation, unauthenticated post refused, author spoofing blocked, discussion listing) live in `apps/cms/tests/`, together with ownership, replies, login, bilingual categories, email confirmation, password reset and the own-account rules: 11 files, 50 tests, about 20 s.
+The four tests required by the brief (discussion validation, unauthenticated post refused, author spoofing blocked, discussion listing) live in `apps/cms/tests/`, together with ownership, replies, login, bilingual categories, email confirmation, password reset, the own-account rules and the stored mail templates: 12 files, 51 tests, about 20 s.
 
 How the backend tests run:
 
@@ -229,6 +231,7 @@ apps/cms/                       Strapi 5 (TypeScript)
   src/policies/                 is-owner.ts (404 / 403 when the caller is not the author), is-self.ts (own user record only)
   src/extensions/users-permissions/  user fields displayName and avatarUrl, Google linking, is-self on the user routes
   src/bootstrap/                env check, indexes, locales, permissions, login providers, Google profile, mail settings
+  src/emails/                   React Email templates (layout, confirmation, reset) rendered at boot
   src/seed/                     demo data, loaded once on an empty database
   tests/                        integration tests (one Strapi on :1338, lerevenu_test database)
   database/demo.sqlite          pre-filled database of the zero-setup mode
