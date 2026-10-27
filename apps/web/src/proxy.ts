@@ -27,7 +27,8 @@ export default function proxy(request: NextRequest) {
   if (PROTECTED_PATHS.includes(path) && !request.cookies.get(SESSION_COOKIE)) {
     const prefix = locale && locale !== routing.defaultLocale ? `/${locale}` : '';
     const url = new URL(`${prefix}/login`, request.url);
-    url.searchParams.set('next', path);
+    // Keep the query (`?category=` of the create page) so the reader lands where they aimed.
+    url.searchParams.set('next', `${path}${request.nextUrl.search}`);
     return NextResponse.redirect(url);
   }
 
