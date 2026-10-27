@@ -55,7 +55,14 @@
     "title": "Nouvelle publication"
   },
   "Replies": {
-    "title": "Réponses"
+    "title": "Réponses",
+    "count": "{count, plural, one {# réponse} other {# réponses}}",
+    "anonymous": "Anonyme",
+    "authorChip": "Auteur",
+    "edited": "modifié",
+    "replyBy": "Réponse de {name}",
+    "emptyTitle": "Aucune réponse pour l'instant",
+    "emptyHint": "Soyez la première personne à aider {name} : votre expérience compte, même partielle."
   },
   "Categories": {
     "all": "Tous les espaces",
@@ -222,5 +229,13 @@
     "setPasswordIntro": "Vous vous connectez avec Google. Ajoutez un mot de passe pour pouvoir aussi vous connecter avec votre e-mail. Les deux fonctionneront.",
     "setPassword": "Définir mon mot de passe",
     "passwordSet": "Mot de passe défini. Vous pouvez maintenant vous connecter avec Google ou avec votre e-mail."
+  },
+  "Discussion": {
+    "breadcrumbRoot": "Discussions",
+    "breadcrumbCurrent": "Discussion",
+    "factsTitle": "Cette discussion",
+    "factsReplies": "Réponses",
+    "factsPublished": "Publiée le",
+    "spaceDiscussions": "Voir les discussions de cet espace"
   }
 }

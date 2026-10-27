@@ -25,6 +25,22 @@ export const discussionListItemSchema = z.object({
 });
 export type DiscussionListItem = z.infer<typeof discussionListItemSchema>;
 
+/** One reply as the detail populate returns it: content, dates and a reduced author. */
+export const replyItemSchema = z.object({
+  documentId: z.string(),
+  content: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  author: publicUserSchema.nullable(),
+});
+export type ReplyItem = z.infer<typeof replyItemSchema>;
+
+/** `GET /discussions/slug/:slug`: the list item plus its replies in chronological order. */
+export const discussionDetailSchema = discussionListItemSchema
+  .omit({ replies: true })
+  .extend({ replies: z.array(replyItemSchema) });
+export type DiscussionDetail = z.infer<typeof discussionDetailSchema>;
+
 /** What the DAL and the BFF hand to the list component. */
 export const discussionPageSchema = z.object({
   items: z.array(discussionListItemSchema),

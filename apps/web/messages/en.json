@@ -55,7 +55,14 @@
     "title": "New post"
   },
   "Replies": {
-    "title": "Replies"
+    "title": "Replies",
+    "count": "{count, plural, one {# reply} other {# replies}}",
+    "anonymous": "Anonymous",
+    "authorChip": "Author",
+    "edited": "edited",
+    "replyBy": "Reply by {name}",
+    "emptyTitle": "No reply yet",
+    "emptyHint": "Be the first to help {name}: your experience counts, even partial."
   },
   "Categories": {
     "all": "All spaces",
@@ -222,5 +229,13 @@
     "setPasswordIntro": "You sign in with Google. Add a password to also sign in with your email. Both will work.",
     "setPassword": "Set my password",
     "passwordSet": "Password set. You can now sign in with Google or with your email."
+  },
+  "Discussion": {
+    "breadcrumbRoot": "Discussions",
+    "breadcrumbCurrent": "Discussion",
+    "factsTitle": "This discussion",
+    "factsReplies": "Replies",
+    "factsPublished": "Published on",
+    "spaceDiscussions": "See this space's discussions"
   }
 }
