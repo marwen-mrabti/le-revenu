@@ -22,6 +22,10 @@ const nextConfig: NextConfig = {
   },
   partialPrefetching: true,
   typedRoutes: true,
+  images: {
+    // Google profile pictures, the only remote images the site shows.
+    remotePatterns: [{ protocol: 'https', hostname: 'lh3.googleusercontent.com' }],
+  },
   output: 'standalone',
   outputFileTracingRoot: path.join(__dirname, '../../'),
   turbopack: {

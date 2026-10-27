@@ -7,12 +7,11 @@ import { FormAlert } from '@/components/form/form-alert';
 import { rules, useAppForm } from '@/hooks/form';
 import { Link, useRouter } from '@/i18n/navigation';
 import { ApiError } from '@/lib/api/client';
-import { toast } from '@/lib/toast';
 
 import { useRegister } from '../api/mutations';
 import { registerSchema } from '../schemas';
 
-/** Username, email, password. A taken email or username comes back on the email field. */
+/** Username, email, password. The account is pending until the mailed link is used. */
 export function RegisterForm({ next }: { next: string }) {
   const t = useTranslations('Auth');
   const router = useRouter();
@@ -28,8 +27,7 @@ export function RegisterForm({ next }: { next: string }) {
         const { user } = await register.mutateAsync(value);
         // Next keeps visited pages alive for instant back navigation: never leave a password in the form state.
         formApi.reset();
-        toast.success(t('welcome', { name: user.username }));
-        router.push(next as '/discussions');
+        router.push({ pathname: '/verify-email', query: { email: user.email, next } });
       } catch (error) {
         if (error instanceof ApiError && error.code === 'ALREADY_TAKEN') {
           formApi.setFieldMeta('email', (meta) => ({

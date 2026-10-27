@@ -9,7 +9,12 @@ import { LoginForm } from './login-form';
 
 const push = vi.fn();
 const mutateAsync = vi.fn();
-vi.mock('@/i18n/navigation', () => ({ useRouter: () => ({ push }) }));
+vi.mock('@/i18n/navigation', () => ({
+  useRouter: () => ({ push }),
+  Link: ({ href, children }: { href: unknown; children: React.ReactNode }) => (
+    <a href={String(href)}>{children}</a>
+  ),
+}));
 vi.mock('@/lib/toast', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock('../api/mutations', () => ({ useLogin: () => ({ mutateAsync }) }));
 
@@ -49,5 +54,21 @@ describe('LoginForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Wrong identifier or password.');
     expect(push).not.toHaveBeenCalledWith('/discussions');
+  });
+
+  it('shows the confirmation banner when arriving from the mail link', () => {
+    renderWithIntl(<LoginForm next="/discussions" confirmed />, { locale: 'fr' });
+    expect(screen.getByRole('status')).toHaveTextContent('Adresse confirmée.');
+    expect(screen.getByRole('link', { name: 'Mot de passe oublié ?' })).toBeInTheDocument();
+  });
+
+  it('offers to resend the link when the address is not confirmed', async () => {
+    mutateAsync.mockRejectedValueOnce(new ApiError(403, 'EMAIL_NOT_CONFIRMED', 'not confirmed'));
+    renderWithIntl(<LoginForm next="/discussions" />, { locale: 'fr' });
+    await userEvent.type(screen.getByLabelText("E-mail ou nom d'utilisateur"), 'claire@exemple.fr');
+    await userEvent.type(screen.getByLabelText('Mot de passe'), 'Password123!');
+    await userEvent.click(screen.getByRole('button', { name: 'Se connecter' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent("n'est pas encore confirmée");
+    expect(screen.getByRole('link', { name: 'Renvoyer le lien' })).toBeInTheDocument();
   });
 });

@@ -46,13 +46,18 @@ describe('RegisterForm', () => {
     expect(screen.getByLabelText('E-mail')).toHaveAttribute('aria-invalid', 'true');
   });
 
-  it('creates the account and navigates', async () => {
+  it('creates the pending account and goes to the verify-email page', async () => {
     mutateAsync.mockResolvedValueOnce({
       user: { documentId: 'u9', username: 'claire', email: 'claire@exemple.fr' },
     });
     renderWithIntl(<RegisterForm next="/discussions" />, { locale: 'fr' });
     await fill();
     await userEvent.click(screen.getByRole('button', { name: 'Créer mon compte' }));
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/discussions'));
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith({
+        pathname: '/verify-email',
+        query: { email: 'claire@exemple.fr', next: '/discussions' },
+      }),
+    );
   });
 });
