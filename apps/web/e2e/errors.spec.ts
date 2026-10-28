@@ -20,7 +20,9 @@ test.describe('error pages', () => {
   });
 
   test('a crashing page gets the 500 page with retry', async ({ page }) => {
-    await page.goto('/dev/boom');
+    // The crash page exists in development only; against a production build it is a 404.
+    const response = await page.goto('/dev/boom');
+    test.skip(response?.status() === 404, 'dev-only crash page, not served by a production build');
     const hero = page.getByRole('alert').filter({ hasText: 'Erreur 500' });
     await expect(hero).toBeVisible();
     await expect(hero.getByRole('button', { name: 'Réessayer' })).toBeVisible();

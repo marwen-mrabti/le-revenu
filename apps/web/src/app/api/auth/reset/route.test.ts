@@ -1,6 +1,8 @@
 // @vitest-environment node
 import { NextRequest } from 'next/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('@/config/env', () => ({ env: { NEXT_PUBLIC_APP_URL: 'http://web.test' } }));
 
 import { GET } from './route';
 

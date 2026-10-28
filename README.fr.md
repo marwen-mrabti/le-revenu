@@ -2,58 +2,84 @@
 
 🇬🇧 [English version](README.md)
 
-Espace communautaire pour les lecteurs du Revenu : poser une question d'argent, partager une expérience, répondre aux autres membres.
+Espace communautaire des lecteurs du Revenu : poser une question d'argent, partager une expérience, répondre aux autres membres.
 
-Test technique Développeur Full Stack · Next.js 16 · Strapi 5 · PostgreSQL (ou SQLite sans installation).
+Test technique développeur full stack · Next.js 16 · Strapi 5 · PostgreSQL (ou SQLite sans rien installer).
 
 ---
 
 ## Sommaire
 
-1. [Démarrage en 2 minutes (SQLite, sans Docker)](#1-démarrage-en-2-minutes-sqlite-sans-docker)
-2. [Démarrage complet (Docker + PostgreSQL)](#2-démarrage-complet-docker--postgresql)
-3. [Comptes de démonstration](#3-comptes-de-démonstration)
-4. [Ce que fait l'application](#4-ce-que-fait-lapplication)
-5. [Architecture](#5-architecture)
-6. [Modèle de sécurité](#6-modèle-de-sécurité)
-7. [API](#7-api)
-8. [Tests](#8-tests)
-9. [Qualité et CI/CD](#9-qualité-et-cicd)
-10. [Structure du dépôt](#10-structure-du-dépôt)
-11. [Choix d'architecture](#11-choix-darchitecture)
-12. [Problèmes fréquents](#12-problèmes-fréquents)
-13. [Évolutions](#13-évolutions)
+1. [Lancer le projet](#1-lancer-le-projet) : [A. Une commande avec Docker](#a-une-commande-avec-docker) · [B. Deux minutes avec Node](#b-deux-minutes-avec-node-sqlite-sans-docker) · [C. Installation complète](#c-installation-complète-de-développement-docker--postgresql--boîte-mail)
+2. [Se connecter et essayer](#2-se-connecter-et-essayer)
+3. [Ce que fait l'application](#3-ce-que-fait-lapplication)
+4. [Architecture](#4-architecture)
+5. [Modèle de sécurité](#5-modèle-de-sécurité)
+6. [API](#6-api)
+7. [Tests](#7-tests)
+8. [Qualité et CI/CD](#8-qualité-et-cicd)
+9. [Structure du dépôt](#9-structure-du-dépôt)
+10. [Choix d'architecture](#10-choix-darchitecture)
+11. [Problèmes fréquents](#11-problèmes-fréquents)
+12. [Évolutions](#12-évolutions)
 
----
+## 1. Lancer le projet
 
-## 1. Démarrage en 2 minutes (SQLite, sans Docker)
+Trois façons, de la plus légère à la plus complète. Choisissez-en une ; chacune se termine avec le site sur http://localhost:3000 et les données de démonstration chargées.
 
-Prérequis : Node 24 (fichier `.nvmrc`) et pnpm 10 (`corepack enable` suffit, la version est fixée dans `package.json`). Aucun fichier `.env` à créer dans ce mode.
+| Chemin                                    | Il vous faut                                   | Idéal pour                                                       |
+| ----------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------- |
+| A. Une commande avec Docker               | Docker Desktop (ou Docker Engine + Compose v2) | Essayer le projet sans installer Node                            |
+| B. Deux minutes avec Node                 | Node 24, pnpm 10                               | Lire le code et le lancer en mode développement                  |
+| C. Installation complète de développement | Node 24, pnpm 10, Docker                       | Travailler sur le projet avec PostgreSQL et la boîte mail locale |
 
-1. Cloner et installer.
+### A. Une commande avec Docker
+
+```bash
+git clone https://github.com/marwen-mrabti/le-revenu.git
+cd le-revenu
+docker compose --profile apps up --build
+```
+
+Le premier lancement construit deux images et prend quelques minutes. Attendu à la fin : quatre services `healthy`, puis :
+
+- http://localhost:3000 — le site, avec 18 discussions de démonstration.
+- http://localhost:1337/admin — l'admin Strapi ; créez le compte administrateur à la première visite.
+- http://localhost:8025 — la boîte mail : chaque mail envoyé par le site (confirmation d'inscription, réinitialisation du mot de passe) arrive ici.
+
+Aucun fichier à créer : le fichier Compose porte des valeurs de démonstration pour chaque secret. Elles sont publiques dans ce dépôt, donc réservées à un lancement local ; pour utiliser les vôtres, copiez `.env.example` vers `.env` et renseignez-y les mêmes noms (le fichier explique chacun).
+
+Dans le réseau Docker, les applications se parlent par leurs noms de service (`STRAPI_URL=http://cms:1337`, `WEBHOOK_URL=http://web:3000`) ; les mails, les callbacks de connexion et le navigateur gardent `localhost`. Le développement reste sur pnpm (chemins B et C) : Docker est la forme de production, et les mêmes images servent au déploiement.
+
+Arrêt avec `Ctrl+C` ; suppression de tout, base comprise, avec `docker compose --profile apps down -v`.
+
+### B. Deux minutes avec Node (SQLite, sans Docker)
+
+Prérequis : Node 24 (`.nvmrc`) et pnpm 10 (`corepack enable` suffit, la version est fixée dans `package.json`). Aucun fichier `.env` à créer dans ce mode.
+
+1. Installer.
 
    ```bash
-   git clone git@github.com:marwen-mrabti/le-revenu.git && cd le-revenu
+   git clone https://github.com/marwen-mrabti/le-revenu.git
+   cd le-revenu
    pnpm install
    ```
 
-2. Lancer Strapi sur la base SQLite livrée (terminal 1). Attendu après quelques secondes : `Strapi started successfully` et http://localhost:1337/api/categories qui répond du JSON.
+2. Démarrer Strapi sur la base SQLite fournie (terminal 1). Attendu après quelques secondes : `Strapi started successfully`, et http://localhost:1337/api/categories répond du JSON.
 
    ```bash
    pnpm --filter cms dev:sqlite
    ```
 
-3. Lancer Next.js (terminal 2). Attendu : `Ready` puis http://localhost:3000/discussions affiche la liste des discussions.
+3. Démarrer Next.js (terminal 2). Attendu : `Ready`, puis http://localhost:3000/discussions affiche la liste des discussions.
 
    ```bash
    pnpm --filter web dev
    ```
 
-4. Se connecter avec `alice` / `Password123!` (section 3), ou créer un compte sur `/register` (pas de messagerie dans ce mode : le compte est actif tout de suite).
+Ce qui se passe : Strapi lit `apps/cms/.env.sqlite` (clés de démonstration, jamais pour la production) et copie `apps/cms/database/demo.sqlite` dans `.tmp/` à chaque lancement, le fichier versionné n'est jamais modifié. Next.js a des valeurs par défaut de développement (`apps/web/src/config/env.ts`) accordées avec ce fichier. Pas de messagerie dans ce mode : l'inscription ne demande pas de confirmation, le compte est actif tout de suite, et les mails de réinitialisation sont jetés avec un avertissement dans le journal de Strapi.
 
-Ce qui se passe : Strapi lit `apps/cms/.env.sqlite` (clés de démonstration, jamais pour la production) et copie `apps/cms/database/demo.sqlite` dans `.tmp/` à chaque lancement, le fichier versionné n'est jamais modifié. Next.js a des valeurs par défaut de développement (`apps/web/src/config/env.ts`) accordées avec ce fichier. Le panneau d'administration http://localhost:1337/admin demande de créer un compte administrateur à la première visite.
-
-## 2. Démarrage complet (Docker + PostgreSQL)
+### C. Installation complète de développement (Docker + PostgreSQL + boîte mail)
 
 Prérequis : Node 24, pnpm 10, Docker avec Compose v2.
 
@@ -65,11 +91,11 @@ Prérequis : Node 24, pnpm 10, Docker avec Compose v2.
    cp apps/web/.env.example apps/web/.env     # facultatif ; REVALIDATE_SECRET doit être le même que côté cms
    ```
 
-2. Installer et démarrer la base. Attendu : `docker compose ps` montre `lerevenu-db` en `healthy`.
+2. Installer et démarrer la base et la boîte mail. Attendu : `docker compose ps` montre `lerevenu-db` et `lerevenu-mail` en `healthy`.
 
    ```bash
    pnpm install
-   docker compose up -d db mailpit            # PostgreSQL 16 (lerevenu, lerevenu_test) et Mailpit, la boîte mail de développement
+   docker compose up -d db mailpit            # PostgreSQL 16 (lerevenu, lerevenu_test) et Mailpit
    ```
 
 3. Démarrer les deux applications. Attendu : Strapi sur http://localhost:1337, Next.js sur http://localhost:3000.
@@ -82,24 +108,26 @@ Prérequis : Node 24, pnpm 10, Docker avec Compose v2.
 
 Au premier démarrage, Strapi crée les tables, les deux locales (fr par défaut, en), les permissions des rôles, les réglages de messagerie, puis les données de démonstration si `SEED_DEMO_DATA=true`. Un second démarrage ne duplique rien.
 
-Les mails (confirmation à l'inscription, réinitialisation du mot de passe) arrivent dans Mailpit : ouvrir http://localhost:8025 pour les lire. Leurs liens arrivent sur le site dans la langue du lecteur. Les mails sont des composants React Email dans `apps/cms/src/emails/` (un gabarit commun, sans image ni police web), rendus en HTML au démarrage et stockés là où le plugin Users & Permissions de Strapi lit ses modèles ; modifier le texte là, puis redémarrer. `apps/cms/.env.example` pointe déjà `SMTP_HOST` dessus. Avec `SMTP_HOST` vide, les mails sont jetés, l'inscription ne demande pas de confirmation et Strapi affiche un avertissement au démarrage.
+**Mails.** Confirmation à l'inscription et réinitialisation du mot de passe arrivent dans Mailpit : ouvrir http://localhost:8025 pour les lire. `apps/cms/.env.example` pointe déjà `SMTP_HOST` dessus. Avec `SMTP_HOST` vide, les mails sont jetés, l'inscription ne demande pas de confirmation et Strapi affiche un avertissement au démarrage. Pour de vraies boîtes mail, deux recettes, sans changement de code :
 
-Vraies boîtes mail, avec Resend (gratuit, sans changement de code) : créer une clé API sur https://resend.com/api-keys, puis dans `apps/cms/.env` :
+- **Gmail** (livre à tout le monde, environ 500 mails par jour) : activer la validation en deux étapes, créer un mot de passe d'application sur https://myaccount.google.com/apppasswords, puis :
 
-```bash
-SMTP_HOST=smtp.resend.com
-SMTP_PORT=465
-SMTP_SECURE=true
-SMTP_USER=resend
-SMTP_PASS=re_…                                         # la clé API
-EMAIL_FROM="Communauté Le Revenu <onboarding@resend.dev>"
-```
+  ```bash
+  SMTP_HOST=smtp.gmail.com
+  SMTP_PORT=465
+  SMTP_SECURE=true
+  SMTP_USER=vous@gmail.com
+  SMTP_PASS=le16caracteresdumotdepasse                 # sans espaces
+  EMAIL_FROM="Communauté Le Revenu <vous@gmail.com>"    # Gmail remplace tout autre expéditeur par votre adresse
+  ```
 
-Tant qu'aucun domaine n'est vérifié dans Resend, seule l'adresse du compte Resend reçoit les mails et l'expéditeur doit rester `onboarding@resend.dev` ; les autres destinataires sont refusés (le handler mot de passe oublié répond alors 502). En production, vérifier un domaine et mettre une adresse de ce domaine dans `EMAIL_FROM`. Tout autre relais SMTP (Brevo, Postmark, Gmail avec un mot de passe d'application) fonctionne de la même façon.
+- **Resend** (gratuit) : créer une clé API sur https://resend.com/api-keys, puis `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=465`, `SMTP_SECURE=true`, `SMTP_USER=resend`, `SMTP_PASS=re_…`, `EMAIL_FROM="Communauté Le Revenu <onboarding@resend.dev>"`. Tant qu'aucun domaine n'est vérifié dans Resend, seule l'adresse du compte Resend reçoit les mails ; les autres destinataires sont refusés (le handler mot de passe oublié répond alors 502).
 
-Connexion Google, facultative : créer un client OAuth « Web » dans Google Cloud avec l'URI de redirection `http://localhost:1337/api/connect/google/callback`, mettre `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` dans `apps/cms/.env` et `NEXT_PUBLIC_GOOGLE_LOGIN=true` dans `apps/web/.env`, redémarrer. Sans ces valeurs, le bouton Google n'apparaît pas.
+Tout autre relais SMTP (Brevo, Postmark) fonctionne de la même façon : cinq variables.
 
-## 3. Comptes de démonstration
+**Connexion Google, facultative.** Créer un client OAuth « Web » dans Google Cloud avec l'URI de redirection `http://localhost:1337/api/connect/google/callback`, mettre `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` dans `apps/cms/.env` et `NEXT_PUBLIC_GOOGLE_LOGIN=true` dans `apps/web/.env`, redémarrer. Sans ces valeurs, le bouton Google n'apparaît pas.
+
+## 2. Se connecter et essayer
 
 Tous les lecteurs de démonstration partagent le mot de passe **`Password123!`**.
 
@@ -108,29 +136,36 @@ Tous les lecteurs de démonstration partagent le mot de passe **`Password123!`**
 | `alice`, `bob`                                          | lecteurs, utilisés par les tests       |
 | `LaRedaction`, `Vincent_ETF`, `PapyBoursier`, 15 autres | auteurs des discussions de la maquette |
 
-Adresse e-mail de chaque compte : `<identifiant en minuscules>@demo.lerevenu.test`.
+Adresse e-mail de chaque compte : `<identifiant en minuscules>@demo.lerevenu.test`. Vous pouvez aussi créer votre propre compte sur `/register` ; avec une boîte mail lancée (chemins A et C), confirmez l'adresse depuis le mail, puis connectez-vous. Ou passez par Google si les identifiants Google sont renseignés.
 
-Vous pouvez aussi créer votre propre compte sur `/register` (nom d'utilisateur, e-mail, mot de passe de 8 caractères minimum) : avec Mailpit lancé, confirmez l'adresse depuis le mail sur http://localhost:8025, puis connectez-vous. Ou passez par Google si les identifiants Google sont renseignés (voir § 2).
+Un tour en cinq minutes :
 
-## 4. Ce que fait l'application
+1. `/discussions` : filtrer par espace, trier, chercher, paginer ; tout reste dans l'URL. Changez de langue et de thème dans l'en-tête.
+2. Ouvrez une discussion : les réponses, la pastille « Auteur » sur les réponses de l'auteur. Connectez-vous en `alice`, répondez, modifiez puis supprimez votre réponse.
+3. « Publier » dans l'en-tête : créez une discussion (titre de 10 caractères minimum, espace, type). Vous arrivez sur sa page ; « Modifier · Supprimer » vous appartiennent.
+4. Menu du compte → « Mon compte » : nom affiché, mot de passe, suppression du compte. Déconnectez-vous, « Mot de passe oublié ? », lisez le mail sur http://localhost:8025.
+5. Essayez `/discussions/nope` pour la page 404, et `/dev/boom` (développement seulement) pour la page 500.
+
+## 3. Ce que fait l'application
 
 | Fonction                                                                                 | État                    |
 | ---------------------------------------------------------------------------------------- | ----------------------- |
 | Liste des discussions : filtre par espace, tri par date, recherche, pagination           | ✔ `/discussions`        |
 | Détail d'une discussion et ses réponses, URL propre par slug                             | ✔ `/discussions/<slug>` |
+| Réponse à une discussion, modification et suppression de ses réponses et discussions     | ✔ depuis la page détail |
+| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)                 | ✔ `/discussions/new`    |
 | Connexion, inscription avec confirmation par e-mail, Google, déconnexion, menu du compte | ✔ `/login`, `/register` |
 | Mot de passe oublié / réinitialisation par e-mail                                        | ✔ `/forgot-password`    |
 | Page compte : nom affiché, nom d'utilisateur, mot de passe, suppression                  | ✔ `/account`            |
 | Premier mot de passe d'un compte Google, depuis la page compte                           | ✔ `/account`            |
 | Nom et photo Google ; connexion Google liée à un compte avec mot de passe                | ✔                       |
-| Création d'une discussion (titre ≥ 10 caractères, contenu, espace, type)                 | ✔ `/discussions/new`    |
-| Réponse à une discussion, modification et suppression de ses réponses et discussions     | ✔ depuis la page détail |
 | Interface en français et en anglais, menu de langue, thème clair / sombre                | ✔                       |
 | Pages 404 et 500 personnalisées (en-tête conservé, recherche, espaces, code d'incident)  | ✔                       |
+| Docker Compose pour toute la pile                                                        | ✔ chemin A              |
 
-L'avancement détaillé est dans [`docs/plans/`](docs/plans/README.md).
+Non réalisé, par choix : votes « Utile » et meilleure réponse, page de profil public (bonus du cahier des charges, listés dans les évolutions). L'avancement détaillé est dans [`docs/plans/`](docs/plans/README.md).
 
-## 5. Architecture
+## 4. Architecture
 
 ```
 Navigateur ──(JSON + cookie httpOnly)──► Route Handlers Next.js ──(JWT Bearer)──► Strapi ──► PostgreSQL / SQLite
@@ -144,7 +179,7 @@ Navigateur ──(JSON + cookie httpOnly)──► Route Handlers Next.js ──
 - Le JWT Strapi vit dans un cookie `httpOnly` posé par Next.js ; il n'atteint jamais le JavaScript du navigateur et l'URL de Strapi n'est pas exposée (une exception documentée pour le flux Google, ADR-0009).
 - Diagrammes et flux : [`docs/architecture.md`](docs/architecture.md). Modèle de données : [`docs/data-model.md`](docs/data-model.md).
 
-## 6. Modèle de sécurité
+## 5. Modèle de sécurité
 
 | Règle                                       | Où elle est appliquée                                                                                                                                |
 | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -163,7 +198,7 @@ Navigateur ──(JSON + cookie httpOnly)──► Route Handlers Next.js ──
 
 Les permissions sont créées par le code au démarrage (`apps/cms/src/bootstrap/ensure-permissions.ts`), pas à la main dans l'admin : un clone du dépôt donne le même état. Session et flux Google : [ADR-0009](docs/adr/0009-session-cookie-and-google-login.md) ; messagerie, confirmation, compte et liaison Google : [ADR-0010](docs/adr/0010-mailer-confirmation-google-linking.md).
 
-## 7. API
+## 6. API
 
 Base : `http://localhost:1337/api`. Format Strapi : `{ data, meta }`, erreurs `{ data: null, error: { status, name, message, details } }`.
 
@@ -193,7 +228,7 @@ Exemple :
 curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&sort=createdAt:desc&pagination[pageSize]=5'
 ```
 
-## 8. Tests
+## 7. Tests
 
 | Niveau               | Outil                                                     | Commande                             |
 | -------------------- | --------------------------------------------------------- | ------------------------------------ |
@@ -217,15 +252,15 @@ Tests frontend (`apps/web`, Vitest + Testing Library, colocalisés `*.test.ts(x)
 
 Bout en bout (`apps/web/e2e`, Playwright) : connexion et confidentialité de la session, i18n, pages 404 / 500, résilience (un 503 sur la liste laisse la page intacte), le détail d'une discussion (depuis la liste, appel à connexion, alice répond, modifie et supprime, 404), la page de création (visiteur redirigé, règles, alice publie, atterrit, listée, supprime), et le cycle de vie du compte via l'API de Mailpit (inscription → mail → confirmation → connexion → profil → mot de passe oublié → réinitialisation → suppression). Le spec compte se saute lui-même si Mailpit n'est pas joignable, et il faut que Strapi envoie via Mailpit (`SMTP_HOST=localhost`) : avec un vrai relais comme l'offre gratuite de Resend, les adresses de test sont refusées et l'étape d'inscription échoue.
 
-## 9. Qualité et CI/CD
+## 8. Qualité et CI/CD
 
 - **Branches** : `main` (production, protégée), `development` (intégration, protégée), `feature/<nom-court>`. Chaque fonctionnalité commence par un plan revu dans `docs/plans/`.
 - **Hooks Git** (husky) : Node 24 obligatoire, commits interdits sur les branches protégées, lint-staged, commitlint (Conventional Commits), vérifications avant push.
 - **`pnpm verify`** : clone propre, installation gelée, lint, format, commitlint, type-check, build, tests. Rien n'est poussé en rouge.
-- **GitHub Actions** : lint et format, type-check, tests unitaires, tests d'intégration Strapi sur un service PostgreSQL (`apps/cms/.env.ci`), build, sur chaque PR vers `development` et `main`.
+- **GitHub Actions** : lint et format, type-check, tests unitaires, tests d'intégration Strapi sur un service PostgreSQL (`apps/cms/.env.ci`), build, les deux images Docker, sur chaque PR vers `development` et `main`.
 - Détails : [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-## 10. Structure du dépôt
+## 9. Structure du dépôt
 
 ```
 apps/cms/                       Strapi 5 (TypeScript)
@@ -258,10 +293,10 @@ packages/typescript-config/     tsconfig partagés
 docs/                           architecture.md, data-model.md, adr/ (décisions), plans/ (un plan par branche),
                                 mockups/ (maquettes HTML revues avant le code)
 .github/workflows/ci.yml        lint, format, type-check, tests unitaires, tests Strapi sur PostgreSQL, build
-docker-compose.yml · turbo.json · pnpm-workspace.yaml
+apps/cms/Dockerfile · apps/web/Dockerfile · docker-compose.yml (db, mailpit, et cms + web derrière le profil `apps`) · turbo.json · pnpm-workspace.yaml
 ```
 
-## 11. Choix d'architecture
+## 10. Choix d'architecture
 
 Chaque décision structurante est consignée dans un ADR (Architecture Decision Record) : [`docs/adr/`](docs/adr/README.md).
 
@@ -278,24 +313,24 @@ Chaque décision structurante est consignée dans un ADR (Architecture Decision 
 | 0009 | Cookie de session posé par Next.js, connexion Google via le fournisseur Strapi                               |
 | 0010 | Messagerie, confirmation de l'e-mail, page compte et liaison des comptes Google                              |
 
-## 12. Problèmes fréquents
+## 11. Problèmes fréquents
 
-| Symptôme                                            | Cause et remède                                                                                                                                                                              |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm install` refuse la version de Node            | Node 24 requis : `nvm use` (lit `.nvmrc`) ou `mise use`                                                                                                                                      |
-| `pnpm: command not found`                           | `corepack enable`, puis relancer                                                                                                                                                             |
-| `EADDRINUSE 1337` ou `3000`                         | Un autre Strapi ou Next tourne déjà ; ne jamais lancer deux `strapi develop` dans le même dossier                                                                                            |
-| Strapi : `Environment check failed`                 | Une variable manque ou vaut `change-me` dans `apps/cms/.env` ; la liste est dans le message                                                                                                  |
-| Next : `Invalid environment variables` (production) | `STRAPI_URL` et `REVALIDATE_SECRET` sont obligatoires en production                                                                                                                          |
-| `connect ECONNREFUSED 5432`                         | Docker non démarré : `docker compose up -d db`, puis `docker compose ps`                                                                                                                     |
-| Connexion : « Trop de tentatives »                  | Strapi limite à 10 connexions par minute et par IP ; attendre une minute                                                                                                                     |
-| Google : « access blocked »                         | Application Google en mode test : ajouter votre adresse dans Google Auth Platform → Audience → Test users                                                                                    |
-| Aucun mail de confirmation ou de réinitialisation   | Mailpit non lancé (`docker compose up -d mailpit`) ou `SMTP_HOST` vide ; lire les mails sur http://localhost:8025. Mailpit ne livre jamais une vraie boîte : utiliser Resend pour cela (§ 2) |
-| Resend : `550 You can only send testing emails…`    | Offre gratuite sans domaine vérifié : seule l'adresse du compte Resend reçoit les mails                                                                                                      |
-| Connexion : « adresse pas encore confirmée »        | Cliquer le lien du mail de confirmation, ou « Renvoyer le lien » ; seul le mail le plus récent est valable                                                                                   |
-| Tests d'intégration : `Refusing to reset`           | La base visée ne finit pas par `_test` ; vérifier `DATABASE_TEST_NAME`                                                                                                                       |
+| Symptôme                                            | Cause et remède                                                                                                                                                                                       |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm install` refuse la version de Node            | Node 24 requis : `nvm use` (lit `.nvmrc`) ou `mise use`                                                                                                                                               |
+| `pnpm: command not found`                           | `corepack enable`, puis relancer                                                                                                                                                                      |
+| `EADDRINUSE 1337` ou `3000`                         | Un autre Strapi ou Next tourne déjà ; ne jamais lancer deux `strapi develop` dans le même dossier                                                                                                     |
+| Strapi : `Environment check failed`                 | Une variable manque ou vaut `change-me` dans `apps/cms/.env` ; la liste est dans le message                                                                                                           |
+| Next : `Invalid environment variables` (production) | `STRAPI_URL` et `REVALIDATE_SECRET` sont obligatoires en production                                                                                                                                   |
+| `connect ECONNREFUSED 5432`                         | Docker non démarré : `docker compose up -d db`, puis `docker compose ps`                                                                                                                              |
+| Connexion : « Trop de tentatives »                  | Strapi limite à 10 connexions par minute et par IP ; attendre une minute                                                                                                                              |
+| Google : « access blocked »                         | Application Google en mode test : ajouter votre adresse dans Google Auth Platform → Audience → Test users                                                                                             |
+| Aucun mail de confirmation ou de réinitialisation   | Mailpit non lancé (`docker compose up -d mailpit`) ou `SMTP_HOST` vide ; lire les mails sur http://localhost:8025. Mailpit ne livre jamais une vraie boîte : utiliser Gmail ou Resend pour cela (§ 1) |
+| Resend : `550 You can only send testing emails…`    | Offre gratuite sans domaine vérifié : seule l'adresse du compte Resend reçoit les mails                                                                                                               |
+| Connexion : « adresse pas encore confirmée »        | Cliquer le lien du mail de confirmation, ou « Renvoyer le lien » ; seul le mail le plus récent est valable                                                                                            |
+| Tests d'intégration : `Refusing to reset`           | La base visée ne finit pas par `_test` ; vérifier `DATABASE_TEST_NAME`                                                                                                                                |
 
-## 13. Évolutions
+## 12. Évolutions
 
 Onglets de la maquette (Tendances, Pour vous, Sans réponse), vue compacte, sujets épinglés, compteurs « Utile » et vues, recherche insensible aux accents (`unaccent`), votes « Utile » et meilleure réponse, recherche plein texte PostgreSQL, profil public des lecteurs, changement d'e-mail avec confirmation, page aux couleurs du site pour un lien de confirmation expiré, génération OpenAPI typée depuis Strapi, `jwtManagement: 'refresh'`, déploiement : Next.js sur Vercel, Strapi sur Railway ou Strapi Cloud.
 

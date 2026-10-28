@@ -102,3 +102,26 @@ jobs:
           STRAPI_URL: http://localhost:1337
           AUTH_COOKIE_NAME: lr_session
           REVALIDATE_SECRET: ci-only-not-a-secret
+
+  docker-build:
+    name: Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the Strapi image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/cms/Dockerfile
+          push: false
+          cache-from: type=gha,scope=cms
+          cache-to: type=gha,mode=max,scope=cms
+      - name: Build the Next.js image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: false
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web

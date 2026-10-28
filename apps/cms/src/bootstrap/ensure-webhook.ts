@@ -17,11 +17,14 @@ const EVENTS = ['entry.create', 'entry.update', 'entry.delete'];
 /**
  * The webhook that tells the web app a content entry changed (ADR-0006), so
  * its tagged cache of discussions and categories is refreshed after an edit in
- * the admin. Created or updated at boot from `WEB_URL`: a clone gets the same
- * one. The shared secret travels in `webhooks.defaultHeaders` (config/server.ts).
+ * the admin. Created or updated at boot from `WEBHOOK_URL`, or `WEB_URL` when
+ * unset: inside Docker the apps reach each other by service name while mails and
+ * callbacks keep the browser-facing `WEB_URL`. The shared secret travels in
+ * `webhooks.defaultHeaders` (config/server.ts).
  */
 export async function ensureWebhook(strapi: Core.Strapi): Promise<void> {
-  const url = `${String(process.env.WEB_URL).replace(/\/$/, '')}/api/revalidate`;
+  const base = process.env.WEBHOOK_URL || String(process.env.WEB_URL);
+  const url = `${base.replace(/\/$/, '')}/api/revalidate`;
   const store = strapi.get('webhookStore') as WebhookStore;
   const runner = strapi.get('webhookRunner') as WebhookRunner;
   const wanted = { name: WEBHOOK_NAME, url, headers: {}, events: EVENTS, isEnabled: true };
