@@ -1,0 +1,72 @@
+# Render Blueprint: Strapi on the free plan from the image CI publishes (ADR-0011).
+# Dashboard → New → Blueprint on this repository recreates the service; `sync: false`
+# values are asked for in the dashboard and never live here. PostgreSQL is a Neon
+# free project (Render's free database expires after 30 days), passed as DATABASE_URL.
+services:
+  - type: web
+    name: le-revenu-cms
+    runtime: image
+    image:
+      url: ghcr.io/marwen-mrabti/le-revenu-cms:latest
+    plan: free
+    region: frankfurt
+    healthCheckPath: /_health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: '1337'
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: 'true'
+      - key: DATABASE_CLIENT
+        value: postgres
+      - key: DATABASE_SSL
+        value: 'true'
+      - key: DATABASE_URL
+        sync: false
+      - key: PUBLIC_URL
+        sync: false
+      - key: WEB_URL
+        sync: false
+      - key: WEBHOOK_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: SEED_DEMO_DATA
+        value: 'true'
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: APP_KEYS
+        sync: false
+      - key: API_TOKEN_SALT
+        generateValue: true
+      - key: ADMIN_JWT_SECRET
+        generateValue: true
+      - key: TRANSFER_TOKEN_SALT
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: REVALIDATE_SECRET
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: '465'
+      - key: SMTP_SECURE
+        value: 'true'
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: EMAIL_REPLY_TO
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
