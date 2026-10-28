@@ -77,7 +77,7 @@ Prerequisites: Node 24 (`.nvmrc`) and pnpm 10 (`corepack enable` is enough, the 
    pnpm --filter web dev
    ```
 
-What happens: Strapi reads `apps/cms/.env.sqlite` (demo keys, never for production) and copies `apps/cms/database/demo.sqlite` into `.tmp/` on every start, so the committed file is never modified. Next.js has development defaults (`apps/web/src/config/env.ts`) matching that file. There is no mailer in this mode: sign-up needs no confirmation, the account is active at once, and password reset mails are discarded with a warning in the Strapi log.
+What happens: Strapi reads `apps/cms/.env.sqlite` (demo keys, never for production) and copies `apps/cms/database/demo.sqlite` into `.tmp/` on every start, so the committed file is never modified. Next.js has development defaults (`apps/web/src/config/env.ts`) matching that file. There is no mailer in this mode: sign-up needs no confirmation, the account is active at once, and password reset mails are discarded: the Strapi log shows one `email: discarded …` warning per mail, with the recipient and the subject.
 
 ### C. Full development setup (Docker + PostgreSQL + mailbox)
 
@@ -108,7 +108,7 @@ Prerequisites: Node 24, pnpm 10, Docker with Compose v2.
 
 On first boot Strapi creates the tables, the two locales (fr by default, en), the role permissions, the mail settings, then the demo data when `SEED_DEMO_DATA=true`. A second boot duplicates nothing.
 
-**Mails.** Confirmation at sign-up and password reset go to Mailpit: open http://localhost:8025 to read them. `apps/cms/.env.example` already points `SMTP_HOST` at it. With `SMTP_HOST` empty, mails are discarded, sign-up needs no confirmation, and Strapi logs one warning at boot. For real inboxes, two recipes, no code change:
+**Mails.** Confirmation at sign-up and password reset go to Mailpit: open http://localhost:8025 to read them. `apps/cms/.env.example` already points `SMTP_HOST` at it. With `SMTP_HOST` empty, mails are discarded, sign-up needs no confirmation, and Strapi warns at boot and once per discarded mail. For real inboxes, two recipes, no code change:
 
 - **Gmail** (delivers to anyone, about 500 mails a day): turn on 2-Step Verification, create an app password at https://myaccount.google.com/apppasswords, then:
 
