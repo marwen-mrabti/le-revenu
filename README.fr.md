@@ -77,7 +77,7 @@ Prérequis : Node 24 (`.nvmrc`) et pnpm 10 (`corepack enable` suffit, la version
    pnpm --filter web dev
    ```
 
-Ce qui se passe : Strapi lit `apps/cms/.env.sqlite` (clés de démonstration, jamais pour la production) et copie `apps/cms/database/demo.sqlite` dans `.tmp/` à chaque lancement, le fichier versionné n'est jamais modifié. Next.js a des valeurs par défaut de développement (`apps/web/src/config/env.ts`) accordées avec ce fichier. Pas de messagerie dans ce mode : l'inscription ne demande pas de confirmation, le compte est actif tout de suite, et les mails de réinitialisation sont jetés avec un avertissement dans le journal de Strapi.
+Ce qui se passe : Strapi lit `apps/cms/.env.sqlite` (clés de démonstration, jamais pour la production) et copie `apps/cms/database/demo.sqlite` dans `.tmp/` à chaque lancement, le fichier versionné n'est jamais modifié. Next.js a des valeurs par défaut de développement (`apps/web/src/config/env.ts`) accordées avec ce fichier. Pas de messagerie dans ce mode : l'inscription ne demande pas de confirmation, le compte est actif tout de suite, et les mails de réinitialisation sont jetés : le journal de Strapi affiche un avertissement `email: discarded …` par mail, avec le destinataire et l'objet.
 
 ### C. Installation complète de développement (Docker + PostgreSQL + boîte mail)
 
@@ -108,7 +108,7 @@ Prérequis : Node 24, pnpm 10, Docker avec Compose v2.
 
 Au premier démarrage, Strapi crée les tables, les deux locales (fr par défaut, en), les permissions des rôles, les réglages de messagerie, puis les données de démonstration si `SEED_DEMO_DATA=true`. Un second démarrage ne duplique rien.
 
-**Mails.** Confirmation à l'inscription et réinitialisation du mot de passe arrivent dans Mailpit : ouvrir http://localhost:8025 pour les lire. `apps/cms/.env.example` pointe déjà `SMTP_HOST` dessus. Avec `SMTP_HOST` vide, les mails sont jetés, l'inscription ne demande pas de confirmation et Strapi affiche un avertissement au démarrage. Pour de vraies boîtes mail, deux recettes, sans changement de code :
+**Mails.** Confirmation à l'inscription et réinitialisation du mot de passe arrivent dans Mailpit : ouvrir http://localhost:8025 pour les lire. `apps/cms/.env.example` pointe déjà `SMTP_HOST` dessus. Avec `SMTP_HOST` vide, les mails sont jetés, l'inscription ne demande pas de confirmation, et Strapi avertit au démarrage puis une fois par mail jeté. Pour de vraies boîtes mail, deux recettes, sans changement de code :
 
 - **Gmail** (livre à tout le monde, environ 500 mails par jour) : activer la validation en deux étapes, créer un mot de passe d'application sur https://myaccount.google.com/apppasswords, puis :
 

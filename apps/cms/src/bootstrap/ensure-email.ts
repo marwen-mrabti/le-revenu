@@ -1,6 +1,7 @@
 import type { Core } from '@strapi/strapi';
 
 import { renderMailTemplates, toPlainText } from '../emails';
+import { discardNotice, mailsDiscarded } from '../emails/discard';
 
 type Template = {
   display: string;
@@ -25,7 +26,8 @@ type Template = {
  * - the two templates are React Email components (`src/emails/`) rendered to HTML here,
  *   with Strapi's placeholders (`<%= URL %>`, `<%= TOKEN %>`, `<%= CODE %>`) left for send time.
  * Strapi sends the stored message as both text and html; `withPlainText` derives a real
- * text version for clients that show no HTML.
+ * text version for clients that show no HTML, and warns for each mail that no relay
+ * will carry.
  */
 export async function ensureEmail(strapi: Core.Strapi): Promise<void> {
   // Required at boot (assert-env): never a hard-coded host in a mail link or a callback.
@@ -109,19 +111,22 @@ type EmailService = { send: (options: SendOptions) => Promise<unknown>; [PATCHED
 /**
  * Users & Permissions passes its template as both `text` and `html`. When that
  * message is our rendered HTML, derive the text part from it so text-only clients
- * read sentences, not markup. Wrapped once per process.
+ * read sentences, not markup. Without `SMTP_HOST` the transport swallows the mail:
+ * one warning per mail names the recipient and the subject. Wrapped once per process.
  */
 function withPlainText(strapi: Core.Strapi): void {
   const service = strapi.plugin('email').service('email') as EmailService;
   if (service[PATCHED]) return;
   const send = service.send.bind(service);
-  service.send = (options) =>
-    send(
+  service.send = (options) => {
+    if (mailsDiscarded()) strapi.log.warn(discardNotice(options));
+    return send(
       typeof options.html === 'string' &&
         options.text === options.html &&
         /<html/i.test(options.html)
         ? { ...options, text: toPlainText(options.html) }
         : options,
     );
+  };
   service[PATCHED] = true;
 }
