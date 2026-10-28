@@ -10,7 +10,8 @@ WEB=${WEB%/}
 CMS=${CMS%/}
 
 fail() { echo "FAIL: $1"; exit 1; }
-status() { curl -s -o "${3:-/dev/null}" -w '%{http_code}' "$@"; }
+# status <url> [curl options...]: prints the HTTP status, body discarded
+status() { url=$1; shift; curl -s -o /dev/null -w '%{http_code}' "$@" "$url"; }
 
 printf 'cms health        '
 [ "$(status "$CMS/_health")" = 204 ] || fail "$CMS/_health is not 204"
@@ -22,25 +23,25 @@ echo ok
 
 printf 'web list          '
 out=$(mktemp)
-[ "$(status "$WEB/discussions" -o "$out")" = 200 ] || fail "$WEB/discussions is not 200"
+[ "$(curl -s -o "$out" -w '%{http_code}' "$WEB/discussions")" = 200 ] || fail "$WEB/discussions is not 200"
 links=$(grep -o 'href="/discussions/[^"?]*"' "$out" | sort -u | wc -l | tr -d ' ')
 [ "$links" -ge 10 ] || fail "only $links discussion links on the first page"
 echo "ok ($links links)"
 
 printf 'web login alice   '
-code=$(status -X POST "$WEB/api/auth/login" -H "Origin: $WEB" -H 'Content-Type: application/json' \
+code=$(status "$WEB/api/auth/login" -X POST -H "Origin: $WEB" -H 'Content-Type: application/json' \
   -d '{"identifier":"alice","password":"Password123!"}')
 [ "$code" = 200 ] || fail "login answered $code"
 echo ok
 
 printf 'web forgot-pass   '
-code=$(status -X POST "$WEB/api/auth/forgot-password" -H "Origin: $WEB" -H 'Content-Type: application/json' \
+code=$(status "$WEB/api/auth/forgot-password" -X POST -H "Origin: $WEB" -H 'Content-Type: application/json' \
   -d '{"email":"nobody@nowhere.test"}')
 [ "$code" = 200 ] || fail "forgot-password answered $code"
 echo ok
 
 printf 'webhook guarded   '
-code=$(status -X POST "$WEB/api/revalidate" -H 'Content-Type: application/json' -d '{}')
+code=$(status "$WEB/api/revalidate" -X POST -H 'Content-Type: application/json' -d '{}')
 [ "$code" = 401 ] || fail "revalidate without secret answered $code"
 echo ok
 
