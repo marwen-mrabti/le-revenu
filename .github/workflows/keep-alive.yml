@@ -1,0 +1,19 @@
+name: Keep Strapi awake
+
+# Render's free plan spins a service down after 15 idle minutes and takes about a minute to
+# wake. A request every 10 minutes keeps the public demo responsive (ADR-0011). The address is
+# the repository variable CMS_URL; without it the job does nothing.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    if: vars.CMS_URL != ''
+    steps:
+      - name: Ping /_health
+        run: curl -fsS -o /dev/null -w 'cms %{http_code} in %{time_total}s\n' --max-time 120 "${{ vars.CMS_URL }}/_health"

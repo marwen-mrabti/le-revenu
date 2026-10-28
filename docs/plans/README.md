@@ -18,4 +18,4 @@ Every work branch starts with a plan in this folder, reviewed before any code is
 | 06  | [Discussion detail and replies](06-discussion-detail.md)                             | `feature/discussion-detail` | done, merged |
 | 07  | [Create a discussion](07-discussion-create.md)                                       | `feature/discussion-create` | done, merged |
 | 08  | [Docker Compose for the three services](08-docker.md)                                | `feature/docker`            | done, merged |
-| 09  | [Deployment: Vercel + Railway](09-deployment.md)                                     | `feature/deployment`        | approved     |
+| 09  | [Deployment: Vercel + Render + Neon](09-deployment.md)                               | `feature/render-deploy`     | phase A done |
