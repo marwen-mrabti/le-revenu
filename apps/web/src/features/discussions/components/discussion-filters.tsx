@@ -71,6 +71,8 @@ export function DiscussionFilters() {
       </div>
       <Select
         value={sort}
+        // Base UI shows the raw value unless it knows the labels: "newest" → "Plus récentes".
+        items={SORTS.map((value) => ({ value, label: tSort(value) }))}
         onValueChange={(value) =>
           void setParams({ sort: value as Sort, page: null }, { history: 'push' })
         }
