@@ -263,7 +263,7 @@ Bout en bout (`apps/web/e2e`, Playwright) : connexion et confidentialité de la 
 
 ## 9. Déploiement
 
-Même image et mêmes noms de variables que Docker, rien en dur, rien de payant (ADR-0011). La production, c'est Next.js sur **Vercel**, Strapi sur l'offre gratuite de **Render** à partir de l'image publiée par la CI, PostgreSQL sur l'offre gratuite de **Neon**.
+Préparé, pas encore en ligne (pas d'URL publique au moment d'écrire). Même image et mêmes noms de variables que Docker, rien en dur, rien de payant (ADR-0011). La production, c'est Next.js sur **Vercel**, Strapi sur l'offre gratuite de **Render** à partir de l'image publiée par la CI, PostgreSQL sur l'offre gratuite de **Neon**.
 
 | Élément    | Où                                                                                                         | Source de vérité                                                                                                                    |
 | ---------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |

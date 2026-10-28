@@ -1,6 +1,6 @@
 # 09 — Deployment: Next.js on Vercel, Strapi on Render, PostgreSQL on Neon
 
-Branch: `feature/deployment` · Target: `development` · Estimate: 3 h · Status: approved
+Branch: `feature/deployment`, then `feature/render-deploy` · Target: `development` · Estimate: 3 h · Status: Phase A done (code, config, docs); Phases B and C (accounts, production run) parked on 2026-10-28, to resume with the two local files described in Phase B
 
 ## 1. Goal
 

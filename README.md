@@ -263,7 +263,7 @@ End to end (`apps/web/e2e`, Playwright): login and session privacy, i18n, 404 / 
 
 ## 9. Deployment
 
-Same image and variable names as Docker, nothing hard-coded, nothing paid (ADR-0011). Production is Next.js on **Vercel**, Strapi on **Render**'s free plan from the image CI publishes, PostgreSQL on **Neon**'s free plan.
+Prepared, not yet live (no public URL at the time of writing). Same image and variable names as Docker, nothing hard-coded, nothing paid (ADR-0011). Production is Next.js on **Vercel**, Strapi on **Render**'s free plan from the image CI publishes, PostgreSQL on **Neon**'s free plan.
 
 | Piece      | Where                                                                                                 | Source of truth                                                                                                                    |
 | ---------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
