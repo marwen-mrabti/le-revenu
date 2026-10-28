@@ -44,4 +44,6 @@ export const env = createEnv({
     NEXT_PUBLIC_STRAPI_URL: process.env.NEXT_PUBLIC_STRAPI_URL,
   },
   emptyStringAsUndefined: true,
+  // `next build` in the Docker image has no secrets on purpose; the boot validates again (instrumentation.ts).
+  skipValidation: process.env.SKIP_ENV_VALIDATION === '1',
 });

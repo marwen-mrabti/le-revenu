@@ -1,0 +1,24 @@
+# Build context for both Dockerfiles (context = repository root, pnpm workspace).
+.git
+.github
+docs
+**/node_modules
+**/.next
+**/dist
+**/build
+**/.tmp
+**/.cache
+**/.strapi
+**/.turbo
+**/coverage
+**/playwright-report
+**/test-results
+**/*.tsbuildinfo
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.sqlite
+apps/cms/public/uploads/*
+!apps/cms/public/uploads/.gitkeep
+*.md
+!**/README.md

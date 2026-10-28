@@ -33,5 +33,86 @@ services:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
 
+  # The two apps, behind the `apps` profile so `docker compose up -d db mailpit` keeps the pnpm workflow:
+  #   docker compose --profile apps up --build
+  # Browser-facing URLs stay on localhost (PUBLIC_URL, NEXT_PUBLIC_*); in-network URLs use the service names.
+  cms:
+    profiles: ['apps']
+    image: lerevenu-cms
+    build:
+      context: .
+      dockerfile: apps/cms/Dockerfile
+    container_name: lerevenu-cms
+    restart: unless-stopped
+    # Demo secrets so the stack runs with no env file at all. Override any of them from the root .env
+    # (same names). They are public in this repository: never reuse them for a real deployment.
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 1337
+      APP_KEYS: ${APP_KEYS:-demo-docker-key-one-0123456789abcdef,demo-docker-key-two-0123456789abcdef}
+      API_TOKEN_SALT: ${API_TOKEN_SALT:-demo-docker-api-token-salt-0123456789}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:-demo-docker-admin-jwt-secret-0123456789}
+      TRANSFER_TOKEN_SALT: ${TRANSFER_TOKEN_SALT:-demo-docker-transfer-salt-0123456789}
+      JWT_SECRET: ${JWT_SECRET:-demo-docker-jwt-secret-0123456789}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-demo-docker-encryption-key-0123456789}
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:-demo-docker-revalidate-secret-0123456789}
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${POSTGRES_DB:-lerevenu}
+      DATABASE_USERNAME: ${POSTGRES_USER:-lerevenu}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-lerevenu}
+      DATABASE_SSL: 'false'
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-true}
+      WEB_URL: http://localhost:${WEB_PORT:-3000}
+      WEBHOOK_URL: http://web:3000
+      PUBLIC_URL: http://localhost:${STRAPI_PORT:-1337}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_SECURE: 'false'
+      SMTP_USER: ''
+      SMTP_PASS: ''
+      EMAIL_FROM: Communauté Le Revenu <no-reply@lerevenu.test>
+      EMAIL_REPLY_TO: no-reply@lerevenu.test
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    ports:
+      - '${STRAPI_PORT:-1337}:1337'
+    volumes:
+      - uploads:/app/public/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  web:
+    profiles: ['apps']
+    image: lerevenu-web
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_APP_URL: http://localhost:${WEB_PORT:-3000}
+        NEXT_PUBLIC_STRAPI_URL: http://localhost:${STRAPI_PORT:-1337}
+        NEXT_PUBLIC_GOOGLE_LOGIN: ${NEXT_PUBLIC_GOOGLE_LOGIN:-false}
+    container_name: lerevenu-web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      STRAPI_URL: http://cms:1337
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:-demo-docker-revalidate-secret-0123456789}
+      AUTH_COOKIE_NAME: lr_session
+      NEXT_PUBLIC_APP_URL: http://localhost:${WEB_PORT:-3000}
+      NEXT_PUBLIC_STRAPI_URL: http://localhost:${STRAPI_PORT:-1337}
+      NEXT_PUBLIC_GOOGLE_LOGIN: ${NEXT_PUBLIC_GOOGLE_LOGIN:-false}
+    ports:
+      - '${WEB_PORT:-3000}:3000'
+    depends_on:
+      cms:
+        condition: service_healthy
+
 volumes:
   pgdata:
+  uploads:

@@ -10,30 +10,58 @@ Full-stack developer technical test · Next.js 16 · Strapi 5 · PostgreSQL (or 
 
 ## Contents
 
-1. [Two-minute start (SQLite, no Docker)](#1-two-minute-start-sqlite-no-docker)
-2. [Full start (Docker + PostgreSQL)](#2-full-start-docker--postgresql)
-3. [Demo accounts](#3-demo-accounts)
-4. [What the application does](#4-what-the-application-does)
-5. [Architecture](#5-architecture)
-6. [Security model](#6-security-model)
-7. [API](#7-api)
-8. [Tests](#8-tests)
-9. [Quality and CI/CD](#9-quality-and-cicd)
-10. [Repository layout](#10-repository-layout)
-11. [Architecture decisions](#11-architecture-decisions)
-12. [Troubleshooting](#12-troubleshooting)
-13. [Evolutions](#13-evolutions)
+1. [Run it](#1-run-it): [A. One command with Docker](#a-one-command-with-docker) · [B. Two minutes with Node](#b-two-minutes-with-node-sqlite-no-docker) · [C. Full development setup](#c-full-development-setup-docker--postgresql--mailbox)
+2. [Log in and try it](#2-log-in-and-try-it)
+3. [What the application does](#3-what-the-application-does)
+4. [Architecture](#4-architecture)
+5. [Security model](#5-security-model)
+6. [API](#6-api)
+7. [Tests](#7-tests)
+8. [Quality and CI/CD](#8-quality-and-cicd)
+9. [Repository layout](#9-repository-layout)
+10. [Architecture decisions](#10-architecture-decisions)
+11. [Troubleshooting](#11-troubleshooting)
+12. [Evolutions](#12-evolutions)
 
----
+## 1. Run it
 
-## 1. Two-minute start (SQLite, no Docker)
+Three ways, from the lightest to the fullest. Pick one; every path ends with the site on http://localhost:3000 and the demo data loaded.
+
+| Path                       | You need                                       | Best for                                                     |
+| -------------------------- | ---------------------------------------------- | ------------------------------------------------------------ |
+| A. One command with Docker | Docker Desktop (or Docker Engine + Compose v2) | Trying the project without installing Node                   |
+| B. Two minutes with Node   | Node 24, pnpm 10                               | Reading the code and running it in development mode          |
+| C. Full development setup  | Node 24, pnpm 10, Docker                       | Working on the project with PostgreSQL and the local mailbox |
+
+### A. One command with Docker
+
+```bash
+git clone https://github.com/marwen-mrabti/le-revenu.git
+cd le-revenu
+docker compose --profile apps up --build
+```
+
+The first run builds two images and takes a few minutes. Expected at the end: four services reported `healthy`, then:
+
+- http://localhost:3000 — the site, with 18 demo discussions.
+- http://localhost:1337/admin — the Strapi admin; create the administrator account on first visit.
+- http://localhost:8025 — the mailbox: every mail the site sends (sign-up confirmation, password reset) lands here.
+
+No file to create: the Compose file carries demo values for every secret. They are public in this repository, so they are for a local run only; to use your own, copy `.env.example` to `.env` and set the same names there (section 3 of that file explains each one).
+
+Inside the Docker network the apps talk through the service names (`STRAPI_URL=http://cms:1337`, `WEBHOOK_URL=http://web:3000`); mails, login callbacks and the browser keep `localhost`. Development stays on pnpm (paths B and C): Docker is the production shape, and the same images serve the deployment.
+
+Stop with `Ctrl+C`; remove everything, database included, with `docker compose --profile apps down -v`.
+
+### B. Two minutes with Node (SQLite, no Docker)
 
 Prerequisites: Node 24 (`.nvmrc`) and pnpm 10 (`corepack enable` is enough, the version is pinned in `package.json`). No `.env` file to create in this mode.
 
-1. Clone and install.
+1. Install.
 
    ```bash
-   git clone git@github.com:marwen-mrabti/le-revenu.git && cd le-revenu
+   git clone https://github.com/marwen-mrabti/le-revenu.git
+   cd le-revenu
    pnpm install
    ```
 
@@ -49,11 +77,9 @@ Prerequisites: Node 24 (`.nvmrc`) and pnpm 10 (`corepack enable` is enough, the 
    pnpm --filter web dev
    ```
 
-4. Log in with `alice` / `Password123!` (section 3), or create an account on `/register` (no mailer in this mode: the account is active at once).
+What happens: Strapi reads `apps/cms/.env.sqlite` (demo keys, never for production) and copies `apps/cms/database/demo.sqlite` into `.tmp/` on every start, so the committed file is never modified. Next.js has development defaults (`apps/web/src/config/env.ts`) matching that file. There is no mailer in this mode: sign-up needs no confirmation, the account is active at once, and password reset mails are discarded with a warning in the Strapi log.
 
-What happens: Strapi reads `apps/cms/.env.sqlite` (demo keys, never for production) and copies `apps/cms/database/demo.sqlite` into `.tmp/` on every start, so the committed file is never modified. Next.js has development defaults (`apps/web/src/config/env.ts`) matching that file. The admin panel at http://localhost:1337/admin asks you to create an administrator account on first visit.
-
-## 2. Full start (Docker + PostgreSQL)
+### C. Full development setup (Docker + PostgreSQL + mailbox)
 
 Prerequisites: Node 24, pnpm 10, Docker with Compose v2.
 
@@ -65,11 +91,11 @@ Prerequisites: Node 24, pnpm 10, Docker with Compose v2.
    cp apps/web/.env.example apps/web/.env     # optional; REVALIDATE_SECRET must match the cms side
    ```
 
-2. Install and start the database. Expected: `docker compose ps` shows `lerevenu-db` as `healthy`.
+2. Install and start the database and the mailbox. Expected: `docker compose ps` shows `lerevenu-db` and `lerevenu-mail` as `healthy`.
 
    ```bash
    pnpm install
-   docker compose up -d db mailpit            # PostgreSQL 16 (lerevenu, lerevenu_test) and Mailpit, the development mailbox
+   docker compose up -d db mailpit            # PostgreSQL 16 (lerevenu, lerevenu_test) and Mailpit
    ```
 
 3. Start both applications. Expected: Strapi on http://localhost:1337, Next.js on http://localhost:3000.
@@ -82,24 +108,26 @@ Prerequisites: Node 24, pnpm 10, Docker with Compose v2.
 
 On first boot Strapi creates the tables, the two locales (fr by default, en), the role permissions, the mail settings, then the demo data when `SEED_DEMO_DATA=true`. A second boot duplicates nothing.
 
-Mails (confirmation at sign-up, password reset) go to Mailpit: open http://localhost:8025 to read them. Their links land on the web app in the reader's language. The mails are React Email components in `apps/cms/src/emails/` (one shared layout, no image, no web font), rendered to HTML at boot and stored where Strapi's Users & Permissions plugin reads its templates; edit the wording there and restart. `apps/cms/.env.example` already points `SMTP_HOST` at it. With `SMTP_HOST` empty, mails are discarded, sign-up needs no confirmation, and Strapi logs one warning at boot.
+**Mails.** Confirmation at sign-up and password reset go to Mailpit: open http://localhost:8025 to read them. `apps/cms/.env.example` already points `SMTP_HOST` at it. With `SMTP_HOST` empty, mails are discarded, sign-up needs no confirmation, and Strapi logs one warning at boot. For real inboxes, two recipes, no code change:
 
-Real inboxes, with Resend (free, no code change): create an API key at https://resend.com/api-keys, then in `apps/cms/.env`:
+- **Gmail** (delivers to anyone, about 500 mails a day): turn on 2-Step Verification, create an app password at https://myaccount.google.com/apppasswords, then:
 
-```bash
-SMTP_HOST=smtp.resend.com
-SMTP_PORT=465
-SMTP_SECURE=true
-SMTP_USER=resend
-SMTP_PASS=re_…                                         # the API key
-EMAIL_FROM="Communauté Le Revenu <onboarding@resend.dev>"
-```
+  ```bash
+  SMTP_HOST=smtp.gmail.com
+  SMTP_PORT=465
+  SMTP_SECURE=true
+  SMTP_USER=you@gmail.com
+  SMTP_PASS=the16characterapppassword                 # no spaces
+  EMAIL_FROM="Communauté Le Revenu <you@gmail.com>"     # Gmail rewrites any other sender to your address
+  ```
 
-Until a domain is verified in Resend, it only delivers to the address of the Resend account and the sender must stay `onboarding@resend.dev`; other recipients are refused (the forgot-password handler then answers 502). For production, verify a domain and put an address of that domain in `EMAIL_FROM`. Any other SMTP relay (Brevo, Postmark, Gmail with an app password) works the same way.
+- **Resend** (free): create an API key at https://resend.com/api-keys, then `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=465`, `SMTP_SECURE=true`, `SMTP_USER=resend`, `SMTP_PASS=re_…`, `EMAIL_FROM="Communauté Le Revenu <onboarding@resend.dev>"`. Until a domain is verified in Resend, it only delivers to the address of the Resend account; other recipients are refused (the forgot-password handler then answers 502).
 
-Google login, optional: create a "Web" OAuth client in Google Cloud with the redirect URI `http://localhost:1337/api/connect/google/callback`, put `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `apps/cms/.env` and `NEXT_PUBLIC_GOOGLE_LOGIN=true` in `apps/web/.env`, restart. Without these values the Google button is not shown.
+Any other SMTP relay (Brevo, Postmark) works the same way: five variables.
 
-## 3. Demo accounts
+**Google login, optional.** Create a "Web" OAuth client in Google Cloud with the redirect URI `http://localhost:1337/api/connect/google/callback`, put `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `apps/cms/.env` and `NEXT_PUBLIC_GOOGLE_LOGIN=true` in `apps/web/.env`, restart. Without these values the Google button is not shown.
+
+## 2. Log in and try it
 
 Every demo reader shares the password **`Password123!`**.
 
@@ -108,29 +136,36 @@ Every demo reader shares the password **`Password123!`**.
 | `alice`, `bob`                                        | readers, used by the tests          |
 | `LaRedaction`, `Vincent_ETF`, `PapyBoursier`, 15 more | authors of the mockup's discussions |
 
-Email of each account: `<lowercase identifier>@demo.lerevenu.test`.
+Email of each account: `<lowercase identifier>@demo.lerevenu.test`. You can also create your own account on `/register`; with a mailbox running (paths A and C), confirm the address from the mail, then log in. Or use Google when the Google credentials are set.
 
-You can also create your own account on `/register` (username, email, password of at least 8 characters): with Mailpit running, confirm the address from the mail at http://localhost:8025, then log in. Or use Google when the Google credentials are set (see section 2).
+A five-minute tour:
 
-## 4. What the application does
+1. `/discussions`: filter by space, sort, search, paginate; everything stays in the URL. Switch language and theme in the header.
+2. Open a discussion: the replies, the "Auteur" chip on the author's own replies. Log in as `alice`, reply, edit then delete your reply.
+3. "Publier" in the header: create a discussion (title of 10 characters at least, space, type). You land on its page; "Modifier · Supprimer" are yours.
+4. Account menu → "Mon compte": display name, password, delete account. Log out, "Mot de passe oublié ?", read the mail at http://localhost:8025.
+5. Try `/discussions/nope` for the 404 page, and `/dev/boom` (development only) for the 500 page.
+
+## 3. What the application does
 
 | Feature                                                               | Status                  |
 | --------------------------------------------------------------------- | ----------------------- |
 | Discussion list: filter by space, sort by date, search, pagination    | ✔ `/discussions`        |
 | Discussion detail with its replies, clean URL by slug                 | ✔ `/discussions/<slug>` |
+| Reply to a discussion, edit and delete own replies and discussions    | ✔ from the detail page  |
+| Create a discussion (title ≥ 10 characters, content, space, type)     | ✔ `/discussions/new`    |
 | Login, sign-up with email confirmation, Google, logout, account menu  | ✔ `/login`, `/register` |
 | Forgot / reset password by mail                                       | ✔ `/forgot-password`    |
 | Account page: display name, username, password, delete account        | ✔ `/account`            |
 | First password for a Google account, set from the account page        | ✔ `/account`            |
 | Google name and picture; Google login linked to a password account    | ✔                       |
-| Create a discussion (title ≥ 10 characters, content, space, type)     | ✔ `/discussions/new`    |
-| Reply to a discussion, edit and delete own replies and discussions    | ✔ from the detail page  |
 | French and English interface, language menu, light / dark theme       | ✔                       |
 | Custom 404 and 500 pages (header kept, search, spaces, incident code) | ✔                       |
+| Docker Compose for the whole stack                                    | ✔ path A                |
 
-Detailed progress lives in [`docs/plans/`](docs/plans/README.md).
+Not done, by choice: "Utile" votes and best answer, public profile page (bonus items of the brief, listed in the evolutions). Detailed progress lives in [`docs/plans/`](docs/plans/README.md).
 
-## 5. Architecture
+## 4. Architecture
 
 ```
 Browser ──(JSON + httpOnly cookie)──► Next.js Route Handlers ──(Bearer JWT)──► Strapi ──► PostgreSQL / SQLite
@@ -144,7 +179,7 @@ Browser ──(JSON + httpOnly cookie)──► Next.js Route Handlers ──(Be
 - The Strapi JWT lives in an `httpOnly` cookie set by Next.js; it never reaches browser JavaScript and the Strapi URL is not exposed (one documented exception for the Google flow, ADR-0009).
 - Diagrams and flows: [`docs/architecture.md`](docs/architecture.md). Data model: [`docs/data-model.md`](docs/data-model.md).
 
-## 6. Security model
+## 5. Security model
 
 | Rule                                    | Where it is enforced                                                                                                                      |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
@@ -163,7 +198,7 @@ Browser ──(JSON + httpOnly cookie)──► Next.js Route Handlers ──(Be
 
 Permissions are created by code at boot (`apps/cms/src/bootstrap/ensure-permissions.ts`), not by hand in the admin: a clone of the repository gives the same state. Session and Google flow: [ADR-0009](docs/adr/0009-session-cookie-and-google-login.md); mailer, confirmation, account and Google linking: [ADR-0010](docs/adr/0010-mailer-confirmation-google-linking.md).
 
-## 7. API
+## 6. API
 
 Base: `http://localhost:1337/api`. Strapi format: `{ data, meta }`, errors `{ data: null, error: { status, name, message, details } }`.
 
@@ -193,7 +228,7 @@ Example:
 curl 'http://localhost:1337/api/discussions?filters[category][slug][$eq]=bourse&sort=createdAt:desc&pagination[pageSize]=5'
 ```
 
-## 8. Tests
+## 7. Tests
 
 | Level                | Tool                                                     | Command                              |
 | -------------------- | -------------------------------------------------------- | ------------------------------------ |
@@ -217,15 +252,15 @@ Frontend tests (`apps/web`, Vitest + Testing Library, colocated `*.test.ts(x)`, 
 
 End to end (`apps/web/e2e`, Playwright): login and session privacy, i18n, 404 / 500 pages, resilience (a 503 on the list leaves the page intact), the discussion detail (from the list, visitor call to action, alice replies, edits and deletes, 404), the create page (visitor redirect, rules, alice publishes, lands, listed, deletes), and the account lifecycle through Mailpit's API (sign-up → mail → confirm → login → profile → forgot → reset → delete). The account spec skips itself when Mailpit is not reachable, and needs Strapi to send through Mailpit (`SMTP_HOST=localhost`): with a real relay such as Resend's free tier, the test addresses are refused and the sign-up step fails.
 
-## 9. Quality and CI/CD
+## 8. Quality and CI/CD
 
 - **Branches**: `main` (production, protected), `development` (integration, protected), `feature/<short-name>`. Every feature starts with a reviewed plan in `docs/plans/`.
 - **Git hooks** (husky): Node 24 required, no commits on protected branches, lint-staged, commitlint (Conventional Commits), checks before push.
 - **`pnpm verify`**: clean clone, frozen install, lint, format, commitlint, type-check, build, tests. Nothing red gets pushed.
-- **GitHub Actions**: lint and format, type-check, unit tests, Strapi integration tests on a PostgreSQL service (`apps/cms/.env.ci`), build, on every PR to `development` and `main`.
+- **GitHub Actions**: lint and format, type-check, unit tests, Strapi integration tests on a PostgreSQL service (`apps/cms/.env.ci`), build, both Docker images, on every PR to `development` and `main`.
 - Details: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-## 10. Repository layout
+## 9. Repository layout
 
 ```
 apps/cms/                       Strapi 5 (TypeScript)
@@ -258,10 +293,10 @@ packages/typescript-config/     shared tsconfig
 docs/                           architecture.md, data-model.md, adr/ (decisions), plans/ (one plan per branch),
                                 mockups/ (HTML mockups reviewed before code)
 .github/workflows/ci.yml        lint, format, type-check, unit tests, Strapi tests on PostgreSQL, build
-docker-compose.yml · turbo.json · pnpm-workspace.yaml
+apps/cms/Dockerfile · apps/web/Dockerfile · docker-compose.yml (db, mailpit, and cms + web behind the `apps` profile) · turbo.json · pnpm-workspace.yaml
 ```
 
-## 11. Architecture decisions
+## 10. Architecture decisions
 
 Every structural decision is recorded as an ADR (Architecture Decision Record): [`docs/adr/`](docs/adr/README.md).
 
@@ -278,24 +313,24 @@ Every structural decision is recorded as an ADR (Architecture Decision Record): 
 | 0009 | Session cookie set by Next.js, Google login through Strapi's provider                                |
 | 0010 | Mailer, email confirmation, account page and Google account linking                                  |
 
-## 12. Troubleshooting
+## 11. Troubleshooting
 
-| Symptom                                            | Cause and remedy                                                                                                                                                                        |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm install` rejects the Node version            | Node 24 required: `nvm use` (reads `.nvmrc`) or `mise use`                                                                                                                              |
-| `pnpm: command not found`                          | `corepack enable`, then retry                                                                                                                                                           |
-| `EADDRINUSE 1337` or `3000`                        | Another Strapi or Next is already running; never run two `strapi develop` in the same folder                                                                                            |
-| Strapi: `Environment check failed`                 | A variable is missing or still `change-me` in `apps/cms/.env`; the message lists them                                                                                                   |
-| Next: `Invalid environment variables` (production) | `STRAPI_URL` and `REVALIDATE_SECRET` are required in production                                                                                                                         |
-| `connect ECONNREFUSED 5432`                        | Docker not started: `docker compose up -d db`, then `docker compose ps`                                                                                                                 |
-| Login: "Too many attempts"                         | Strapi allows 10 logins per minute per IP; wait a minute                                                                                                                                |
-| Google: "access blocked"                           | Google app in testing mode: add your address in Google Auth Platform → Audience → Test users                                                                                            |
-| No confirmation or reset mail arrives              | Mailpit not started (`docker compose up -d mailpit`) or `SMTP_HOST` empty; read mails at http://localhost:8025. Mailpit never delivers to a real inbox: use Resend for that (section 2) |
-| Resend: `550 You can only send testing emails…`    | Free tier without a verified domain: only the Resend account's own address receives mail                                                                                                |
-| Login: "address not confirmed yet"                 | Click the link in the confirmation mail, or use "resend the link"; only the newest mail is valid                                                                                        |
-| Integration tests: `Refusing to reset`             | The target database does not end with `_test`; check `DATABASE_TEST_NAME`                                                                                                               |
+| Symptom                                            | Cause and remedy                                                                                                                                                                                 |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm install` rejects the Node version            | Node 24 required: `nvm use` (reads `.nvmrc`) or `mise use`                                                                                                                                       |
+| `pnpm: command not found`                          | `corepack enable`, then retry                                                                                                                                                                    |
+| `EADDRINUSE 1337` or `3000`                        | Another Strapi or Next is already running; never run two `strapi develop` in the same folder                                                                                                     |
+| Strapi: `Environment check failed`                 | A variable is missing or still `change-me` in `apps/cms/.env`; the message lists them                                                                                                            |
+| Next: `Invalid environment variables` (production) | `STRAPI_URL` and `REVALIDATE_SECRET` are required in production                                                                                                                                  |
+| `connect ECONNREFUSED 5432`                        | Docker not started: `docker compose up -d db`, then `docker compose ps`                                                                                                                          |
+| Login: "Too many attempts"                         | Strapi allows 10 logins per minute per IP; wait a minute                                                                                                                                         |
+| Google: "access blocked"                           | Google app in testing mode: add your address in Google Auth Platform → Audience → Test users                                                                                                     |
+| No confirmation or reset mail arrives              | Mailpit not started (`docker compose up -d mailpit`) or `SMTP_HOST` empty; read mails at http://localhost:8025. Mailpit never delivers to a real inbox: use Gmail or Resend for that (section 1) |
+| Resend: `550 You can only send testing emails…`    | Free tier without a verified domain: only the Resend account's own address receives mail                                                                                                         |
+| Login: "address not confirmed yet"                 | Click the link in the confirmation mail, or use "resend the link"; only the newest mail is valid                                                                                                 |
+| Integration tests: `Refusing to reset`             | The target database does not end with `_test`; check `DATABASE_TEST_NAME`                                                                                                                        |
 
-## 13. Evolutions
+## 12. Evolutions
 
 The mockup's tabs (Trending, For you, Unanswered), compact view, pinned topics, "Useful" and view counters, accent-insensitive search (`unaccent`), "Useful" votes and best answer, PostgreSQL full-text search, public reader profile, email change with confirmation, branded page for an expired confirmation link, typed OpenAPI generation from Strapi, `jwtManagement: 'refresh'`, deployment: Next.js on Vercel, Strapi on Railway or Strapi Cloud.
 
