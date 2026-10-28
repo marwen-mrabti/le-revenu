@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 
+import { appUrl } from '@/lib/app-url';
 import { localePrefix, requestLocale } from '@/lib/i18n/request-locale';
 
 /**
@@ -10,11 +11,10 @@ import { localePrefix, requestLocale } from '@/lib/i18n/request-locale';
 export function GET(request: NextRequest): Response {
   const prefix = localePrefix(requestLocale(request));
   const code = request.nextUrl.searchParams.get('code') ?? '';
-  const target = new URL(
+  const target = appUrl(
     code.length >= 20 && code.length <= 512
       ? `${prefix}/reset-password`
       : `${prefix}/forgot-password`,
-    request.url,
   );
   if (target.pathname.endsWith('/reset-password')) target.searchParams.set('code', code);
   return Response.redirect(target, 302);

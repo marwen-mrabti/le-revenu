@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 
+import { appUrl } from '@/lib/app-url';
 import { localePrefix, requestLocale } from '@/lib/i18n/request-locale';
 
 /**
@@ -9,5 +10,5 @@ import { localePrefix, requestLocale } from '@/lib/i18n/request-locale';
  */
 export function GET(request: NextRequest): Response {
   const prefix = localePrefix(requestLocale(request));
-  return Response.redirect(new URL(`${prefix}/login?confirmed=1`, request.url), 302);
+  return Response.redirect(appUrl(`${prefix}/login?confirmed=1`), 302);
 }
