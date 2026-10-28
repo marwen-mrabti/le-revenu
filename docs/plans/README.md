@@ -10,11 +10,12 @@ Every work branch starts with a plan in this folder, reviewed before any code is
 
 | #   | Plan                                                                                 | Branch                      | Status       |
 | --- | ------------------------------------------------------------------------------------ | --------------------------- | ------------ |
-| 01  | [i18n foundation](01-i18n-foundation.md)                                             | `feature/i18n-foundation`   | done, in PR  |
-| 02  | [Strapi content types, permissions, seed, tests](02-cms-content-types.md)            | `feature/cms-content-types` | done, in PR  |
-| 03  | [Discussion list](03-discussion-list.md)                                             | `feature/discussion-list`   | done, in PR  |
+| 01  | [i18n foundation](01-i18n-foundation.md)                                             | `feature/i18n-foundation`   | done, merged |
+| 02  | [Strapi content types, permissions, seed, tests](02-cms-content-types.md)            | `feature/cms-content-types` | done, merged |
+| 03  | [Discussion list](03-discussion-list.md)                                             | `feature/discussion-list`   | done, merged |
 | 04  | [Authentication: sign-up, login, Google](04-auth.md)                                 | `feature/auth`              | done, merged |
-| 05  | [Account: reset, confirmation, account page, Google profile, islands](05-account.md) | `feature/account`           | done, in PR  |
+| 05  | [Account: reset, confirmation, account page, Google profile, islands](05-account.md) | `feature/account`           | done, merged |
 | 06  | [Discussion detail and replies](06-discussion-detail.md)                             | `feature/discussion-detail` | done, merged |
 | 07  | [Create a discussion](07-discussion-create.md)                                       | `feature/discussion-create` | done, merged |
-| 08  | [Docker Compose for the three services](08-docker.md)                                | `feature/docker`            | done, in PR  |
+| 08  | [Docker Compose for the three services](08-docker.md)                                | `feature/docker`            | done, merged |
+| 09  | [Deployment: Vercel + Railway](09-deployment.md)                                     | `feature/deployment`        | approved     |

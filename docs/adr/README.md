@@ -14,3 +14,4 @@ Short records of the decisions that shape this codebase. Format: context, decisi
 | [0008](0008-forum-api-rules-in-strapi.md)            | Forum rules enforced in Strapi, document ids only, tests over HTTP    | Accepted |
 | [0009](0009-session-cookie-and-google-login.md)      | Session cookie set by Next.js, Google login through Strapi's provider | Accepted |
 | [0010](0010-mailer-confirmation-google-linking.md)   | Mailer, email confirmation, account page and Google account linking   | Accepted |
+| [0011](0011-hosting-vercel-railway.md)               | Hosting: Next.js on Vercel, Strapi and PostgreSQL on Railway          | Accepted |

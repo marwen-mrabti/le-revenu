@@ -18,10 +18,11 @@ Test technique développeur full stack · Next.js 16 · Strapi 5 · PostgreSQL (
 6. [API](#6-api)
 7. [Tests](#7-tests)
 8. [Qualité et CI/CD](#8-qualité-et-cicd)
-9. [Structure du dépôt](#9-structure-du-dépôt)
-10. [Choix d'architecture](#10-choix-darchitecture)
-11. [Problèmes fréquents](#11-problèmes-fréquents)
-12. [Évolutions](#12-évolutions)
+9. [Déploiement](#9-déploiement)
+10. [Structure du dépôt](#10-structure-du-dépôt)
+11. [Choix d'architecture](#11-choix-darchitecture)
+12. [Problèmes fréquents](#12-problèmes-fréquents)
+13. [Évolutions](#13-évolutions)
 
 ## 1. Lancer le projet
 
@@ -260,7 +261,27 @@ Bout en bout (`apps/web/e2e`, Playwright) : connexion et confidentialité de la 
 - **GitHub Actions** : lint et format, type-check, tests unitaires, tests d'intégration Strapi sur un service PostgreSQL (`apps/cms/.env.ci`), build, les deux images Docker, sur chaque PR vers `development` et `main`.
 - Détails : [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-## 9. Structure du dépôt
+## 9. Déploiement
+
+Mêmes images et mêmes noms de variables que Docker, rien en dur (ADR-0011). La production, c'est Next.js sur **Vercel** et Strapi + PostgreSQL sur **Railway**, chacun déployant `main` via son intégration GitHub.
+
+| Élément    | Où                                                                      | Source de vérité                                                                                                                    |
+| ---------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Next.js    | Vercel, Root Directory `apps/web`, Node 24                              | `STRAPI_URL`, `NEXT_PUBLIC_STRAPI_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_GOOGLE_LOGIN`, `REVALIDATE_SECRET`, `AUTH_COOKIE_NAME`  |
+| Strapi     | Service Railway construit depuis `apps/cms/Dockerfile` (`railway.json`) | `apps/cms/.env.example`, avec `TRUST_PROXY=true`, `PUBLIC_URL`, `WEB_URL`, `WEBHOOK_URL`, `CORS_ORIGINS` sur les adresses publiques |
+| PostgreSQL | Plugin Postgres de Railway, réseau privé                                | `DATABASE_*` en références au plugin, `DATABASE_SSL=false`                                                                          |
+| Médias     | Volume Railway sur `/app/public/uploads`                                |                                                                                                                                     |
+| Mails      | SMTP Gmail (recette de la section 1.C) ou tout autre relais             | `SMTP_*`, `EMAIL_FROM`                                                                                                              |
+
+`TRUST_PROXY=true` fait confiance au `X-Forwarded-Proto` du proxy : sans lui, la connexion Google échoue derrière un proxy qui termine le TLS avec « Cannot send secure cookie over unencrypted connection ». Le laisser à `false` pour Docker Compose et le développement.
+
+Ordre d'un premier déploiement : Railway (donne l'adresse de Strapi), puis Vercel (donne l'adresse du site), puis `WEB_URL`, `WEBHOOK_URL` et `CORS_ORIGINS` sur Railway et un redéploiement ; ajouter `https://<strapi>/api/connect/google/callback` au client OAuth Google. Le premier visiteur de `/admin` crée le compte administrateur. Après chaque déploiement :
+
+```bash
+./scripts/smoke.sh https://<site> https://<strapi>      # santé, liste, connexion, mot de passe oublié, garde du webhook
+```
+
+## 10. Structure du dépôt
 
 ```
 apps/cms/                       Strapi 5 (TypeScript)
@@ -296,7 +317,7 @@ docs/                           architecture.md, data-model.md, adr/ (décisions
 apps/cms/Dockerfile · apps/web/Dockerfile · docker-compose.yml (db, mailpit, et cms + web derrière le profil `apps`) · turbo.json · pnpm-workspace.yaml
 ```
 
-## 10. Choix d'architecture
+## 11. Choix d'architecture
 
 Chaque décision structurante est consignée dans un ADR (Architecture Decision Record) : [`docs/adr/`](docs/adr/README.md).
 
@@ -312,8 +333,9 @@ Chaque décision structurante est consignée dans un ADR (Architecture Decision 
 | 0008 | Règles du forum appliquées dans Strapi, identifiants documentId uniquement, tests d'intégration en HTTP      |
 | 0009 | Cookie de session posé par Next.js, connexion Google via le fournisseur Strapi                               |
 | 0010 | Messagerie, confirmation de l'e-mail, page compte et liaison des comptes Google                              |
+| 0011 | Hébergement : Next.js sur Vercel, Strapi et PostgreSQL sur Railway                                           |
 
-## 11. Problèmes fréquents
+## 12. Problèmes fréquents
 
 | Symptôme                                            | Cause et remède                                                                                                                                                                                       |
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -330,9 +352,9 @@ Chaque décision structurante est consignée dans un ADR (Architecture Decision 
 | Connexion : « adresse pas encore confirmée »        | Cliquer le lien du mail de confirmation, ou « Renvoyer le lien » ; seul le mail le plus récent est valable                                                                                            |
 | Tests d'intégration : `Refusing to reset`           | La base visée ne finit pas par `_test` ; vérifier `DATABASE_TEST_NAME`                                                                                                                                |
 
-## 12. Évolutions
+## 13. Évolutions
 
-Onglets de la maquette (Tendances, Pour vous, Sans réponse), vue compacte, sujets épinglés, compteurs « Utile » et vues, recherche insensible aux accents (`unaccent`), votes « Utile » et meilleure réponse, recherche plein texte PostgreSQL, profil public des lecteurs, changement d'e-mail avec confirmation, page aux couleurs du site pour un lien de confirmation expiré, génération OpenAPI typée depuis Strapi, `jwtManagement: 'refresh'`, déploiement : Next.js sur Vercel, Strapi sur Railway ou Strapi Cloud.
+Onglets de la maquette (Tendances, Pour vous, Sans réponse), vue compacte, sujets épinglés, compteurs « Utile » et vues, recherche insensible aux accents (`unaccent`), votes « Utile » et meilleure réponse, recherche plein texte PostgreSQL, profil public des lecteurs, changement d'e-mail avec confirmation, page aux couleurs du site pour un lien de confirmation expiré, génération OpenAPI typée depuis Strapi, `jwtManagement: 'refresh'`, un domaine propre et des déploiements de prévisualisation Vercel sur un Strapi de staging.
 
 ---
 
