@@ -1,4 +1,4 @@
-# 09 — Deployment: Next.js on Vercel, Strapi + PostgreSQL on Railway
+# 09 — Deployment: Next.js on Vercel, Strapi on Render, PostgreSQL on Neon
 
 Branch: `feature/deployment` · Target: `development` · Estimate: 3 h · Status: approved
 
@@ -8,8 +8,8 @@ A public URL where a reviewer opens the site with the 18 demo discussions, signs
 
 ## 2. Scope
 
-**In:** Railway config as code, `TRUST_PROXY` for the TLS proxy, smoke script, README section, ADR, the two dashboards set up, the production run verified.
-**Out:** custom domain (not needed for the cookies, costs money); Vercel preview deployments (one Strapi, one database); CI-driven deploys (the GitHub integrations of both providers deploy `main`); another mail relay (Gmail works; five variables to switch).
+**In:** CI publishing the Strapi image to GitHub's registry, `render.yaml` Blueprint, keep-alive workflow, `TRUST_PROXY` for the TLS proxy, smoke script, README section, ADR, the dashboards set up, the production run verified.
+**Out:** custom domain (not needed for the cookies, costs money); Vercel preview deployments (one Strapi, one database); a paid plan anywhere (owner's decision: nothing paid; Railway was prepared first and dropped when its trial turned out expired); another mail relay (Gmail works; five variables to switch).
 
 ## 3. Acceptance criteria
 
@@ -36,10 +36,12 @@ No entity or API change. Hosting map:
 browser ──https──▶ Vercel (Next.js, apps/web)            cookie lr_session on <web>.vercel.app
                       │ STRAPI_URL (server side)
                       ▼
-                   Railway service cms (apps/cms/Dockerfile) ──private network──▶ Railway Postgres
-                      │ WEBHOOK_URL=<web> (x-revalidate-secret)        volume /app/public/uploads
+                   Render web service le-revenu-cms (free, Frankfurt) ──TLS──▶ Neon Postgres (free)
+                      │ image ghcr.io/marwen-mrabti/le-revenu-cms, pushed by CI on main, deploy hook
+                      │ WEBHOOK_URL=<web> (x-revalidate-secret)
                       ▼
                    Vercel /api/revalidate ─▶ revalidateTag
+keep-alive: GitHub Actions ──every 10 min──▶ <cms>/_health
 mails:  Strapi ──SMTP 465──▶ Gmail ──▶ reader; links built from WEB_URL
 google: browser ─▶ <cms>/api/connect/google ─▶ Google ─▶ <cms>/api/connect/google/callback ─▶ <web>/auth/google/callback
 ```
@@ -47,11 +49,14 @@ google: browser ─▶ <cms>/api/connect/google ─▶ Google ─▶ <cms>/api/c
 ## 5. Design
 
 - `apps/cms/config/server.ts`: `proxy: { koa: env.bool('TRUST_PROXY', false), ipHeader: 'X-Forwarded-For', maxIpsCount: 1 }`. Strapi 5 reads `server.proxy.koa`; a bare boolean is ignored.
-- `railway.json` at the repository root: Dockerfile builder with `apps/cms/Dockerfile` (the image builds from the root, like Compose and CI), healthcheck `/_health` with a 180 s budget (the first boot seeds the demo data), restart on failure, watch paths `apps/cms/**`, `pnpm-lock.yaml`.
+- CI (`docker-build` job): on a push to `main`, logs in to `ghcr.io`, pushes `le-revenu-cms:latest` and `:<sha>`, calls the Render deploy hook when the `RENDER_DEPLOY_HOOK` secret exists. PRs still build without pushing. The package is public (one click in GitHub after the first push), so Render needs no registry credential.
+- `render.yaml`: web service `le-revenu-cms`, `runtime: image`, free plan, Frankfurt, `healthCheckPath: /_health`, literal values for the non-secret variables, `sync: false` for secrets and addresses, `generateValue` for the five Strapi salts. Creating the service through the API uses the same values.
+- `.github/workflows/keep-alive.yml`: cron every 10 minutes, `curl <CMS_URL>/_health`, no-op without the repository variable.
+- Neon: `DATABASE_URL` with `sslmode=require`, `DATABASE_SSL=true`; `config/database.ts` already passes a connection string and an SSL object.
 - Vercel: Root Directory `apps/web`, framework Next.js, pnpm from `packageManager`; no `vercel.json` unless the first deploy needs one.
-- Variables, Railway `cms`: `HOST=0.0.0.0`, `PORT=1337`, `NODE_ENV=production`, `TRUST_PROXY=true`, `PUBLIC_URL`, `WEB_URL`, `WEBHOOK_URL` (= `WEB_URL`), `CORS_ORIGINS`, `DATABASE_CLIENT=postgres`, `DATABASE_HOST/PORT/NAME/USERNAME/PASSWORD` as references to the Postgres plugin, `DATABASE_SSL=false`, the seven secrets (`APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET`, `TRANSFER_TOKEN_SALT`, `JWT_SECRET`, `ENCRYPTION_KEY`, `REVALIDATE_SECRET`), `SEED_DEMO_DATA=true` (idempotent), `SMTP_*` and `EMAIL_FROM` (Gmail), `GOOGLE_CLIENT_ID/SECRET`.
+- Variables, Render `le-revenu-cms`: `HOST=0.0.0.0`, `PORT=1337`, `NODE_ENV=production`, `TRUST_PROXY=true`, `PUBLIC_URL`, `WEB_URL`, `WEBHOOK_URL` (= `WEB_URL`), `CORS_ORIGINS`, `DATABASE_CLIENT=postgres`, `DATABASE_URL` (Neon), `DATABASE_SSL=true`, the seven secrets (`APP_KEYS`, `API_TOKEN_SALT`, `ADMIN_JWT_SECRET`, `TRANSFER_TOKEN_SALT`, `JWT_SECRET`, `ENCRYPTION_KEY`, `REVALIDATE_SECRET`), `SEED_DEMO_DATA=true` (idempotent), `SMTP_*` and `EMAIL_FROM` (Gmail), `GOOGLE_CLIENT_ID/SECRET`.
 - Variables, Vercel: `STRAPI_URL`, `NEXT_PUBLIC_STRAPI_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_GOOGLE_LOGIN=true`, `REVALIDATE_SECRET` (same value), `AUTH_COOKIE_NAME=lr_session`.
-- Order: Railway first (gives the cms domain), Vercel second (gives the web domain), then `WEB_URL`, `WEBHOOK_URL`, `CORS_ORIGINS` on Railway and one redeploy. Google Cloud: add `https://<cms>/api/connect/google/callback`.
+- Order: merge to `main` (CI publishes the image), Render first (gives the cms domain), Vercel second (gives the web domain), then `WEB_URL`, `WEBHOOK_URL`, `CORS_ORIGINS` on Render and one redeploy. Google Cloud: add `https://<cms>/api/connect/google/callback`.
 - Secrets are generated locally (`openssl rand -base64 32`) into a file outside the repository and pasted into the dashboards; never in a commit, a log or a chat.
 
 ## 6. Phases and steps
@@ -59,16 +64,16 @@ google: browser ─▶ <cms>/api/connect/google ─▶ Google ─▶ <cms>/api/c
 ### Phase A — Code and docs (1 h)
 
 1. `TRUST_PROXY` in `config/server.ts`, `.env.example`, test.
-2. `railway.json`, `scripts/smoke.sh`.
+2. CI image push, `render.yaml`, keep-alive workflow, `scripts/smoke.sh`.
 3. README EN + FR "Deployment" section, ADR-0011, this plan, tracker.
    Exit: `pnpm verify` green, Docker stack unchanged.
 
 ### Phase B — Accounts and variables (1 h, user + assistant)
 
-1. User: Railway account, project `le-revenu`, GitHub repo connected on `main`, Postgres plugin, Hobby plan or trial credit.
-2. Assistant: service settings (root `/`, config `railway.json`), variables, volume; first deploy; cms domain.
+1. User: Render account (free), API key in a local file; Neon account (free), project `le-revenu` in Frankfurt, connection string in a local file; make the GitHub package `le-revenu-cms` public after the first CI push.
+2. Assistant: Render service created through the API from the `render.yaml` values, variables set, first deploy, cms domain; `RENDER_DEPLOY_HOOK` secret and `CMS_URL` variable on the repository.
 3. Assistant (user's Vercel CLI login): `vercel link`, variables, production deploy; web domain.
-4. Both: `WEB_URL`/`WEBHOOK_URL`/`CORS_ORIGINS` on Railway, redeploy; Google redirect URI.
+4. Both: `WEB_URL`/`WEBHOOK_URL`/`CORS_ORIGINS` on Render, redeploy; Google redirect URI.
    Exit: `scripts/smoke.sh` green.
 
 ### Phase C — Verification and hand-over (1 h)
@@ -94,17 +99,18 @@ google: browser ─▶ <cms>/api/connect/google ─▶ Google ─▶ <cms>/api/c
 - [ ] Google login on the public site.
 - [ ] Edit a title in `/admin`, reload the discussion page: new title.
 - [ ] Forgot password mail, reset, login with the new password.
-- [ ] Railway logs: `Strapi started successfully`, no warning about mails.
+- [ ] Render logs: `Strapi started successfully`, no warning about mails.
 
 ## 9. Risks and open questions
 
-| Risk or question                                            | Mitigation or decision needed                                                  |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Strapi image 730 MB, about 500 MB RAM at run time           | Fits Railway Hobby; healthcheck budget 180 s for the first boot                |
-| Trial credit runs out and the service stops silently        | Hobby plan ($5/month credit included)                                          |
-| Gmail app password tied to one mailbox, about 500 mails/day | Enough for a demo; another relay later, five variables                         |
-| Vercel build fails on env validation                        | Variables missing, no code change; `SKIP_ENV_VALIDATION` stays for Docker only |
-| Google refuses the callback                                 | Redirect URI must be exactly `https://<cms>/api/connect/google/callback`       |
+| Risk or question                                            | Mitigation or decision needed                                                          |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Strapi on 0.1 CPU and 512 MB                                | Measured 180 MB at run time under a 512 MB cap; boot about one minute; keep-alive ping |
+| Free service sleeps after 15 idle minutes                   | GitHub Actions ping every 10 minutes; 744 h a month fits the 750 free hours            |
+| Render's filesystem is ephemeral                            | The site uploads nothing; admin media would be lost on deploy, documented              |
+| Gmail app password tied to one mailbox, about 500 mails/day | Enough for a demo; another relay later, five variables                                 |
+| Vercel build fails on env validation                        | Variables missing, no code change; `SKIP_ENV_VALIDATION` stays for Docker only         |
+| Google refuses the callback                                 | Redirect URI must be exactly `https://<cms>/api/connect/google/callback`               |
 
 ## 10. Definition of done
 

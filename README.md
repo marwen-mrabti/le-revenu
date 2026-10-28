@@ -263,19 +263,20 @@ End to end (`apps/web/e2e`, Playwright): login and session privacy, i18n, 404 / 
 
 ## 9. Deployment
 
-Same images and variable names as Docker, nothing hard-coded (ADR-0011). Production is Next.js on **Vercel** and Strapi + PostgreSQL on **Railway**, both deploying `main` through their GitHub integration.
+Same image and variable names as Docker, nothing hard-coded, nothing paid (ADR-0011). Production is Next.js on **Vercel**, Strapi on **Render**'s free plan from the image CI publishes, PostgreSQL on **Neon**'s free plan.
 
-| Piece      | Where                                                             | Source of truth                                                                                                                    |
-| ---------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Next.js    | Vercel, Root Directory `apps/web`, Node 24                        | `STRAPI_URL`, `NEXT_PUBLIC_STRAPI_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_GOOGLE_LOGIN`, `REVALIDATE_SECRET`, `AUTH_COOKIE_NAME` |
-| Strapi     | Railway service built from `apps/cms/Dockerfile` (`railway.json`) | `apps/cms/.env.example`, with `TRUST_PROXY=true`, `PUBLIC_URL`, `WEB_URL`, `WEBHOOK_URL`, `CORS_ORIGINS` on the public addresses   |
-| PostgreSQL | Railway Postgres plugin, private network                          | `DATABASE_*` as references to the plugin, `DATABASE_SSL=false`                                                                     |
-| Media      | Railway volume on `/app/public/uploads`                           |                                                                                                                                    |
-| Mails      | Gmail SMTP (section 1.C recipe) or any relay                      | `SMTP_*`, `EMAIL_FROM`                                                                                                             |
+| Piece      | Where                                                                                                 | Source of truth                                                                                                                    |
+| ---------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Next.js    | Vercel, Root Directory `apps/web`, Node 24, deploys `main`                                            | `STRAPI_URL`, `NEXT_PUBLIC_STRAPI_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_GOOGLE_LOGIN`, `REVALIDATE_SECRET`, `AUTH_COOKIE_NAME` |
+| Strapi     | Render web service, free plan, Frankfurt, image `ghcr.io/marwen-mrabti/le-revenu-cms` (`render.yaml`) | `apps/cms/.env.example`, with `TRUST_PROXY=true`, `PUBLIC_URL`, `WEB_URL`, `WEBHOOK_URL`, `CORS_ORIGINS` on the public addresses   |
+| Image      | Built and pushed by CI on every merge to `main`, then Render's deploy hook is called                  | `.github/workflows/ci.yml`, secret `RENDER_DEPLOY_HOOK`                                                                            |
+| PostgreSQL | Neon free project (Render's free database is deleted after 30 days)                                   | `DATABASE_URL` with `sslmode=require`, `DATABASE_SSL=true`                                                                         |
+| Keep-alive | GitHub Actions pings `/_health` every 10 minutes (free Render services sleep after 15)                | `.github/workflows/keep-alive.yml`, repository variable `CMS_URL`                                                                  |
+| Mails      | Gmail SMTP (section 1.C recipe) or any relay                                                          | `SMTP_*`, `EMAIL_FROM`                                                                                                             |
 
-`TRUST_PROXY=true` makes Strapi trust the proxy's `X-Forwarded-Proto`: without it, the Google login fails behind a TLS-terminating proxy with "Cannot send secure cookie over unencrypted connection". Keep it `false` for Docker Compose and development.
+`TRUST_PROXY=true` makes Strapi trust the proxy's `X-Forwarded-Proto`: without it, the Google login fails behind a TLS-terminating proxy with "Cannot send secure cookie over unencrypted connection". Keep it `false` for Docker Compose and development. Render's filesystem is ephemeral: admin uploads do not survive a deploy (the site itself uploads nothing).
 
-Order on a first deploy: Railway (gives the Strapi address), then Vercel (gives the site address), then set `WEB_URL`, `WEBHOOK_URL` and `CORS_ORIGINS` on Railway and redeploy once; add `https://<strapi>/api/connect/google/callback` to the Google OAuth client. The first visitor of `/admin` creates the administrator account. After every deploy:
+Order on a first deploy: merge to `main` so CI publishes the image (make the GitHub package public once), create the Render service from `render.yaml` (Dashboard → New → Blueprint, or the API) with the Neon `DATABASE_URL`, then Vercel (gives the site address), then set `WEB_URL`, `WEBHOOK_URL` and `CORS_ORIGINS` on Render and redeploy once; add `https://<strapi>/api/connect/google/callback` to the Google OAuth client. The first visitor of `/admin` creates the administrator account. After every deploy:
 
 ```bash
 ./scripts/smoke.sh https://<site> https://<strapi>      # health, list, login, forgot-password, webhook guard
@@ -333,7 +334,7 @@ Every structural decision is recorded as an ADR (Architecture Decision Record): 
 | 0008 | Forum rules enforced in Strapi, documentId identifiers only, integration tests over HTTP             |
 | 0009 | Session cookie set by Next.js, Google login through Strapi's provider                                |
 | 0010 | Mailer, email confirmation, account page and Google account linking                                  |
-| 0011 | Hosting: Next.js on Vercel, Strapi and PostgreSQL on Railway                                         |
+| 0011 | Hosting: Next.js on Vercel, Strapi on Render, PostgreSQL on Neon                                     |
 
 ## 12. Troubleshooting
 

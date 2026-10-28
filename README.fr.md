@@ -263,19 +263,20 @@ Bout en bout (`apps/web/e2e`, Playwright) : connexion et confidentialité de la 
 
 ## 9. Déploiement
 
-Mêmes images et mêmes noms de variables que Docker, rien en dur (ADR-0011). La production, c'est Next.js sur **Vercel** et Strapi + PostgreSQL sur **Railway**, chacun déployant `main` via son intégration GitHub.
+Même image et mêmes noms de variables que Docker, rien en dur, rien de payant (ADR-0011). La production, c'est Next.js sur **Vercel**, Strapi sur l'offre gratuite de **Render** à partir de l'image publiée par la CI, PostgreSQL sur l'offre gratuite de **Neon**.
 
-| Élément    | Où                                                                      | Source de vérité                                                                                                                    |
-| ---------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Next.js    | Vercel, Root Directory `apps/web`, Node 24                              | `STRAPI_URL`, `NEXT_PUBLIC_STRAPI_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_GOOGLE_LOGIN`, `REVALIDATE_SECRET`, `AUTH_COOKIE_NAME`  |
-| Strapi     | Service Railway construit depuis `apps/cms/Dockerfile` (`railway.json`) | `apps/cms/.env.example`, avec `TRUST_PROXY=true`, `PUBLIC_URL`, `WEB_URL`, `WEBHOOK_URL`, `CORS_ORIGINS` sur les adresses publiques |
-| PostgreSQL | Plugin Postgres de Railway, réseau privé                                | `DATABASE_*` en références au plugin, `DATABASE_SSL=false`                                                                          |
-| Médias     | Volume Railway sur `/app/public/uploads`                                |                                                                                                                                     |
-| Mails      | SMTP Gmail (recette de la section 1.C) ou tout autre relais             | `SMTP_*`, `EMAIL_FROM`                                                                                                              |
+| Élément    | Où                                                                                                         | Source de vérité                                                                                                                    |
+| ---------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Next.js    | Vercel, Root Directory `apps/web`, Node 24, déploie `main`                                                 | `STRAPI_URL`, `NEXT_PUBLIC_STRAPI_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_GOOGLE_LOGIN`, `REVALIDATE_SECRET`, `AUTH_COOKIE_NAME`  |
+| Strapi     | Service web Render, offre gratuite, Francfort, image `ghcr.io/marwen-mrabti/le-revenu-cms` (`render.yaml`) | `apps/cms/.env.example`, avec `TRUST_PROXY=true`, `PUBLIC_URL`, `WEB_URL`, `WEBHOOK_URL`, `CORS_ORIGINS` sur les adresses publiques |
+| Image      | Construite et publiée par la CI à chaque fusion dans `main`, puis appel du hook de déploiement Render      | `.github/workflows/ci.yml`, secret `RENDER_DEPLOY_HOOK`                                                                             |
+| PostgreSQL | Projet Neon gratuit (la base gratuite de Render est supprimée après 30 jours)                              | `DATABASE_URL` avec `sslmode=require`, `DATABASE_SSL=true`                                                                          |
+| Réveil     | GitHub Actions appelle `/_health` toutes les 10 minutes (un service Render gratuit s'endort après 15)      | `.github/workflows/keep-alive.yml`, variable de dépôt `CMS_URL`                                                                     |
+| Mails      | SMTP Gmail (recette de la section 1.C) ou tout autre relais                                                | `SMTP_*`, `EMAIL_FROM`                                                                                                              |
 
-`TRUST_PROXY=true` fait confiance au `X-Forwarded-Proto` du proxy : sans lui, la connexion Google échoue derrière un proxy qui termine le TLS avec « Cannot send secure cookie over unencrypted connection ». Le laisser à `false` pour Docker Compose et le développement.
+`TRUST_PROXY=true` fait confiance au `X-Forwarded-Proto` du proxy : sans lui, la connexion Google échoue derrière un proxy qui termine le TLS avec « Cannot send secure cookie over unencrypted connection ». Le laisser à `false` pour Docker Compose et le développement. Le système de fichiers de Render est éphémère : les envois de fichiers depuis l'admin ne survivent pas à un déploiement (le site lui-même n'envoie aucun fichier).
 
-Ordre d'un premier déploiement : Railway (donne l'adresse de Strapi), puis Vercel (donne l'adresse du site), puis `WEB_URL`, `WEBHOOK_URL` et `CORS_ORIGINS` sur Railway et un redéploiement ; ajouter `https://<strapi>/api/connect/google/callback` au client OAuth Google. Le premier visiteur de `/admin` crée le compte administrateur. Après chaque déploiement :
+Ordre d'un premier déploiement : fusionner dans `main` pour que la CI publie l'image (rendre le paquet GitHub public une fois), créer le service Render depuis `render.yaml` (Dashboard → New → Blueprint, ou l'API) avec le `DATABASE_URL` de Neon, puis Vercel (donne l'adresse du site), puis `WEB_URL`, `WEBHOOK_URL` et `CORS_ORIGINS` sur Render et un redéploiement ; ajouter `https://<strapi>/api/connect/google/callback` au client OAuth Google. Le premier visiteur de `/admin` crée le compte administrateur. Après chaque déploiement :
 
 ```bash
 ./scripts/smoke.sh https://<site> https://<strapi>      # santé, liste, connexion, mot de passe oublié, garde du webhook
@@ -333,7 +334,7 @@ Chaque décision structurante est consignée dans un ADR (Architecture Decision 
 | 0008 | Règles du forum appliquées dans Strapi, identifiants documentId uniquement, tests d'intégration en HTTP      |
 | 0009 | Cookie de session posé par Next.js, connexion Google via le fournisseur Strapi                               |
 | 0010 | Messagerie, confirmation de l'e-mail, page compte et liaison des comptes Google                              |
-| 0011 | Hébergement : Next.js sur Vercel, Strapi et PostgreSQL sur Railway                                           |
+| 0011 | Hébergement : Next.js sur Vercel, Strapi sur Render, PostgreSQL sur Neon                                     |
 
 ## 12. Problèmes fréquents
 
